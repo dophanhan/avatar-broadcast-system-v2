@@ -1399,49 +1399,76 @@
           
           uploadingLocalPpt.value = true;
           addLog('📤 正在上传 PPT 文件...', 'info');
+          addLog(`📊 上传前：pptConfig.imported=${pptConfig.imported}`, 'info');
           
           try {
-            // 创建 FormData
-            const formData = new FormData();
-            formData.append('file', localPptFile.value);
-            formData.append('filename', localPptFile.value.name);
+            // 读取文件为 base64
+            const fileToBase64 = (file) => {
+              return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+              });
+            };
             
-            // 上传到后端
+            const base64Data = await fileToBase64(localPptFile.value);
+            addLog(`📊 文件已转换为 base64，长度：${base64Data.length}`, 'info');
+            
+            // 发送到后端
             const res = await fetch(`${API_BASE_URL}/ppt/upload`, {
               method: 'POST',
-              body: formData
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                file: base64Data,
+                filename: localPptFile.value.name
+              })
             });
             
+            addLog(`📊 后端响应状态：${res.status}`, 'info');
+            
             const result = await res.json();
-            if (result.code !== 0) throw new Error(result.msg);
+            addLog(`📊 后端返回数据：${JSON.stringify(result)}`, 'info');
+            
+            if (result.code !== 0) {
+              throw new Error(result.msg || '上传失败');
+            }
             
             // 解析成功，保存 PPT 数据
             pptConfig.imported = true;
             pptConfig.pptId = result.data.ppt_id || 'local-ppt-' + Date.now();
             pptConfig.pptTitle = result.data.ppt_title || localPptFile.value.name;
-            pptConfig.totalPages = result.data.total_pages || result.data.pages.length;
+            pptConfig.totalPages = result.data.total_pages || (result.data.pages ? result.data.pages.length : 0);
             pptConfig.pages = result.data.pages || [];
-            pptConfig.isLocal = true;  // 标记为本地上传
+            pptConfig.isLocal = true;
+            
+            // 强制触发响应式更新
+            addLog(`📊 上传后：pptConfig.imported=${pptConfig.imported}, totalPages=${pptConfig.totalPages}, pages.length=${pptConfig.pages.length}`, 'success');
             
             currentPptPage.value = 1;
             currentEditPage.value = 1;
             
             // 预加载图片
-            await preloadPptImages();
+            if (pptConfig.pages.length > 0) {
+              await preloadPptImages();
+            }
             
             pptImportStatus.value = { type: 'success', text: `PPT 解析成功，共${pptConfig.totalPages}页` };
             addLog('✅ PPT 解析成功，可生成翻页节点', 'success');
-            addLog(`📊 检查：pptConfig.imported=${pptConfig.imported}, config.text="${config.text ? '已填写' : '未填写'}"`, 'info');
             
             // 清空文件选择
             localPptFile.value = null;
-            if (this.$refs.pptFileInput) {
-              this.$refs.pptFileInput.value = '';
+            const fileInput = document.querySelector('input[type="file"]');
+            if (fileInput) {
+              fileInput.value = '';
             }
             
           } catch (e) {
             pptImportStatus.value = { type: 'error', text: `上传失败：${e.message}` };
             addLog(`❌ PPT 上传失败：${e.message}`, 'error');
+            addLog(`📊 失败时 pptConfig.imported=${pptConfig.imported}`, 'error');
           } finally {
             uploadingLocalPpt.value = false;
           }
