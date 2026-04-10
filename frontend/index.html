@@ -1451,16 +1451,11 @@
               isLocal: true
             };
             
-            // 逐个属性更新
-            Object.keys(newPptConfig).forEach(key => {
-              pptConfig[key] = newPptConfig[key];
-            });
-            
-            // 强制刷新
+            // ✅ 修复：用 Object.assign 替换逐个赋值，触发 Vue 响应式
+            Object.assign(pptConfig, newPptConfig);
             await nextTick();
             
-            addLog(`📊 上传后：pptConfig.imported=${pptConfig.imported}, totalPages=${pptConfig.totalPages}, pages.length=${pptConfig.pages.length}`, 'success');
-            addLog(`📊 调试：JSON.stringify(pptConfig)=${JSON.stringify(pptConfig)}`, 'info');
+            addLog(`📊 上传后：pptConfig.imported=${pptConfig.imported}, totalPages=${pptConfig.totalPages}`, 'success');
             
             currentPptPage.value = 1;
             currentEditPage.value = 1;
