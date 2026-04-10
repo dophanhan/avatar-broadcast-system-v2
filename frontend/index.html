@@ -496,6 +496,10 @@
       color: #e65100;
       border: 1px solid #ffe0b2;
     }
+    // 防止 Vue 初始化时闪现
+    [v-cloak] {
+      display: none !important;
+    }
   </style>
 </head>
 <body>
@@ -870,7 +874,7 @@
       </div>
 
       <!-- 保存项目弹窗（Vue渲染范围内，响应式完全生效） -->
-      <div class="modal-mask" v-if="saveProjectModalOpen" @click.self="closeSaveModal">
+      <div class="modal-mask" v-if="saveProjectModalOpen" v-cloak @click.self="closeSaveModal">
         <div class="modal-box" @click.stop>
           <div class="modal-title">保存项目到云端</div>
           <div class="form-group">
@@ -2217,10 +2221,14 @@
         });
 
         onMounted(async () => {
-          // 双重兜底关闭弹窗
+          // 三重兜底关闭弹窗，杜绝任何闪现
           saveProjectModalOpen.value = false;
           await nextTick(() => {
             saveProjectModalOpen.value = false;
+            // 再次确认关闭
+            setTimeout(() => {
+              saveProjectModalOpen.value = false;
+            }, 0);
           });
           
           await loadCachedVideos();
