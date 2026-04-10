@@ -833,33 +833,33 @@
       </div>
     </div>
   </div>
-
-
-  <!-- 保存项目弹窗 (在 Vue 根节点内) -->
-  <div class="modal-mask" v-if="saveProjectModalOpen" @click.self="saveProjectModalOpen = false">
-    <div class="modal-box">
-      <div class="modal-title">保存项目到云端</div>
-      <div class="form-group">
-        <label>项目名称 *</label>
-        <input v-model="saveProjectForm.name" placeholder="请输入项目名称">
-      </div>
-      <div class="form-group">
-        <label>项目备注</label>
-        <textarea v-model="saveProjectForm.desc" placeholder="请输入项目备注（选填）"></textarea>
-      </div>
-      <div class="form-group">
-        <label>
-          <input type="checkbox" v-model="saveProjectForm.saveVideo">
-          同时保存成品视频到云端
-        </label>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-default" @click="saveProjectModalOpen = false">取消</button>
-        <button class="btn btn-primary" @click="confirmSaveProject" :disabled="!saveProjectForm.name">确认保存</button>
+  
+      <!-- 保存项目弹窗 - 移到 Vue 根节点内部 -->
+      <div class="modal-mask" v-if="saveProjectModalOpen" @click.self="closeSaveModal">
+        <div class="modal-box">
+          <div class="modal-title">保存项目到云端</div>
+          <div class="form-group">
+            <label>项目名称 *</label>
+            <input v-model="saveProjectForm.name" placeholder="请输入项目名称">
+          </div>
+          <div class="form-group">
+            <label>项目备注</label>
+            <textarea v-model="saveProjectForm.desc" placeholder="请输入项目备注（选填）" style="min-height: 80px;"></textarea>
+          </div>
+          <div class="form-group">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="checkbox" v-model="saveProjectForm.saveVideo">
+              同时保存成品视频到云端
+            </label>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-default" @click="closeSaveModal">取消</button>
+            <button class="btn btn-primary" @click="confirmSaveProject" :disabled="!saveProjectForm.name">确认保存</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
   <script>
     // IndexedDB 配置
@@ -1227,6 +1227,15 @@
           if (compositeCanvas.value) { compositeCanvas.value.width = canvasSize.width; compositeCanvas.value.height = canvasSize.height; }
         }
         function reImportPpt() { pptConfig.imported = false; pptConfig.pages = []; pageTurningNodes.value = []; pageTurningConfirmed.value = false; addLog('已清空 PPT 数据', 'info'); }
+        // 新增：关闭保存弹窗，重置表单
+        function closeSaveModal() {
+          saveProjectModalOpen.value = false;
+          saveProjectForm.name = '';
+          saveProjectForm.desc = '';
+          saveProjectForm.saveVideo = false;
+          addLog('已关闭项目保存弹窗', 'info');
+        }
+        
         function openSaveProjectModal() { saveProjectForm.name = ''; saveProjectForm.desc = ''; saveProjectForm.saveVideo = false; saveProjectModalOpen.value = true; }
         // ========== 新增工具函数结束 ==========
 
@@ -2220,9 +2229,7 @@
             window.history.replaceState({}, document.title, window.location.pathname);
             await importFeishuPpt(code);
           }
-          // ========== 新增结束 ==========
-          
-          // 确保弹窗默认关闭
+          // ========== 核心修复：强制初始化弹窗状态为关闭 ==========
           saveProjectModalOpen.value = false;
         });
 
@@ -2306,6 +2313,7 @@
           onModeChange,
           reImportPpt,
           openSaveProjectModal,
+          closeSaveModal,
           confirmSaveProject,
           reuseProject,
           editProject,
