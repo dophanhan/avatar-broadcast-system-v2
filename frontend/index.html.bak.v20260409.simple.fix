@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数字人播报系统 v3.0 - 修复版</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <script src="https://unpkg.com/vue@3.4.21/dist/vue.global.prod.js"></script>
+  <script type="module">
+    import { PlayerEvents, default as AvatarSDK } from './sdk/avatar-sdk-web/index.js?v=202604091024';
+    window.AVATAR_SDK = { AvatarSDK, PlayerEvents };
+    console.log('✅ SDK 模块加载成功:', AvatarSDK);
+  </script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Microsoft Yahei', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+    .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+    .main-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      padding: 30px;
+    }
+    .panel {
+      background: #f8f9fa;
+      border-radius: 15px;
+      padding: 25px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .panel h2 {
+      color: #667eea;
+      margin-bottom: 20px;
+      font-size: 1.5em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .form-group { margin-bottom: 20px; }
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 600;
+    }
+    select, textarea, input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 14px;
+      transition: all 0.3s;
+      font-family: inherit;
+    }
+    select:focus, textarea:focus, input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+    }
+    textarea {
+      resize: vertical;
+      min-height: 150px;
+    }
+    .btn {
+      padding: 14px 30px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102,126,234,0.4);
+    }
+    .btn-success {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      color: white;
+    }
+    .btn-success:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(17,153,142,0.4);
+    }
+    .btn-danger {
+      background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+      color: white;
+    }
+    .btn-danger:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(235,51,73,0.4);
+    }
+    .video-container {
+      position: relative;
+      width: 100%;
+      padding-bottom: 177.78%;
+      background: #000;
+      border-radius: 15px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .video-container canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .status-bar {
+      background: #f8f9fa;
+      padding: 15px 25px;
+      border-top: 1px solid #e0e0e0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: #666;
+    }
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #ccc;
+    }
+    .status-dot.active {
+      background: #38ef7d;
+      animation: pulse 2s infinite;
+    }
+    .status-dot.recording {
+      background: #eb3349;
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: #e0e0e0;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      transition: width 0.3s;
+      width: 0%;
+    }
+    .cache-info {
+      background: #e8f5e9;
+      border: 1px solid #c8e6c9;
+      border-radius: 10px;
+      padding: 15px;
+      margin-top: 15px;
+    }
+    .cache-info h3 {
+      color: #2e7d32;
+      font-size: 1.1em;
+      margin-bottom: 10px;
+    }
+    .cache-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      background: white;
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+    .cache-item-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .btn-small {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+    .log-container {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 15px;
+      border-radius: 10px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 12px;
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 15px;
+    }
+    .log-entry {
+      margin-bottom: 5px;
+      padding: 5px;
+      border-left: 3px solid #667eea;
+      padding-left: 10px;
+    }
+    .log-entry.error { border-left-color: #eb3349; color: #f48771; }
+    .log-entry.success { border-left-color: #38ef7d; color: #89d185; }
+    .log-entry.warn { border-left-color: #cca700; color: #dcdcaa; }
+  </style>
+</head>
+<body>
+  <!-- ✅ 核心修复:讯飞 SDK 渲染容器移出 Vue 根节点,避免 Vue 渲染错乱 -->
+  <div id="digital-human-container" style="width: 1px; height: 1px; opacity: 0; position: fixed; top: -9999px; left: -9999px; z-index: -999;"></div>
+
+  <!-- Vue 根节点 -->
+  <div id="app">
+    <div class="container">
+      <div class="header">
+        <h1>🎬 数字人播报系统</h1>
+        <p>讯飞 XRtc 数字人 + 自动录制 + 视频缓存</p>
+      </div>
+      <div class="main-content">
+        <!-- 左侧控制面板 -->
+        <div class="panel">
+          <h2>⚙️ 配置面板</h2>
+
+          <div class="form-group">
+            <label>数字人形象</label>
+            <select v-model="config.roleId" @change="clearCache">
+              <option v-for="role in roles" :key="role.role_id" :value="role.role_id">
+                {{ role.role_name }}
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>发音人</label>
+            <select v-model="config.rdn" @change="clearCache">
+              <option v-for="voice in voices" :key="voice.rdn" :value="voice.rdn">
+                {{ voice.name }} ({{ voice.rdn }})
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>播报文本</label>
+            <textarea
+              v-model="config.text"
+              placeholder="请输入要播报的文本内容..."
+              @input="clearCache"
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label>语速</label>
+            <input
+              type="range"
+              min="0.5"
+              max="2"
+              step="0.1"
+              v-model.number="config.speed"
+              @change="clearCache"
+            >
+            <div style="text-align: center; margin-top: 5px; color: #666;">
+              {{ config.speed }}x
+            </div>
+          </div>
+          <div style="margin-top: 20px;">
+            <button
+              class="btn btn-primary"
+              @click="startBroadcast"
+              :disabled="isBroadcasting || !config.text"
+            >
+              🎙️ {{ isBroadcasting ? '播报中...' : '开始播报' }}
+            </button>
+
+            <button
+              class="btn btn-danger"
+              @click="stopBroadcast"
+              :disabled="!isBroadcasting"
+            >
+              ⏹️ 停止播报
+            </button>
+
+            <button
+              class="btn btn-success"
+              @click="playCachedVideo"
+              :disabled="!hasCachedVideo || isBroadcasting"
+            >
+              📼 播放缓存
+            </button>
+          </div>
+          <div v-if="cachedVideos.length > 0" class="cache-info">
+            <h3>📼 视频缓存 ({{ cachedVideos.length }}个)</h3>
+            <div v-for="(cache, index) in cachedVideos" :key="index" class="cache-item">
+              <div>
+                <strong>{{ cache.text.substring(0, 20) }}{{ cache.text.length > 20 ? '...' : '' }}</strong>
+                <div style="font-size: 12px; color: #666;">
+                  {{ new Date(cache.timestamp).toLocaleString() }} | {{ formatDuration(cache.duration) }}
+                </div>
+              </div>
+              <div class="cache-item-actions">
+                <button class="btn btn-small btn-primary" @click="playCache(index)">▶️ 播放</button>
+                <button class="btn btn-small btn-danger" @click="deleteCache(index)">🗑️ 删除</button>
+              </div>
+            </div>
+          </div>
+          <div class="log-container" v-if="logs.length > 0">
+            <div v-for="(log, index) in logs.slice(-20)" :key="index"
+                 :class="['log-entry', log.type]">
+              [{{ log.time }}] {{ log.message }}
+            </div>
+          </div>
+        </div>
+        <!-- 右侧视频显示 -->
+        <div class="panel">
+          <h2>📺 视频预览</h2>
+
+          <div class="video-container">
+            <canvas ref="compositeCanvas" width="720" height="1280"></canvas>
+          </div>
+          <div class="status-bar">
+            <div class="status-item">
+              <div class="status-dot" :class="{ active: isConnected, recording: isRecording }"></div>
+              <span>{{ isRecording ? '🔴 录制中' : (isConnected ? '🟢 已连接' : '⚪ 未连接') }}</span>
+            </div>
+
+            <div class="status-item" v-if="isRecording || isBroadcasting">
+              <span>⏱️ {{ formatDuration(recordDuration) }}</span>
+            </div>
+
+            <div class="status-item" v-if="currentSentence > 0">
+              <span>📝 句 {{ currentSentence }}/{{ totalSentences }}</span>
+            </div>
+          </div>
+          <div class="progress-bar" v-if="isBroadcasting">
+            <div class="progress-fill" :style="{ width: progressPercent + '%' }"></div>
+          </div>
+          <!-- 下载和缓存按钮 -->
+          <div style="margin-top: 20px;">
+            <button
+              class="btn btn-success"
+              @click="downloadVideo"
+              :disabled="!hasVideoBlob"
+            >
+              💾 下载视频
+            </button>
+
+            <button
+              class="btn btn-primary"
+              @click="saveToCache"
+              :disabled="!hasVideoBlob"
+            >
+              💾 保存到缓存
+            </button>
+          </div>
+
+          <!-- 视频预览 -->
+          <video
+            ref="previewVideo"
+            style="width: 100%; margin-top: 20px; border-radius: 10px;"
+            controls
+          ></video>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const { createApp, onMounted, ref, reactive, computed, onUnmounted } = Vue;
+    // IndexedDB 配置
+    const DB_NAME = 'AvatarBroadcastDB';
+    const DB_VERSION = 1;
+    const STORE_NAME = 'videos';
+    // 打开数据库
+    function openDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        request.onupgradeneeded = (event) => {
+          const db = event.target.result;
+          if (!db.objectStoreNames.contains(STORE_NAME)) {
+            db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+          }
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+    // 保存视频到缓存
+    async function saveVideoToCache(videoBlob, text, duration) {
+      const db = await openDB();
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction([STORE_NAME], 'readwrite');
+        const store = transaction.objectStore(STORE_NAME);
+        const record = {
+          video: videoBlob,
+          text: text,
+          duration: duration,
+          timestamp: Date.now()
+        };
+        const request = store.add(record);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+    // 获取所有缓存视频
+    async function getAllCachedVideos() {
+      const db = await openDB();
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction([STORE_NAME], 'readonly');
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.getAll();
+        request.onsuccess = () => resolve(request.result || []);
+        request.onerror = () => reject(request.error);
+      });
+    }
+    // 删除缓存视频
+    async function deleteCachedVideo(id) {
+      const db = await openDB();
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction([STORE_NAME], 'readwrite');
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.delete(id);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    createApp({
+      setup() {
+        // 响应式数据
+        const config = reactive({
+          roleId: 'cnrfb86h2000000004',
+          rdn: 'x4_yezi',
+          text: '',
+          speed: 1.0
+        });
+        const roles = ref([
+          { role_id: 'cnrfb86h2000000004', role_name: '【免费】超拟人 - 晓雅' },
+          { role_id: 'cnr5dg8n2000000003', role_name: '【免费】超拟人 - 小美' },
+          { role_id: 'cnrmkf0e2000000006', role_name: '【免费】超拟人 - 小雨' },
+          { role_id: 'cnrn9jgi2000000005', role_name: '【免费】超拟人 - 小丽' },
+          { role_id: '110117017', role_name: '晓姿' },
+          { role_id: '111204004', role_name: '知夏' },
+          { role_id: '110554015', role_name: '微微' },
+          { role_id: '111182004', role_name: '明朗' },
+          { role_id: '111264001', role_name: '明谦' },
+          { role_id: '111259001', role_name: '雨桐' },
+          { role_id: '111188001', role_name: '聆芯' },
+          { role_id: '111260002', role_name: '雨菲' },
+          { role_id: '110592043', role_name: '明轩' },
+          { role_id: '111283001', role_name: '雨汐' },
+          { role_id: '111213003', role_name: '佳佳' },
+          { role_id: '111286001', role_name: '明泽' },
+          { role_id: '110017006', role_name: '马可' },
+          { role_id: '110018011', role_name: '依倩' },
+          { role_id: '111051001', role_name: '苏轼' },
+          { role_id: '111192001', role_name: '诸葛亮' },
+          { role_id: '111227001', role_name: '西施' }
+        ]);
+        const voices = ref([
+          { rdn: 'x4_yezi', name: '小露' },
+          { rdn: 'x4_lingxiaoqi_oral', name: '聆小琪' },
+          { rdn: 'x4_yiting', name: '小娟 - 温情' },
+          { rdn: 'x4_yuexiaoni_assist', name: '悦小妮' },
+          { rdn: 'x4_lingxiaoyu_assist', name: '聆小瑜' },
+          { rdn: 'x4_lingxiaoying_assist', name: '聆小璎 - 助理' },
+          { rdn: 'x4_xiaozhong', name: '小钟' },
+          { rdn: 'x4_mingge', name: '天明' },
+          { rdn: 'x4_lingxiaoqi_assist', name: '聆小琪 - 助理' },
+          { rdn: 'x4_chaoge', name: '超哥' },
+          { rdn: 'x4_panting', name: '小娟 - 甜美' },
+          { rdn: 'x4_lingxiaoyue_oral', name: '聆小玥' },
+          { rdn: 'x4_lingyuyan_oral', name: '聆玉言' },
+          { rdn: 'x4_lingyuzhao_oral', name: '聆玉昭' },
+          { rdn: 'x4_lingfeiyi_oral', name: '聆飞逸' },
+          { rdn: 'x4_lingxiaoxuan_oral', name: '聆小璇' },
+          { rdn: 'yezi', name: '叶子' },
+          { rdn: 'x4_yifei', name: '一菲' },
+          { rdn: 'x4_lingbosong', name: '聆伯松' }
+        ]);
+
+        // 状态变量
+        const isBroadcasting = ref(false);
+        const isConnected = ref(false);
+        const isRecording = ref(false);
+        const currentSentence = ref(0);
+        const totalSentences = ref(0);
+        const progressPercent = ref(0);
+        const recordDuration = ref(0);
+        const cachedVideos = ref([]);
+        const logs = ref([]);
+        const videoBlob = ref(null);
+
+        // DOM 引用
+        const compositeCanvas = ref(null);
+        const previewVideo = ref(null);
+
+        // 全局变量
+        let sdkInstance = null;
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let recordTimer = null;
+        let animationFrame = null;
+        let currentSubtitle = '';
+        let recordStartTime = 0;
+        let broadcastEndTimer = null;
+        let lastFrameStartTime = 0;
+        let waitingForBroadcastEnd = false;
+        // 字幕相关
+        let sentenceIndex = 0;
+        let currentSentences = [];
+        let isBroadcastingSentence = false;  // 队列锁,避免发送太快
+        let isStopping = false;  // 防止重复调用 stopBroadcast
+
+        // 计算属性
+        const hasCachedVideo = computed(() => cachedVideos.value.length > 0);
+        const hasVideoBlob = computed(() => videoBlob.value && videoBlob.value.size > 0);
+
+        // 工具函数
+        function addLog(message, type = 'info') {
+          logs.value.push({
+            time: new Date().toLocaleTimeString(),
+            message,
+            type
+          });
+          console.log(`[${type}] ${message}`);
+        }
+        function formatDuration(seconds) {
+          const mins = Math.floor(seconds / 60);
+          const secs = Math.floor(seconds % 60);
+          return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+        function clearCache() {
+          videoBlob.value = null;
+          addLog('配置已更改,缓存已清除', 'warn');
+        }
+
+        // 缓存相关函数
+        async function loadCachedVideos() {
+          try {
+            cachedVideos.value = await getAllCachedVideos();
+            if (cachedVideos.value.length > 0) {
+              addLog(`加载了 ${cachedVideos.value.length} 个缓存视频`, 'success');
+            }
+          } catch (e) {
+            addLog('加载缓存失败:' + e.message, 'error');
+          }
+        }
+        async function deleteCache(index) {
+          const cache = cachedVideos.value[index];
+          await deleteCachedVideo(cache.id);
+          cachedVideos.value.splice(index, 1);
+          addLog('已删除缓存', 'success');
+        }
+        async function playCache(index) {
+          const cache = cachedVideos.value[index];
+          const videoUrl = URL.createObjectURL(cache.video);
+          previewVideo.value.src = videoUrl;
+          previewVideo.value.play();
+          addLog(`播放缓存视频:${cache.text.substring(0, 20)}...`, 'success');
+        }
+        async function playCachedVideo() {
+          if (cachedVideos.value.length > 0) playCache(0);
+        }
+        async function saveToCache() {
+          if (!videoBlob.value) {
+            addLog('没有可保存的视频', 'warn');
+            return;
+          }
+          try {
+            await saveVideoToCache(videoBlob.value, config.text, recordDuration.value);
+            await loadCachedVideos();
+            addLog('视频已保存到缓存', 'success');
+          } catch (e) {
+            addLog('保存缓存失败:' + e.message, 'error');
+          }
+        }
+        function downloadVideo() {
+          if (!videoBlob.value || videoBlob.value.size === 0) {
+            addLog('❌ 没有可下载的视频', 'error');
+            return;
+          }
+
+          // 检查 previewVideo 是否有有效内容
+          if (previewVideo.value && previewVideo.value.readyState < 1) {
+            addLog('⏳ 视频正在加载中,请稍候...', 'warn');
+            setTimeout(downloadVideo, 1000);
+            return;
+          }
+
+          const videoUrl = URL.createObjectURL(videoBlob.value);
+          const a = document.createElement('a');
+          a.href = videoUrl;
+          a.download = `数字人播报_${new Date().toLocaleString().replace(/[/:\s]/g, '-')}.webm`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          addLog('✅ 视频下载已触发', 'success');
+        }
+
+        // 画面合成函数
+        function compositeFrame() {
+          if (!isRecording.value && !isBroadcasting.value) return;
+          if (!compositeCanvas.value) return;
+
+          const canvas = compositeCanvas.value;
+          const ctx = canvas.getContext('2d');
+          const videoEl = document.querySelector('#digital-human-container video');
+
+          if (!videoEl || videoEl.readyState < 2) {
+            animationFrame = requestAnimationFrame(compositeFrame);
+            return;
+          }
+
+          try {
+            // 绘制视频画面
+            ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+
+            // 绘制字幕
+            if (currentSubtitle) {
+              ctx.font = 'bold 28px Microsoft Yahei';
+              ctx.fillStyle = '#ffffff';
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'bottom';
+              ctx.shadowColor = '#000000';
+              ctx.shadowBlur = 6;
+              ctx.shadowOffsetX = 2;
+              ctx.shadowOffsetY = 2;
+
+              const maxWidth = canvas.width * 0.9;
+              const metrics = ctx.measureText(currentSubtitle);
+
+              if (metrics.width <= maxWidth) {
+                const subtitleY = canvas.height - 50;
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                ctx.fillRect(
+                  (canvas.width - metrics.width) / 2 - 20,
+                  subtitleY - 35,
+                  metrics.width + 40,
+                  40
+                );
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(currentSubtitle, canvas.width / 2, subtitleY);
+              } else {
+                const lines = [];
+                let line = '';
+                const words = currentSubtitle.split('');
+                words.forEach(word => {
+                  const testLine = line + word;
+                  const m = ctx.measureText(testLine);
+                  if (m.width > maxWidth && line) {
+                    lines.push(line);
+                    line = word;
+                  } else {
+                    line = testLine;
+                  }
+                });
+                lines.push(line);
+                const lineHeight = 36;
+                const subtitleBottom = canvas.height - 50;
+                const bgHeight = lines.length * lineHeight + 20;
+                const bgY = subtitleBottom - bgHeight + 10;
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                ctx.fillRect(canvas.width * 0.05, bgY, canvas.width * 0.9, bgHeight);
+                ctx.fillStyle = '#ffffff';
+                lines.forEach((line, index) => {
+                  const y = subtitleBottom - (lines.length - index - 1) * lineHeight;
+                  ctx.fillText(line, canvas.width / 2, y);
+                });
+              }
+              ctx.shadowColor = 'transparent';
+              ctx.shadowBlur = 0;
+              ctx.shadowOffsetX = 0;
+              ctx.shadowOffsetY = 0;
+            }
+          } catch (e) {
+            addLog('画面合成异常:' + e.message, 'warn');
+          }
+
+          animationFrame = requestAnimationFrame(compositeFrame);
+        }
+
+        // 录制相关函数
+        function startRecording() {
+          if (isRecording.value) {
+            addLog('已经在录制中', 'warn');
+            return;
+          }
+          
+          addLog('🎬 开始初始化录制...', 'info');
+          recordedChunks = [];
+          isRecording.value = true;
+          recordStartTime = Date.now();
+          recordDuration.value = 0;
+
+          recordTimer = setInterval(() => {
+            recordDuration.value = Math.floor((Date.now() - recordStartTime) / 1000);
+          }, 1000);
+
+          // 启动画面合成
+          compositeFrame();
+
+          // 立即启动录制（不等待音频）
+          setupMediaRecorderNow();
+        }
+        
+        function setupMediaRecorderNow() {
+          addLog('📹 启动 MediaRecorder...', 'info');
+          
+          // 捕获 Canvas 视频流
+          const canvas = compositeCanvas.value;
+          if (!canvas) {
+            addLog('❌ Canvas 不存在', 'error');
+            return;
+          }
+          
+          const videoStream = canvas.captureStream(30);
+          let audioStream = new MediaStream();
+          
+          // 尝试获取音频流（不等待，有就有，没有就算了）
+          const videoEl = document.querySelector('#digital-human-container video');
+          if (videoEl) {
+            try {
+              audioStream = videoEl.captureStream();
+              const audioTracks = audioStream.getAudioTracks();
+              if (audioTracks.length > 0) {
+                addLog(`✅ 音频流获取成功 (${audioTracks.length} 条音轨)`, 'success');
+              } else {
+                addLog('⚠️ 音频流为空，仅录制画面', 'warn');
+              }
+            } catch (e) {
+              addLog(`⚠️ 无法获取音频流：${e.message}`, 'warn');
+            }
+          } else {
+            addLog('⚠️ video 元素不存在，仅录制画面', 'warn');
+          }
+
+          const combinedStream = new MediaStream([
+            ...videoStream.getVideoTracks(),
+            ...audioStream.getAudioTracks()
+          ]);
+
+          try {
+            mediaRecorder = new MediaRecorder(combinedStream, {
+              mimeType: 'video/webm;codecs=vp9',
+              videoBitsPerSecond: 5000000
+            });
+            addLog('✅ MediaRecorder 创建成功', 'success');
+          } catch (e) {
+            addLog(`⚠️ MediaRecorder 创建失败：${e.message}，使用默认格式`, 'warn');
+            mediaRecorder = new MediaRecorder(combinedStream, {
+              mimeType: 'video/webm',
+              videoBitsPerSecond: 5000000
+            });
+          }
+
+          mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) {
+              recordedChunks.push(e.data);
+              addLog(`📦 录制数据块：${e.data.size} bytes`, 'info');
+            }
+          };
+
+          mediaRecorder.onstop = () => {
+            addLog(`🛑 录制停止，数据块数量：${recordedChunks.length}`, 'success');
+            if (animationFrame) {
+              cancelAnimationFrame(animationFrame);
+              animationFrame = null;
+            }
+
+            const mimeType = mediaRecorder.mimeType;
+            videoBlob.value = new Blob(recordedChunks, { type: mimeType });
+
+            if (videoBlob.value.size > 0) {
+              const fileSize = (videoBlob.value.size / 1024 / 1024).toFixed(2);
+              addLog(`💾 视频生成成功：${fileSize} MB`, 'success');
+
+              const videoUrl = URL.createObjectURL(videoBlob.value);
+              previewVideo.value.src = videoUrl;
+
+              previewVideo.value.onloadeddata = () => {
+                addLog(`✅ 视频已加载完成，时长：${formatDuration(previewVideo.value.duration)}`, 'success');
+              };
+
+              previewVideo.value.onerror = () => {
+                addLog('❌ 视频加载失败', 'error');
+              };
+            } else {
+              addLog('❌ 视频 Blob 为空!', 'error');
+            }
+          };
+
+          mediaRecorder.start(1000);
+          addLog('🔴 MediaRecorder 已启动', 'success');
+        }
+
+                function setupMediaRecorder(videoStream, audioStream) {
+          const combinedStream = new MediaStream([
+            ...videoStream.getVideoTracks(),
+            ...audioStream.getAudioTracks()
+          ]);
+
+          try {
+            mediaRecorder = new MediaRecorder(combinedStream, {
+              mimeType: 'video/webm;codecs=vp9',
+              videoBitsPerSecond: 5000000
+            });
+          } catch (e) {
+            mediaRecorder = new MediaRecorder(combinedStream, {
+              mimeType: 'video/webm',
+              videoBitsPerSecond: 5000000
+            });
+          }
+
+          mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) {
+              recordedChunks.push(e.data);
+              addLog(`录制数据块:${e.data.size} bytes`, 'info');
+            }
+          };
+
+          mediaRecorder.onstop = () => {
+            addLog(`录制停止,数据块数量:${recordedChunks.length}`, 'success');
+            if (animationFrame) cancelAnimationFrame(animationFrame);
+
+            const mimeType = mediaRecorder.mimeType;
+            videoBlob.value = new Blob(recordedChunks, { type: mimeType });
+
+            if (videoBlob.value.size > 0) {
+              const fileSize = (videoBlob.value.size / 1024 / 1024).toFixed(2);
+              addLog(`视频生成成功:${fileSize} MB`, 'success');
+
+              const videoUrl = URL.createObjectURL(videoBlob.value);
+              previewVideo.value.src = videoUrl;
+
+              // 等待 video 元素加载完成
+              previewVideo.value.onloadeddata = () => {
+                addLog(`✅ 视频已加载完成,时长:${formatDuration(previewVideo.value.duration)}`, 'success');
+              };
+
+              previewVideo.value.onerror = () => {
+                addLog('❌ 视频加载失败', 'error');
+              };
+            } else {
+              addLog('视频 Blob 为空!', 'error');
+            }
+          };
+
+          mediaRecorder.start(1000);
+          addLog('MediaRecorder 已启动', 'success');
+        }
+
+        function stopRecording() {
+          if (!isRecording.value) {
+            addLog('没有在录制', 'warn');
+            return;
+          }
+          
+          addLog('准备停止录制...', 'info');
+          
+          // 停止 mediaRecorder（触发 onstop，生成 videoBlob）
+          if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+            addLog('🛑 MediaRecorder 已停止', 'success');
+          } else if (!mediaRecorder) {
+            addLog('⚠️ mediaRecorder 不存在，直接清理状态', 'warn');
+          }
+          
+          isRecording.value = false;
+
+          if (recordTimer) {
+            clearInterval(recordTimer);
+            recordTimer = null;
+          }
+          
+          if (animationFrame) {
+            cancelAnimationFrame(animationFrame);
+            animationFrame = null;
+          }
+          
+          addLog('⏹️ Canvas 合成已停止', 'info');
+        }
+
+        // 播报结束处理（自然完成）
+        function onBroadcastEnded() {
+          if (isStopping) return;  // 正在停止中，不处理
+          if (!isBroadcasting.value && !isRecording.value) return;
+          
+          addLog('🏁 检测到播报完全结束，停止录制', 'success');
+          stopRecording();
+          
+          isBroadcasting.value = false;
+          isBroadcastingSentence = false;
+          currentSentence.value = 0;
+          totalSentences.value = 0;
+          progressPercent.value = 0;
+          waitingForBroadcastEnd = false;
+          sentenceIndex = 0;
+          currentSentences = [];
+          currentSubtitle = '';
+          
+          // 等待 videoBlob 生成
+          setTimeout(() => {
+            if (videoBlob.value && videoBlob.value.size > 0) {
+              addLog(`🎉 播报流程全部完成！视频已准备好下载`, 'success');
+            } else {
+              addLog('⚠️ 播报完成，但视频可能未生成', 'warn');
+            }
+          }, 500);
+        }
+        
+        // 播报失败处理（异常中断）
+        function onBroadcastFailed(reason) {
+          if (isStopping) return;  // 正在停止中，不处理
+          addLog(`❌ 播报失败：${reason}`, 'error');
+          
+          if (isRecording.value) {
+            addLog('💾 保存已录制的视频...', 'warn');
+            stopRecording();  // 这会触发 mediaRecorder.onstop，生成 videoBlob
+          }
+          
+          isBroadcasting.value = false;
+          isBroadcastingSentence = false;
+          currentSentence.value = 0;
+          totalSentences.value = 0;
+          progressPercent.value = 0;
+          
+          // 等待 videoBlob 生成
+          setTimeout(() => {
+            if (videoBlob.value && videoBlob.value.size > 0) {
+              addLog(`✅ 已录制的视频已保存，可以下载`, 'success');
+            } else {
+              addLog('⚠️ 视频可能未生成', 'warn');
+            }
+          }, 500);
+        }
+
+        // 播报单句
+        async function speakSingleSentence(text) {
+          if (!sdkInstance) {
+            throw new Error('SDK 未初始化');
+          }
+
+          // 等待队列空闲(避免发送太快导致队列满)
+          while (isBroadcastingSentence) {
+            await new Promise(resolve => setTimeout(resolve, 200));
+          }
+
+          isBroadcastingSentence = true;
+          currentSubtitle = text.trim();
+          addLog(`🎤 正在播报句子:${text}`, 'info');
+
+          try {
+            const requestId = await sdkInstance.writeText(text, {
+              nlp: false,
+              avatar_dispatch: { interactive_mode: 0 },
+              tts: {
+                vcn: config.rdn,
+                speed: Math.floor(config.speed * 50),
+                volume: 100,
+                pitch: 50
+              }
+            });
+            addLog(`✅ writeText 成功,requestId: ${requestId}`, 'success');
+
+            // 等待播报完成(frame_stop 事件会设置 isBroadcastingSentence = false)
+            while (isBroadcastingSentence) {
+              await new Promise(resolve => setTimeout(resolve, 100));
+            }
+
+            addLog(`🏁 句子播报完成`, 'success');
+          } catch (err) {
+            isBroadcastingSentence = false;
+            addLog(`❌ writeText 失败:${JSON.stringify(err)}`, 'error');
+            // 如果是连接错误,触发失败处理,保存已录制的视频
+            if (err.code === 'InvalidConnect' || err.code === '600003') {
+              onBroadcastFailed('连接异常,已保存已录制的视频');
+            }
+            throw err;
+          }
+        }
+
+        // 等待视频元素就绪
+        async function waitForVideoElement() {
+          return new Promise((resolve) => {
+            const maxWaitTime = 15000;
+            const startTime = Date.now();
+
+            const check = () => {
+              if (Date.now() - startTime > maxWaitTime) {
+                addLog('等待 video 元素超时', 'warn');
+                resolve();
+                return;
+              }
+              const videoEl = document.querySelector('#digital-human-container video');
+              if (videoEl && videoEl.readyState >= 2 && videoEl.videoWidth > 0) {
+                addLog(`Video 元素就绪 (${videoEl.videoWidth}x${videoEl.videoHeight})`, 'success');
+                resolve();
+              } else {
+                setTimeout(check, 500);
+              }
+            };
+            check();
+          });
+        }
+
+        // 初始化 SDK
+        async function initSDK(authData) {
+          if (sdkInstance) {
+            sdkInstance.stop();
+            sdkInstance.destroy();
+            sdkInstance = null;
+          }
+
+          sdkInstance = new window.AVATAR_SDK.AvatarSDK({
+            logLevel: 1,
+            useInlinePlayer: true
+          });
+
+          // 事件监听
+          sdkInstance.on('connected', () => {
+            addLog('数字人连接成功', 'success');
+            isConnected.value = true;
+          });
+
+          sdkInstance.on('error', (err) => {
+            // 敏感词错误处理
+            if (err.code === 20017 || (err.message && err.message.includes('illegal text'))) {
+              addLog('❌ 文本包含敏感词汇,请修改后重试', 'error');
+              addLog('提示:避免政治、色情、暴力等敏感内容', 'warn');
+            } else if (err.code === 10110 && err.message && err.message.includes('word contain sensitive')) {
+              addLog('❌ 文本包含敏感词汇,请修改后重试', 'error');
+            } else {
+              addLog('数字人连接失败:' + JSON.stringify(err), 'error');
+            }
+            stopBroadcast();
+          });
+
+          sdkInstance.on('disconnected', () => {
+            addLog('数字人连接断开', 'warn');
+            isConnected.value = false;
+          });
+
+          sdkInstance.on('render-start', () => {
+            addLog('渲染开始', 'success');
+          });
+
+          sdkInstance.on('frame_start', (data) => {
+            lastFrameStartTime = Date.now();
+
+            // 更新当前播报的句子(用于字幕显示)
+            if (sentenceIndex < currentSentences.length) {
+              currentSubtitle = currentSentences[sentenceIndex];
+              addLog(`📝 字幕更新 [句${sentenceIndex + 1}/${currentSentences.length}]: ${currentSubtitle.substring(0, 30)}...`, 'info');
+              sentenceIndex++;
+            }
+
+            if (waitingForBroadcastEnd && broadcastEndTimer) {
+              clearTimeout(broadcastEndTimer);
+              broadcastEndTimer = null;
+              waitingForBroadcastEnd = false;
+            }
+          });
+
+          sdkInstance.on('frame_stop', (data) => {
+            if (data?.vmr_status === 2) {
+              addLog('🏁 单句播报完成', 'success');
+              isBroadcastingSentence = false;  // 释放队列锁
+
+              // 检查是否是最后一句
+              if (sentenceIndex >= currentSentences.length) {
+                addLog(`✅ 所有句子已播报完成(${sentenceIndex}/${currentSentences.length}),准备结束`, 'success');
+                // 等待 1 秒让最后一帧渲染完成,然后结束
+                setTimeout(() => {
+                  if (isBroadcasting.value) {
+                    onBroadcastEnded();
+                  }
+                }, 1000);
+              } else {
+                addLog(`📊 检测到播报段落结束,等待确认 (句${sentenceIndex}/${currentSentences.length})`, 'info');
+                waitingForBroadcastEnd = true;
+                broadcastEndTimer = setTimeout(() => {
+                  const timeSinceLastFrame = Date.now() - lastFrameStartTime;
+                  if (timeSinceLastFrame >= 1200 && waitingForBroadcastEnd) {
+                    onBroadcastEnded();
+                  }
+                }, 1200);
+              }
+            }
+          });
+
+          // 设置鉴权信息 - 使用 signedUrl 方式
+          // 注意:signedUrl 已经包含完整的鉴权参数,不需要再传 apiKey/apiSecret
+          sdkInstance.setApiInfo({
+            appId: authData.appId,
+            sceneId: authData.sceneId,
+            signedUrl: authData.signedUrl
+          });
+
+          // ✅ 修复:关闭透明通道,解决警告
+          const isSuperRealistic = config.roleId.startsWith('cnr');
+          sdkInstance.setGlobalParams({
+            stream: {
+              protocol: 'xrtc',
+              fps: 25,
+              bitrate: 1000000,
+              alpha: 0
+            },
+            avatar: {
+              avatar_id: authData.avatarId || config.roleId,
+              width: 1080,
+              height: 1920,
+              audio_format: 1
+            },
+            tts: {
+              vcn: authData.vcn || config.rdn,
+              speed: Math.floor(config.speed * 50),
+              pitch: 50,
+              volume: 100
+            },
+            avatar_dispatch: {
+              interactive_mode: 1
+            },
+            air: {
+              air: 1,
+              add_nonsemantic: 1
+            }
+          });
+
+          // 启动 SDK
+          await sdkInstance.start({
+            wrapper: document.getElementById('digital-human-container')
+          });
+
+          await waitForVideoElement();
+
+          // 确保 video 元素不静音,音量最大
+          const videoEl = document.querySelector('#digital-human-container video');
+          if (videoEl) {
+            videoEl.muted = false;
+            videoEl.volume = 1.0;
+            addLog('🔊 Video 音量已开启', 'success');
+          }
+
+          addLog('SDK 启动成功', 'success');
+        }
+
+        // 开始播报
+        async function startBroadcast() {
+          if (!config.text) {
+            addLog('请输入播报文本', 'warn');
+            return;
+          }
+
+          // 敏感词提醒(逐句播报,每句不会超过 2000 字,无需检查总长度)
+          const sensitiveKeywords = ['政治', '色情', '暴力', '赌博', '毒品'];
+          const foundKeywords = sensitiveKeywords.filter(keyword => config.text.includes(keyword));
+          if (foundKeywords.length > 0) {
+            addLog(`⚠️ 文本可能包含敏感内容:${foundKeywords.join(', ')}`, 'warn');
+            addLog('如播报失败,请修改文本后重试', 'info');
+          }
+
+          if (isBroadcasting.value) return;
+
+          isBroadcasting.value = true;
+          currentSentence.value = 0;
+          totalSentences.value = 0;
+          progressPercent.value = 0;
+          videoBlob.value = null;
+          currentSubtitle = '';
+          waitingForBroadcastEnd = false;
+          broadcastEndTimer = null;
+
+          addLog('🎬 开始播报流程', 'success');
+
+          try {
+            // 获取鉴权信息
+            addLog('正在获取鉴权信息...', 'info');
+            const authResponse = await fetch('https://avatar-roadcast-shakmjgzdi.cn-hangzhou.fcapp.run', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                avatarId: config.roleId,
+                vcn: config.rdn,
+                fullText: config.text
+              })
+            });
+
+            if (!authResponse.ok) {
+              throw new Error('获取鉴权信息失败:' + authResponse.statusText);
+            }
+            const authData = await authResponse.json();
+            if (authData.code !== 0) {
+              throw new Error(authData.msg || '鉴权失败');
+            }
+            addLog('鉴权信息获取成功', 'success');
+
+            // 初始化 SDK
+            await initSDK(authData.data);
+
+            // 拆分句子 - 使用 Unicode 代码点匹配中文标点(保留标点符号)
+            const fullText = config.text;
+            // \u3002=。, \uFF01=!, \uFF1F=?, \u002E=., \u0021=!, \u003F=?
+            // 使用 replace 在标点后添加特殊标记,然后拆分
+            const sentences = fullText
+              .replace(/([\u3002\uFF01\uFF1F\u002E\u0021\u003F]+)/g, '$1|SPLIT|')
+              .split('|SPLIT|')
+              .map(s => s.trim())
+              .filter(s => s.length > 0);
+
+            totalSentences.value = sentences.length;
+            addLog(`📝 逐句拆分完成,共 ${sentences.length} 句`, 'success');
+            sentences.forEach((s, i) => {
+              addLog(`  句${i + 1}: ${s.substring(0, 50)}${s.length > 50 ? '...' : ''}`, 'info');
+            });
+
+            // 启动录制
+            startRecording();
+
+            // 设置当前句子列表(用于 frame_start 事件更新字幕)
+            currentSentences = sentences;
+            sentenceIndex = 0;
+            currentSubtitle = '';
+
+            // 逐句播报
+            for (let i = 0; i < sentences.length; i++) {
+              // 检查是否停止
+              if (isStopping) {
+                addLog('⚠️ 用户停止播报,中断循环', 'warn');
+                break;
+              }
+
+              currentSentence.value = i + 1;
+              progressPercent.value = Math.round(((i + 1) / sentences.length) * 100);
+              await speakSingleSentence(sentences[i]);
+            }
+
+            addLog('📡 所有句子已发送,等待播报结束', 'info');
+          } catch (e) {
+            addLog('播报失败:' + e.message, 'error');
+            onBroadcastFailed(e.message);
+          }
+        }
+
+        // 停止播报
+        async function stopBroadcast() {
+          if (isStopping) {
+            addLog('⚠️ 正在停止中,请勿重复操作', 'warn');
+            return;
+          }
+
+          isStopping = true;
+          addLog('用户手动停止播报', 'warn');
+
+          if (broadcastEndTimer) {
+            clearTimeout(broadcastEndTimer);
+            broadcastEndTimer = null;
+          }
+
+          if (sdkInstance) {
+            try {
+              sdkInstance.interrupt();
+              sdkInstance.stop();
+              // 不调用 destroy,保留 video 元素用于预览
+              // sdkInstance.destroy();
+            } catch (e) {
+              addLog('SDK 停止异常:' + e.message, 'warn');
+            }
+            // sdkInstance = null;  // 保留实例
+          }
+
+          stopRecording();
+          isBroadcasting.value = false;
+          isConnected.value = false;
+          isBroadcastingSentence = false;
+          currentSentence.value = 0;
+          totalSentences.value = 0;
+          progressPercent.value = 0;
+          currentSubtitle = '';
+
+          // 重置停止标志
+          setTimeout(() => {
+            isStopping = false;
+          }, 1000);
+        }
+
+        // 生命周期
+        onMounted(async () => {
+          await loadCachedVideos();
+          addLog('页面加载完成', 'success');
+        });
+
+        onUnmounted(() => {
+          stopBroadcast();
+        });
+
+        return {
+          config,
+          roles,
+          voices,
+          isBroadcasting,
+          isConnected,
+          isRecording,
+          currentSentence,
+          totalSentences,
+          progressPercent,
+          recordDuration,
+          cachedVideos,
+          logs,
+          compositeCanvas,
+          previewVideo,
+          hasCachedVideo,
+          hasVideoBlob,
+          startBroadcast,
+          stopBroadcast,
+          downloadVideo,
+          saveToCache,
+          playCache,
+          playCachedVideo,
+          deleteCache,
+          clearCache,
+          formatDuration
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
