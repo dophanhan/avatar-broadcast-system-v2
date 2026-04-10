@@ -1,5 +1,2 @@
 name = "avatar-broadcast-system-v2"
 compatibility_date = "2026-04-10"
-
-[pages_build_output_dir]
-build_output_dir = "./frontend"
