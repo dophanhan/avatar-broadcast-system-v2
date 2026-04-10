@@ -529,31 +529,9 @@
               <span>{{ pptCollapseOpen ? '▼' : '▶' }}</span>
             </div>
             <div class="ppt-collapse-content" v-if="pptCollapseOpen">
-              <!-- 飞书 PPT 链接导入 -->
+              <!-- 本地 PPT 文件上传 -->
               <div class="form-group">
-                <label>方式一：飞书在线幻灯片链接</label>
-                <div class="ppt-input-row">
-                  <input
-                    v-model="pptConfig.pptUrl"
-                    placeholder="请输入飞书在线幻灯片分享链接（支持 my.feishu.cn/slides 格式）"
-                    @blur="checkPptUrlFormat"
-                  >
-                  <button
-                    class="btn btn-primary"
-                    @click="startFeishuAuth"
-                    :disabled="!pptConfig.urlValid"
-                  >
-                    授权并导入
-                  </button>
-                </div>
-                <div v-if="pptImportStatus" class="status-tip" :class="pptImportStatus.type">
-                  {{ pptImportStatus.text }}
-                </div>
-              </div>
-              
-              <!-- 方式二：本地 PPT 文件上传 -->
-              <div class="form-group" style="border-top: 1px solid #e0e0e0; padding-top: 15px;">
-                <label>方式二：本地 PPT 文件上传</label>
+                <label>📤 本地 PPT 文件上传</label>
                 <div class="ppt-input-row" style="flex-direction: column; align-items: stretch;">
                   <input
                     type="file"
@@ -578,6 +556,7 @@
                 <div class="status-tip warn" style="margin-top: 8px; font-size: 12px;">
                   ℹ️ 支持格式：.ppt, .pptx | 最大 50MB | 自动解析为图片并生成翻页节点
                 </div>
+                <!-- 飞书在线导入功能暂时隐藏 -->
               </div>
 
               <!-- ✅ 优化：生成翻页节点按钮前置，始终可见，仅控制禁用状态 -->
