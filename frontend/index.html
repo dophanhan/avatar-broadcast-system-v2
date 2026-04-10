@@ -833,6 +833,31 @@
       </div>
     </div>
   </div>
+  
+  <!-- 保存项目弹窗 (在 Vue 根节点内) -->
+  <div class="modal-mask" v-if="saveProjectModalOpen" @click.self="saveProjectModalOpen = false">
+    <div class="modal-box">
+      <div class="modal-title">保存项目到云端</div>
+      <div class="form-group">
+        <label>项目名称 *</label>
+        <input v-model="saveProjectForm.name" placeholder="请输入项目名称">
+      </div>
+      <div class="form-group">
+        <label>项目备注</label>
+        <textarea v-model="saveProjectForm.desc" placeholder="请输入项目备注（选填）"></textarea>
+      </div>
+      <div class="form-group">
+        <label>
+          <input type="checkbox" v-model="saveProjectForm.saveVideo">
+          同时保存成品视频到云端
+        </label>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default" @click="saveProjectModalOpen = false">取消</button>
+        <button class="btn btn-primary" @click="confirmSaveProject" :disabled="!saveProjectForm.name">确认保存</button>
+      </div>
+    </div>
+  </div>
 
   <script>
     const { createApp, onMounted, ref, reactive, computed, onUnmounted } = Vue;
@@ -983,13 +1008,13 @@
         // 字幕相关
         let sentenceIndex = 0;
         let currentSentences = [];
-        let isBroadcastingSentence = false;  // 队列锁，避免发送太快
+        let isBroadcastingSentence = false;  // 队列锁,避免发送太快
         let isStopping = false;  // 防止重复调用 stopBroadcast
-        
+
         // ========== 新增 PPT 宣讲功能全局变量 ==========
-        const FEISHU_APP_ID = 'cli_a914c5cbe1385cb5'; // 飞书应用 ID（需要配置）
+        const FEISHU_APP_ID = 'cli_a914c5cbe1385cb5'; // 飞书应用 ID(需要配置)
         const API_BASE_URL = 'https://avatar-adcast-v-uzttmfxmdi.cn-hangzhou.fcapp.run'; // 二期函数地址
-        
+
         // PPT 配置核心状态
         let pptCollapseOpen = ref(true);
         let pptConfig = reactive({
@@ -1004,12 +1029,12 @@
         let pptImportStatus = ref(null);
         let currentPptPage = ref(1);
         let currentEditPage = ref(1);
-        
+
         // 翻页节点状态
         let pageTurningNodes = ref([]);
         let pageTurningConfirmed = ref(false);
         let draggedSentenceIndex = ref(null);
-        
+
         // 播报模式
         let broadcastMode = ref('vertical');
         let canvasSize = reactive({
@@ -1017,7 +1042,7 @@
           height: 1280
         });
         let showPageTip = ref(false);
-        
+
         // 云端项目状态
         let cloudProjectCollapseOpen = ref(false);
         let saveProjectModalOpen = ref(false);
@@ -1036,7 +1061,7 @@
         // 计算属性
         const hasCachedVideo = computed(() => cachedVideos.value.length > 0);
         const hasVideoBlob = computed(() => videoBlob.value && videoBlob.value.size > 0);
-        
+
         // ========== 新增计算属性 ==========
         // 当前编辑的翻页节点
         const currentNode = computed(() => {
@@ -1219,11 +1244,11 @@
             const result = await res.json();
             if (result.code !== 0) throw new Error(result.msg);
             pageTurningNodes.value = result.data.page_turning_nodes;
-            addLog(`✅ 翻页节点生成成功，共${pageTurningNodes.value.length}个节点`, 'success');
+            addLog(`✅ 翻页节点生成成功,共${pageTurningNodes.value.length}个节点`, 'success');
             if (!isReset) { currentEditPage.value = 1; }
-          } catch (e) { addLog(`❌ 翻页节点生成失败：${e.message}`, 'error'); }
+          } catch (e) { addLog(`❌ 翻页节点生成失败:${e.message}`, 'error'); }
         }
-        
+
         async function importFeishuPpt(code) {
           addLog('📄 正在拉取飞书 PPT 内容...', 'info');
           try {
@@ -1246,14 +1271,14 @@
             pptConfig.pages = pptResult.data.pages;
             currentPptPage.value = 1; currentEditPage.value = 1;
             await preloadPptImages();
-            pptImportStatus.value = { type: 'success', text: `PPT 导入成功，共${pptConfig.totalPages}页` };
+            pptImportStatus.value = { type: 'success', text: `PPT 导入成功,共${pptConfig.totalPages}页` };
             await loadCloudProjectList();
           } catch (e) {
-            pptImportStatus.value = { type: 'error', text: `PPT 导入失败：${e.message}` };
-            addLog(`❌ PPT 导入失败：${e.message}`, 'error');
+            pptImportStatus.value = { type: 'error', text: `PPT 导入失败:${e.message}` };
+            addLog(`❌ PPT 导入失败:${e.message}`, 'error');
           }
         }
-        
+
         async function confirmSaveProject() {
           addLog('☁️ 正在保存项目到云端...', 'info');
           try {
@@ -1273,9 +1298,9 @@
             addLog('✅ 项目保存成功', 'success');
             saveProjectModalOpen.value = false;
             await loadCloudProjectList();
-          } catch (e) { addLog(`❌ 项目保存失败：${e.message}`, 'error'); }
+          } catch (e) { addLog(`❌ 项目保存失败:${e.message}`, 'error'); }
         }
-        
+
         async function loadCloudProjectList() {
           if (!feishuUserInfo.openId) return;
           try {
@@ -1284,11 +1309,11 @@
             if (result.code !== 0) throw new Error(result.msg);
             cloudProjectList.value = result.data.list;
             addLog(`☁️ 加载了${cloudProjectList.value.length}个云端项目`, 'success');
-          } catch (e) { addLog(`❌ 云端项目加载失败：${e.message}`, 'error'); }
+          } catch (e) { addLog(`❌ 云端项目加载失败:${e.message}`, 'error'); }
         }
-        
+
         async function reuseProject(project) {
-          addLog(`☁️ 正在加载项目：${project.project_name}`, 'info');
+          addLog(`☁️ 正在加载项目:${project.project_name}`, 'info');
           try {
             const res = await fetch(`${API_BASE_URL}/project/detail?project_id=${project.project_id}`, { headers: { 'X-Feishu-OpenId': feishuUserInfo.openId } });
             const result = await res.json();
@@ -1299,19 +1324,19 @@
             pageTurningNodes.value = data.page_turning_rules;
             pageTurningConfirmed.value = true;
             await preloadPptImages();
-            addLog('✅ 项目加载完成，可直接开始播报', 'success');
-          } catch (e) { addLog(`❌ 项目加载失败：${e.message}`, 'error'); }
+            addLog('✅ 项目加载完成,可直接开始播报', 'success');
+          } catch (e) { addLog(`❌ 项目加载失败:${e.message}`, 'error'); }
         }
-        
+
         async function editProject(project) { await reuseProject(project); }
-        
+
         async function downloadCloudVideo(project) {
-          addLog(`☁️ 正在下载视频：${project.project_name}`, 'info');
+          addLog(`☁️ 正在下载视频:${project.project_name}`, 'info');
           // TODO: 实现云端视频下载
         }
-        
+
         async function deleteCloudProject(project) {
-          if (!confirm(`确定删除项目"${project.project_name}"吗？`)) return;
+          if (!confirm(`确定删除项目"${project.project_name}"吗?`)) return;
           try {
             const res = await fetch(`${API_BASE_URL}/project/delete`, {
               method: 'POST',
@@ -1322,9 +1347,9 @@
             if (result.code !== 0) throw new Error(result.msg);
             addLog('✅ 项目删除成功', 'success');
             await loadCloudProjectList();
-          } catch (e) { addLog(`❌ 项目删除失败：${e.message}`, 'error'); }
+          } catch (e) { addLog(`❌ 项目删除失败:${e.message}`, 'error'); }
         }
-        
+
         function blobToBase64(blob) {
           return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -1367,7 +1392,7 @@
               ctx.clearRect(0, 0, canvas.width, canvas.height);
 
 
-              // ========== 新增：PPT 底层绘制 ==========
+              // ========== 新增:PPT 底层绘制 ==========
               if (broadcastMode.value === 'horizontal' && pptConfig.imported && pageTurningConfirmed.value) {
                 const currentPageData = pptConfig.pages.find(item => item.page_num === currentPptPage.value);
                 if (currentPageData && currentPageData.page_image) {
@@ -2186,7 +2211,7 @@
         onMounted(async () => {
           await loadCachedVideos();
           addLog('页面加载完成', 'success');
-          // ========== 新增：飞书授权回调处理 ==========
+          // ========== 新增:飞书授权回调处理 ==========
           const urlParams = new URLSearchParams(window.location.search);
           const code = urlParams.get('code');
           const state = urlParams.get('state');
@@ -2249,30 +2274,5 @@
       }
     }).mount('#app');
   </script>
-
-  <!-- 保存项目弹窗 -->
-  <div class="modal-mask" v-if="saveProjectModalOpen" @click.self="saveProjectModalOpen = false">
-    <div class="modal-box">
-      <div class="modal-title">保存项目到云端</div>
-      <div class="form-group">
-        <label>项目名称 *</label>
-        <input v-model="saveProjectForm.name" placeholder="请输入项目名称">
-      </div>
-      <div class="form-group">
-        <label>项目备注</label>
-        <textarea v-model="saveProjectForm.desc" placeholder="请输入项目备注(选填)"></textarea>
-      </div>
-      <div class="form-group">
-        <label>
-          <input type="checkbox" v-model="saveProjectForm.saveVideo">
-          同时保存成品视频到云端
-        </label>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-default" @click="saveProjectModalOpen = false">取消</button>
-        <button class="btn btn-primary" @click="confirmSaveProject" :disabled="!saveProjectForm.name">确认保存</button>
-      </div>
-    </div>
-  </div>
 </body>
 </html>
