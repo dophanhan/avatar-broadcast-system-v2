@@ -1452,7 +1452,12 @@
             };
             
             // ✅ 修复：用 Object.assign 替换逐个赋值，触发 Vue 响应式
-            Object.assign(pptConfig, newPptConfig);
+            pptConfig.pptId = newPptConfig.pptId;
+            pptConfig.pptTitle = newPptConfig.pptTitle;
+            pptConfig.totalPages = newPptConfig.totalPages;
+            pptConfig.pages = newPptConfig.pages;
+            pptConfig.imported = true;  // 关键：最后设置
+            pptConfig.isLocal = newPptConfig.isLocal;
             await nextTick();
             
             addLog(`📊 上传后：pptConfig.imported=${pptConfig.imported}, totalPages=${pptConfig.totalPages}`, 'success');
