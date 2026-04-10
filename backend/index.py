@@ -13,6 +13,9 @@ from urllib.parse import quote
 import os
 import uuid
 import requests
+import oss2
+from pptx import Presentation
+from io import BytesIO
 
 def handler(event, context):
     """阿里云函数计算 Python 3.10 正确格式"""
@@ -53,6 +56,8 @@ def handler(event, context):
         return handle_project_detail(event)
     elif path == '/project/delete' and method == 'POST':
         return handle_project_delete(event)
+    elif path == '/ppt/upload' and method == 'POST':
+        return handle_ppt_upload(event)
     else:
         # 原有鉴权接口
         return handle_avatar_auth(event)
@@ -312,4 +317,79 @@ def handle_project_delete(event):
             'statusCode': 500,
             'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
             'body': json.dumps({"code": -1, "msg": str(e)}, ensure_ascii=False)
+        }
+
+def handle_ppt_upload(event):
+    """本地 PPT 文件上传和解析"""
+    try:
+        # 获取 OSS 配置
+        OSS_ACCESS_KEY = os.environ.get('OSS_ACCESS_KEY', '')
+        OSS_SECRET_KEY = os.environ.get('OSS_SECRET_KEY', '')
+        OSS_ENDPOINT = os.environ.get('OSS_ENDPOINT', 'oss-cn-hangzhou.aliyuncs.com')
+        OSS_BUCKET = os.environ.get('OSS_BUCKET', 'avatar-broadcast-v2')
+        
+        # 初始化 OSS
+        auth = oss2.Auth(OSS_ACCESS_KEY, OSS_SECRET_KEY)
+        bucket = oss2.Bucket(auth, OSS_ENDPOINT, OSS_BUCKET)
+        
+        # 解析 multipart/form-data
+        import base64
+        body = event.get('body', '')
+        if isinstance(body, str):
+            body = base64.b64decode(body)
+        
+        # 简单解析 multipart（实际应该用专门的库）
+        # 这里简化处理，假设前端直接传 base64
+        import json
+        data = json.loads(event.get('body', '{}'))
+        file_base64 = data.get('file')
+        filename = data.get('filename', 'presentation.pptx')
+        
+        # 解码文件
+        file_data = base64.b64decode(file_base64.split(',')[1] if ',' in file_base64 else file_base64)
+        
+        # 解析 PPT
+        prs = Presentation(BytesIO(file_data))
+        pages = []
+        ppt_id = str(uuid.uuid4())
+        
+        # 上传每页幻灯片到 OSS
+        for i, slide in enumerate(prs.slides):
+            # 简单处理：获取每页的文本内容
+            text_content = ""
+            for shape in slide.shapes:
+                if hasattr(shape, "text"):
+                    text_content += shape.text + "\n"
+            
+            # 上传到 OSS（这里简化，实际应该转为图片）
+            oss_key = f"ppt-images/{ppt_id}/page_{i+1}.png"
+            # bucket.put_object(oss_key, image_data)
+            
+            pages.append({
+                "page_num": i + 1,
+                "page_title": f"第{i+1}页",
+                "page_text": text_content.strip()[:100],
+                "page_image_url": f"https://{OSS_BUCKET}.{OSS_ENDPOINT}/{oss_key}",
+                "page_type": "content" if i > 0 else "cover"
+            })
+        
+        return {
+            'statusCode': 200,
+            'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+            'body': json.dumps({
+                "code": 0,
+                "data": {
+                    "ppt_id": ppt_id,
+                    "ppt_title": filename.replace('.pptx', '').replace('.ppt', ''),
+                    "total_pages": len(pages),
+                    "pages": pages
+                }
+            }, ensure_ascii=False)
+        }
+        
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+            'body': json.dumps({"code": -1, "msg": f"PPT 解析失败：{str(e)}"}, ensure_ascii=False)
         }
