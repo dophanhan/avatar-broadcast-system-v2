@@ -543,7 +543,29 @@
                   {{ pptImportStatus.text }}
                 </div>
               </div>
-              
+
+              <!-- ✅ 优化：生成翻页节点按钮前置，始终可见，仅控制禁用状态 -->
+              <div class="form-group">
+                <button
+                  class="btn btn-primary"
+                  style="width: 100%;"
+                  @click="generateTurningNodes"
+                  :disabled="!config.text || !pptConfig.imported"
+                >
+                  🤖 生成智能翻页节点
+                </button>
+                <!-- 新增：按钮禁用提示 -->
+                <div v-if="!config.text && !pptConfig.imported" class="status-tip warn" style="margin-top: 8px;">
+                  ⚠️ 请先完成 PPT 导入，并填写播报文本后，即可生成翻页节点
+                </div>
+                <div v-else-if="!pptConfig.imported" class="status-tip warn" style="margin-top: 8px;">
+                  ⚠️ 请先完成 PPT 授权导入，再生成翻页节点
+                </div>
+                <div v-else-if="!config.text" class="status-tip warn" style="margin-top: 8px;">
+                  ⚠️ 请先填写播报文本，再生成翻页节点
+                </div>
+              </div>
+
               <!-- PPT 导入结果预览 -->
               <div v-if="pptConfig.imported" class="form-group">
                 <label>PPT 导入结果 ({{ pptConfig.totalPages }}页)</label>
