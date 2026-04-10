@@ -834,6 +834,7 @@
     </div>
   </div>
 
+
   <!-- 保存项目弹窗 (在 Vue 根节点内) -->
   <div class="modal-mask" v-if="saveProjectModalOpen" @click.self="saveProjectModalOpen = false">
     <div class="modal-box">
@@ -844,7 +845,7 @@
       </div>
       <div class="form-group">
         <label>项目备注</label>
-        <textarea v-model="saveProjectForm.desc" placeholder="请输入项目备注(选填)"></textarea>
+        <textarea v-model="saveProjectForm.desc" placeholder="请输入项目备注（选填）"></textarea>
       </div>
       <div class="form-group">
         <label>
@@ -858,9 +859,9 @@
       </div>
     </div>
   </div>
+</div>
 
   <script>
-    const { createApp, onMounted, ref, reactive, computed, onUnmounted } = Vue;
     // IndexedDB 配置
     const DB_NAME = 'AvatarBroadcastDB';
     const DB_VERSION = 1;
