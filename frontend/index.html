@@ -425,10 +425,13 @@
       width: 100vw;
       height: 100vh;
       background: rgba(0,0,0,0.5);
-      display: flex;
+      display: none !important;  // 默认强制隐藏，Vue 控制显示
       justify-content: center;
       align-items: center;
       z-index: 99999;
+    }
+    .modal-mask.vue-mounted {
+      display: flex !important;  // Vue 挂载后才允许显示
     }
     .modal-box {
       background: white;
@@ -874,7 +877,7 @@
       </div>
 
       <!-- 保存项目弹窗（Vue渲染范围内，响应式完全生效） -->
-      <div class="modal-mask" v-if="saveProjectModalOpen" v-cloak @click.self="closeSaveModal">
+      <div class="modal-mask" :class="{ 'vue-mounted': isVueMounted }" v-if="saveProjectModalOpen" v-cloak @click.self="closeSaveModal">
         <div class="modal-box" @click.stop>
           <div class="modal-title">保存项目到云端</div>
           <div class="form-group">
@@ -1100,6 +1103,7 @@
         // 云端项目状态
         const cloudProjectCollapseOpen = ref(false);
         const saveProjectModalOpen = ref(false);
+        const isVueMounted = ref(false);  // 防止弹窗闪现
         const saveProjectForm = reactive({
           name: '',
           desc: '',
@@ -2228,6 +2232,8 @@
             // 再次确认关闭
             setTimeout(() => {
               saveProjectModalOpen.value = false;
+              // Vue 完全挂载后才允许弹窗显示
+              isVueMounted.value = true;
             }, 0);
           });
           
@@ -2294,6 +2300,7 @@
           cloudProjectList,
           saveProjectModalOpen,
           saveProjectForm,
+          isVueMounted,
           // PPT功能函数
           checkPptUrlFormat,
           startFeishuAuth,
