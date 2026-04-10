@@ -556,6 +556,10 @@
                 <div class="status-tip warn" style="margin-top: 8px; font-size: 12px;">
                   ℹ️ 支持格式：.ppt, .pptx | 最大 50MB | 自动解析为图片并生成翻页节点
                 </div>
+                <!-- ✅ 修复：添加错误信息显示 -->
+                <div v-if="pptImportStatus" :class="['status-tip', pptImportStatus.type]" style="margin-top: 8px;">
+                  {{ pptImportStatus.text }}
+                </div>
                 <!-- 飞书在线导入功能暂时隐藏 -->
               </div>
 
