@@ -1436,16 +1436,31 @@
               throw new Error(result.msg || '上传失败');
             }
             
-            // 解析成功，保存 PPT 数据
-            pptConfig.imported = true;
-            pptConfig.pptId = result.data.ppt_id || 'local-ppt-' + Date.now();
-            pptConfig.pptTitle = result.data.ppt_title || localPptFile.value.name;
-            pptConfig.totalPages = result.data.total_pages || (result.data.pages ? result.data.pages.length : 0);
-            pptConfig.pages = result.data.pages || [];
-            pptConfig.isLocal = true;
+            // 解析成功，保存 PPT 数据 - 使用 nextTick 强制触发响应式更新
+            await nextTick();
             
-            // 强制触发响应式更新
+            // 重新赋值整个 pptConfig 对象来触发响应式更新
+            const newPptConfig = {
+              pptUrl: '',
+              urlValid: false,
+              imported: true,  // 关键：设置为 true
+              pptId: result.data.ppt_id || 'local-ppt-' + Date.now(),
+              pptTitle: result.data.ppt_title || localPptFile.value.name,
+              totalPages: result.data.total_pages || (result.data.pages ? result.data.pages.length : 0),
+              pages: result.data.pages || [],
+              isLocal: true
+            };
+            
+            // 逐个属性更新
+            Object.keys(newPptConfig).forEach(key => {
+              pptConfig[key] = newPptConfig[key];
+            });
+            
+            // 强制刷新
+            await nextTick();
+            
             addLog(`📊 上传后：pptConfig.imported=${pptConfig.imported}, totalPages=${pptConfig.totalPages}, pages.length=${pptConfig.pages.length}`, 'success');
+            addLog(`📊 调试：JSON.stringify(pptConfig)=${JSON.stringify(pptConfig)}`, 'info');
             
             currentPptPage.value = 1;
             currentEditPage.value = 1;
