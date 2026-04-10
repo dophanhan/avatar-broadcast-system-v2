@@ -122,6 +122,15 @@
     .btn-danger:hover:not(:disabled) {
       transform: translateY(-2px);
       box-shadow: 0 6px 20px rgba(235,51,73,0.4);
+    .btn-default {
+      background: #e0e0e0;
+      color: #333;
+    }
+    .btn-default:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+      background: #d0d0d0;
+    }
     }
     .video-container {
       position: relative;
@@ -832,11 +841,9 @@
         </div>
       </div>
     </div>
-  </div>
-  
-      <!-- 保存项目弹窗 - 移到 Vue 根节点内部 -->
+      <!-- 保存项目弹窗 - 【已移入 Vue 根节点#app 内部，响应式生效】 -->
       <div class="modal-mask" v-if="saveProjectModalOpen" @click.self="closeSaveModal">
-        <div class="modal-box">
+        <div class="modal-box" @click.stop>
           <div class="modal-title">保存项目到云端</div>
           <div class="form-group">
             <label>项目名称 *</label>
@@ -922,6 +929,7 @@
 
     createApp({
       setup() {
+        const { createApp, onMounted, ref, reactive, computed, onUnmounted, nextTick } = Vue;
         // 响应式数据
         const config = reactive({
           roleId: '111204004',  // 默认使用知夏形象
@@ -1228,11 +1236,17 @@
         }
         function reImportPpt() { pptConfig.imported = false; pptConfig.pages = []; pageTurningNodes.value = []; pageTurningConfirmed.value = false; addLog('已清空 PPT 数据', 'info'); }
         // 新增：关闭保存弹窗，重置表单
+        // 修复：关闭保存弹窗，强制重置响应式变量 + 阻止事件冒泡
         function closeSaveModal() {
           saveProjectModalOpen.value = false;
+          // 强制重置表单，避免下次打开残留内容
           saveProjectForm.name = '';
           saveProjectForm.desc = '';
           saveProjectForm.saveVideo = false;
+          // 强制刷新 DOM（兜底方案）
+          nextTick(() => {
+            saveProjectModalOpen.value = false;
+          });
           addLog('已关闭项目保存弹窗', 'info');
         }
         
