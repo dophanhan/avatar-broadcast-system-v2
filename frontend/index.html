@@ -579,6 +579,10 @@
                 <div v-else-if="!config.text" class="status-tip warn" style="margin-top: 8px;">
                   ⚠️ 请先填写播报文本，再生成翻页节点
                 </div>
+                <!-- 调试信息 -->
+                <div class="status-tip" style="margin-top: 8px; font-size: 11px; background: #f0f0f0;">
+                  调试：PPT 已导入={{ pptConfig.imported }}, 文本={{ config.text ? '已填写' : '未填写' }}, 页数={{ pptConfig.totalPages }}
+                </div>
               </div>
 
               <!-- PPT 导入结果预览 -->
@@ -1413,10 +1417,10 @@
             
             // 解析成功，保存 PPT 数据
             pptConfig.imported = true;
-            pptConfig.pptId = result.data.ppt_id;
-            pptConfig.pptTitle = result.data.ppt_title;
-            pptConfig.totalPages = result.data.total_pages;
-            pptConfig.pages = result.data.pages;
+            pptConfig.pptId = result.data.ppt_id || 'local-ppt-' + Date.now();
+            pptConfig.pptTitle = result.data.ppt_title || localPptFile.value.name;
+            pptConfig.totalPages = result.data.total_pages || result.data.pages.length;
+            pptConfig.pages = result.data.pages || [];
             pptConfig.isLocal = true;  // 标记为本地上传
             
             currentPptPage.value = 1;
@@ -1427,6 +1431,7 @@
             
             pptImportStatus.value = { type: 'success', text: `PPT 解析成功，共${pptConfig.totalPages}页` };
             addLog('✅ PPT 解析成功，可生成翻页节点', 'success');
+            addLog(`📊 检查：pptConfig.imported=${pptConfig.imported}, config.text="${config.text ? '已填写' : '未填写'}"`, 'info');
             
             // 清空文件选择
             localPptFile.value = null;
