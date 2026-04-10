@@ -282,217 +282,6 @@
     .log-entry.error { border-left-color: #eb3349; color: #f48771; }
     .log-entry.success { border-left-color: #38ef7d; color: #89d185; }
     .log-entry.warn { border-left-color: #cca700; color: #dcdcaa; }
-
-    /* ========== 新增 PPT 宣讲功能样式 ========== */
-    .ppt-collapse {
-      border: 1px solid #e0e0e0;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      overflow: hidden;
-    }
-    .ppt-collapse-header {
-      padding: 15px 20px;
-      background: #f8f9fa;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-weight: 600;
-      color: #667eea;
-    }
-    .ppt-collapse-content {
-      padding: 20px;
-      border-top: 1px solid #e0e0e0;
-    }
-    .ppt-input-row {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      margin-bottom: 15px;
-    }
-    .ppt-input-row input {
-      flex: 1;
-      margin: 0;
-    }
-    .ppt-thumb-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 15px;
-      max-height: 200px;
-      overflow-y: auto;
-    }
-    .ppt-thumb-item {
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      padding: 8px;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-    .ppt-thumb-item:hover, .ppt-thumb-item.active {
-      border-color: #667eea;
-      background: #f0f4ff;
-    }
-    .ppt-thumb-item img {
-      width: 100%;
-      border-radius: 4px;
-      margin-bottom: 5px;
-    }
-    .ppt-thumb-title {
-      font-size: 12px;
-      color: #333;
-      text-align: center;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .dual-column-panel {
-      display: flex;
-      gap: 10px;
-      height: 400px;
-      margin: 15px 0;
-    }
-    .column-box {
-      flex: 1;
-      border: 1px solid #e0e0e0;
-      border-radius: 10px;
-      padding: 10px;
-      overflow-y: auto;
-    }
-    .column-title {
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 10px;
-      font-size: 14px;
-    }
-    .sentence-item {
-      padding: 8px 10px;
-      border-radius: 6px;
-      margin-bottom: 5px;
-      font-size: 13px;
-      cursor: grab;
-      transition: all 0.3s;
-    }
-    .sentence-item:hover {
-      background: #f8f9fa;
-    }
-    .sentence-item.bound {
-      background: #e8f5e9;
-      border-left: 3px solid #38ef7d;
-    }
-    .adjust-row {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      margin-bottom: 10px;
-      flex-wrap: wrap;
-    }
-    .adjust-row select {
-      flex: 1;
-      min-width: 120px;
-    }
-    .page-manual-btn {
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
-      display: flex;
-      gap: 10px;
-      z-index: 10;
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-    .video-container:hover .page-manual-btn {
-      opacity: 0.8;
-    }
-    .page-num-tip {
-      position: absolute;
-      bottom: 20px;
-      right: 20px;
-      background: rgba(0,0,0,0.6);
-      color: white;
-      padding: 5px 10px;
-      border-radius: 6px;
-      font-size: 14px;
-      z-index: 10;
-    }
-    .modal-mask {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0,0,0,0.5);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 99999;
-    }
-    .modal-box {
-      background: white;
-      border-radius: 15px;
-      width: 500px;
-      max-width: 90vw;
-      padding: 30px;
-    }
-    .modal-title {
-      font-size: 1.5em;
-      color: #333;
-      margin-bottom: 20px;
-      font-weight: 600;
-    }
-    .modal-footer {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      margin-top: 20px;
-    }
-    .project-card {
-      border: 1px solid #e0e0e0;
-      border-radius: 10px;
-      padding: 15px;
-      margin-bottom: 10px;
-    }
-    .project-card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 10px;
-    }
-    .project-card-title {
-      font-weight: 600;
-      color: #333;
-    }
-    .project-card-meta {
-      font-size: 12px;
-      color: #666;
-      margin-bottom: 10px;
-    }
-    .project-card-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .status-tip {
-      padding: 8px 12px;
-      border-radius: 6px;
-      margin-top: 8px;
-      font-size: 13px;
-    }
-    .status-tip.success {
-      background: #e8f5e9;
-      color: #2e7d32;
-      border: 1px solid #c8e6c9;
-    }
-    .status-tip.error {
-      background: #ffebee;
-      color: #c62828;
-      border: 1px solid #ffcdd2;
-    }
-    .status-tip.warn {
-      background: #fff3e0;
-      color: #e65100;
-      border: 1px solid #ffe0b2;
-    }
   </style>
 </head>
 <body>
@@ -510,136 +299,6 @@
         <!-- 左侧控制面板 -->
         <div class="panel">
           <h2>⚙️ 配置面板</h2>
-
-          <!-- ========== 新增 PPT 宣讲配置面板 ========== -->
-          <div class="ppt-collapse">
-            <div class="ppt-collapse-header" @click="pptCollapseOpen = !pptCollapseOpen">
-              <span>📑 PPT 宣讲配置</span>
-              <span>{{ pptCollapseOpen ? '▼' : '▶' }}</span>
-            </div>
-            <div class="ppt-collapse-content" v-if="pptCollapseOpen">
-              <!-- 飞书 PPT 链接导入 -->
-              <div class="form-group">
-                <label>飞书在线幻灯片链接</label>
-                <div class="ppt-input-row">
-                  <input
-                    v-model="pptConfig.pptUrl"
-                    placeholder="请输入飞书在线幻灯片分享链接"
-                    @blur="checkPptUrlFormat"
-                  >
-                  <button
-                    class="btn btn-primary"
-                    @click="startFeishuAuth"
-                    :disabled="!pptConfig.urlValid"
-                  >
-                    授权并导入
-                  </button>
-                </div>
-                <div v-if="pptImportStatus" class="status-tip" :class="pptImportStatus.type">
-                  {{ pptImportStatus.text }}
-                </div>
-              </div>
-              <!-- PPT 导入结果预览 -->
-              <div v-if="pptConfig.imported" class="form-group">
-                <label>PPT 导入结果 ({{ pptConfig.totalPages }}页)</label>
-                <div class="ppt-thumb-grid">
-                  <div
-                    class="ppt-thumb-item"
-                    :class="{ active: currentEditPage === item.page_num }"
-                    v-for="item in pptConfig.pages"
-                    :key="item.page_num"
-                    @click="currentEditPage = item.page_num"
-                  >
-                    <img :src="item.page_image_url" :alt="item.page_title">
-                    <div class="ppt-thumb-title">第{{ item.page_num }}页 | {{ item.page_title }}</div>
-                  </div>
-                </div>
-                <button class="btn btn-small btn-primary" @click="reImportPpt" style="margin-top: 10px;">
-                  重新导入
-                </button>
-              </div>
-              <!-- 翻页节点生成 -->
-              <div v-if="pptConfig.imported" class="form-group">
-                <button
-                  class="btn btn-primary"
-                  style="width: 100%;"
-                  @click="generateTurningNodes"
-                  :disabled="!config.text || !pptConfig.imported"
-                >
-                  🤖 生成智能翻页节点
-                </button>
-              </div>
-              <!-- 双列联动调整面板 -->
-              <div v-if="pageTurningNodes.length > 0" class="form-group">
-                <div class="dual-column-panel">
-                  <div class="column-box">
-                    <div class="column-title">📑 PPT 页面列表</div>
-                    <div
-                      class="ppt-thumb-item"
-                      :class="{ active: currentEditPage === item.page_num }"
-                      v-for="item in pptConfig.pages"
-                      :key="item.page_num"
-                      @click="currentEditPage = item.page_num"
-                    >
-                      <div class="ppt-thumb-title">第{{ item.page_num }}页 | {{ item.page_title }}</div>
-                    </div>
-                  </div>
-                  <div class="column-box">
-                    <div class="column-title">📝 绑定的播报句子</div>
-                    <div
-                      class="sentence-item"
-                      :class="{ bound: isSentenceBound(index) }"
-                      v-for="(sentence, index) in currentSentences"
-                      :key="index"
-                      draggable="true"
-                      @dragstart="dragSentence(index)"
-                      @drop="dropSentence"
-                      @dragover.prevent
-                    >
-                      句{{ index+1 }}: {{ sentence }}
-                    </div>
-                  </div>
-                </div>
-                <!-- 人工调整操作区 -->
-                <div class="adjust-row">
-                  <label>起始句:</label>
-                  <select v-model="currentNode.start_sentence_index">
-                    <option v-for="(sentence, index) in currentSentences" :key="index" :value="index">
-                      句{{ index+1 }}
-                    </option>
-                  </select>
-                  <label>结束句:</label>
-                  <select v-model="currentNode.end_sentence_index">
-                    <option v-for="(sentence, index) in currentSentences" :key="index" :value="index">
-                      句{{ index+1 }}
-                    </option>
-                  </select>
-                </div>
-                <div class="adjust-row">
-                  <button class="btn btn-small btn-primary" @click="adjustPageTurn(-1)">提前 1 句翻页</button>
-                  <button class="btn btn-small btn-primary" @click="adjustPageTurn(1)">延后 1 句翻页</button>
-                  <button class="btn btn-small btn-warning" @click="resetTurningNodes">一键重置</button>
-                </div>
-                <!-- 操作按钮区 -->
-                <div class="adjust-row" style="justify-content: space-between; margin-top: 20px;">
-                  <button class="btn btn-primary" @click="previewTurningNodes">📺 模拟预览</button>
-                  <div>
-                    <button class="btn btn-default" @click="cancelTurningEdit">取消</button>
-                    <button class="btn btn-success" @click="confirmTurningRules">✅ 确认翻页规则</button>
-                  </div>
-                </div>
-              </div>
-              <!-- 横竖屏模式切换 -->
-              <div class="form-group" style="margin-top: 20px;">
-                <label>播报模式</label>
-                <select v-model="broadcastMode" @change="onModeChange">
-                  <option value="vertical">竖屏模式(默认)</option>
-                  <option value="horizontal">横屏 PPT 宣讲模式</option>
-                </select>
-              </div>
-            </div>
-          </div>
-          <!-- ========== PPT 宣讲配置面板结束 ========== -->
 
           <div class="form-group">
             <label>数字人形象</label>
@@ -719,47 +378,6 @@
               </div>
             </div>
           </div>
-          <!-- ========== 新增云端项目管理面板 ========== -->
-          <div class="ppt-collapse">
-            <div class="ppt-collapse-header" @click="cloudProjectCollapseOpen = !cloudProjectCollapseOpen">
-              <span>☁️ 我的云端项目</span>
-              <span>{{ cloudProjectCollapseOpen ? '▼' : '▶' }}</span>
-            </div>
-            <div class="ppt-collapse-content" v-if="cloudProjectCollapseOpen">
-              <button
-                class="btn btn-primary"
-                style="width: 100%; margin-bottom: 15px;"
-                @click="openSaveProjectModal"
-                :disabled="!config.text || (!pageTurningConfirmed && !hasVideoBlob)"
-              >
-                💾 保存项目到云端
-              </button>
-              <div v-if="cloudProjectList.length > 0">
-                <div
-                  class="project-card"
-                  v-for="project in cloudProjectList"
-                  :key="project.project_id"
-                >
-                  <div class="project-card-header">
-                    <div class="project-card-title">{{ project.project_name }}</div>
-                  </div>
-                  <div class="project-card-meta">
-                    {{ project.create_time }} | {{ project.video_duration ? '时长:' + project.video_duration : '未录制' }}
-                  </div>
-                  <div class="project-card-actions">
-                    <button class="btn btn-small btn-primary" @click="reuseProject(project)">一键复用</button>
-                    <button class="btn btn-small btn-primary" @click="editProject(project)">编辑</button>
-                    <button class="btn btn-small btn-success" @click="downloadCloudVideo(project)" :disabled="!project.video_duration">下载视频</button>
-                    <button class="btn btn-small btn-danger" @click="deleteCloudProject(project)">删除</button>
-                  </div>
-                </div>
-              </div>
-              <div v-else class="empty-tip" style="text-align: center; color: #999; padding: 20px 0;">
-                暂无云端项目
-              </div>
-            </div>
-          </div>
-          <!-- ========== 云端项目管理面板结束 ========== -->
           <div class="log-container" v-if="logs.length > 0">
             <div v-for="(log, index) in logs.slice(-20)" :key="index"
                  :class="['log-entry', log.type]">
@@ -772,20 +390,11 @@
           <h2>📺 视频预览</h2>
 
           <div class="video-container" ref="videoContainer">
-            <canvas ref="compositeCanvas" :width="canvasSize.width" :height="canvasSize.height"></canvas>
+            <canvas ref="compositeCanvas" width="720" height="1280"></canvas>
             <button class="fullscreen-btn" @click="toggleFullscreen" title="全屏播放">
               <span v-if="!isFullscreen">⛶ 全屏</span>
               <span v-else>⛶ 退出</span>
             </button>
-            <!-- 新增手动翻页按钮 -->
-            <div class="page-manual-btn" v-if="broadcastMode === 'horizontal' && pageTurningConfirmed">
-              <button class="btn btn-small btn-primary" @click="manualTurnPage(-1)" :disabled="currentPptPage <= 1">上一页</button>
-              <button class="btn btn-small btn-primary" @click="manualTurnPage(1)" :disabled="currentPptPage >= pptConfig.totalPages">下一页</button>
-            </div>
-            <!-- 新增页码提示 -->
-            <div class="page-num-tip" v-if="broadcastMode === 'horizontal' && pageTurningConfirmed && showPageTip">
-              第{{ currentPptPage }}页 / 共{{ pptConfig.totalPages }}页
-            </div>
           </div>
           <div class="status-bar">
             <div class="status-item">
@@ -983,70 +592,12 @@
         // 字幕相关
         let sentenceIndex = 0;
         let currentSentences = [];
-        let isBroadcastingSentence = false;  // 队列锁，避免发送太快
+        let isBroadcastingSentence = false;  // 队列锁,避免发送太快
         let isStopping = false;  // 防止重复调用 stopBroadcast
-        
-        // ========== 新增 PPT 宣讲功能全局变量 ==========
-        const FEISHU_APP_ID = 'cli_a914c5cbe1385cb5'; // 飞书应用 ID（需要配置）
-        const API_BASE_URL = 'https://avatar-adcast-v-uzttmfxmdi.cn-hangzhou.fcapp.run'; // 二期函数地址
-        
-        // PPT 配置核心状态
-        let pptCollapseOpen = ref(true);
-        let pptConfig = reactive({
-          pptUrl: '',
-          urlValid: false,
-          imported: false,
-          pptId: '',
-          pptTitle: '',
-          totalPages: 0,
-          pages: []
-        });
-        let pptImportStatus = ref(null);
-        let currentPptPage = ref(1);
-        let currentEditPage = ref(1);
-        
-        // 翻页节点状态
-        let pageTurningNodes = ref([]);
-        let pageTurningConfirmed = ref(false);
-        let draggedSentenceIndex = ref(null);
-        
-        // 播报模式
-        let broadcastMode = ref('vertical');
-        let canvasSize = reactive({
-          width: 720,
-          height: 1280
-        });
-        let showPageTip = ref(false);
-        
-        // 云端项目状态
-        let cloudProjectCollapseOpen = ref(false);
-        let saveProjectModalOpen = ref(false);
-        let saveProjectForm = reactive({
-          name: '',
-          desc: '',
-          saveVideo: false
-        });
-        let cloudProjectList = ref([]);
-        let feishuUserInfo = reactive({
-          openId: '',
-          accessToken: ''
-        });
-        // ========== 新增变量结束 ==========
 
         // 计算属性
         const hasCachedVideo = computed(() => cachedVideos.value.length > 0);
         const hasVideoBlob = computed(() => videoBlob.value && videoBlob.value.size > 0);
-        
-        // ========== 新增计算属性 ==========
-        // 当前编辑的翻页节点
-        const currentNode = computed(() => {
-          return pageTurningNodes.value.find(node => node.page_num === currentEditPage.value) || {
-            page_num: currentEditPage.value,
-            start_sentence_index: 0,
-            end_sentence_index: 0
-          };
-        });
-        // ========== 新增计算属性结束 ==========
 
         // 工具函数
         function addLog(message, type = 'info') {
@@ -1127,229 +678,25 @@
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
-          addLog('💡 提示:请使用 PotPlayer、VLC 或 最新版 Chrome/Edge 播放视频', 'info');
+          addLog('💡 提示：请使用 PotPlayer、VLC 或 最新版 Chrome/Edge 播放视频', 'info');
           addLog('✅ 视频下载已触发', 'success');
         }
 
-        // ========== 新增 PPT 功能工具函数 ==========
-        function checkPptUrlFormat() {
-          const url = pptConfig.pptUrl;
-          if (!url) { pptConfig.urlValid = false; pptImportStatus.value = { type: 'warn', text: '请输入飞书 PPT 链接' }; return; }
-          if (url.includes('feishu.cn/docx')) { pptConfig.urlValid = true; pptImportStatus.value = { type: 'success', text: '链接格式校验通过' }; }
-          else { pptConfig.urlValid = false; pptImportStatus.value = { type: 'error', text: '仅支持飞书在线幻灯片链接' }; }
-        }
-        function startFeishuAuth() {
-          const redirectUri = encodeURIComponent(window.location.href.split('?')[0]);
-          window.location.href = `https://open.feishu.cn/open-apis/authen/v1/index?app_id=${FEISHU_APP_ID}&redirect_uri=${redirectUri}&state=ppt_import`;
-        }
-        async function preloadPptImages() {
-          addLog('📄 开始预加载 PPT 图片', 'info');
-          await Promise.all(pptConfig.pages.map(page => new Promise(resolve => {
-            const img = new Image(); img.crossOrigin = 'anonymous';
-            img.onload = () => { page.page_image = img; resolve(); };
-            img.onerror = () => { resolve(); };
-            img.src = page.page_image_url;
-          })));
-          addLog('✅ PPT 图片预加载完成', 'success');
-        }
-        function isSentenceBound(index) { return pageTurningNodes.value.some(node => index >= node.start_sentence_index && index <= node.end_sentence_index); }
-        function dragSentence(index) { draggedSentenceIndex.value = index; }
-        function dropSentence() {
-          if (draggedSentenceIndex.value === null) return;
-          const node = pageTurningNodes.value.find(n => n.page_num === currentEditPage.value);
-          if (node) { node.end_sentence_index = draggedSentenceIndex.value; addLog(`✅ 已绑定句${draggedSentenceIndex.value+1}到第${currentEditPage.value}页`, 'success'); }
-          draggedSentenceIndex.value = null;
-        }
-        function adjustPageTurn(offset) {
-          const node = pageTurningNodes.value.find(n => n.page_num === currentEditPage.value);
-          if (!node) return;
-          node.start_sentence_index = Math.max(0, node.start_sentence_index + offset);
-          node.end_sentence_index = Math.min(currentSentences.length - 1, node.end_sentence_index + offset);
-          addLog(`📄 第${currentEditPage.value}页翻页时机已调整`, 'info');
-        }
-        function resetTurningNodes() { generateTurningNodes(true); }
-        function cancelTurningEdit() { pageTurningNodes.value = []; pageTurningConfirmed.value = false; addLog('已取消翻页规则编辑', 'info'); }
-        function confirmTurningRules() {
-          let idx = 0, valid = true;
-          for (let node of [...pageTurningNodes.value].sort((a,b)=>a.page_num-b.page_num)) {
-            if (node.start_sentence_index !== idx) { valid = false; break; }
-            idx = node.end_sentence_index + 1;
-          }
-          if (idx !== currentSentences.length) valid = false;
-          if (!valid) { addLog('❌ 翻页规则校验失败', 'error'); return; }
-          pageTurningConfirmed.value = true; addLog('✅ 翻页规则已确认生效', 'success');
-        }
-        async function previewTurningNodes() {
-          addLog('📺 开始模拟预览', 'info');
-          for (let node of [...pageTurningNodes.value].sort((a,b)=>a.page_num-b.page_num)) {
-            currentPptPage.value = node.page_num; showPageTip.value = true;
-            await new Promise(r => setTimeout(r, 1500));
-            showPageTip.value = false;
-          }
-          addLog('✅ 模拟预览完成', 'success');
-        }
-        function manualTurnPage(offset) {
-          const p = currentPptPage.value + offset;
-          if (p < 1 || p > pptConfig.totalPages) return;
-          currentPptPage.value = p; showPageTip.value = true;
-          setTimeout(() => { showPageTip.value = false; }, 1000);
-          addLog(`📄 手动切换到第${p}页`, 'info');
-        }
-        function onModeChange() {
-          if (broadcastMode.value === 'horizontal') { canvasSize.width = 1920; canvasSize.height = 1080; addLog('📐 横屏 PPT 宣讲模式', 'info'); }
-          else { canvasSize.width = 720; canvasSize.height = 1280; addLog('📐 竖屏默认模式', 'info'); }
-          if (compositeCanvas.value) { compositeCanvas.value.width = canvasSize.width; compositeCanvas.value.height = canvasSize.height; }
-        }
-        function reImportPpt() { pptConfig.imported = false; pptConfig.pages = []; pageTurningNodes.value = []; pageTurningConfirmed.value = false; addLog('已清空 PPT 数据', 'info'); }
-        function openSaveProjectModal() { saveProjectForm.name = ''; saveProjectForm.desc = ''; saveProjectForm.saveVideo = false; saveProjectModalOpen.value = true; }
-        // ========== 新增工具函数结束 ==========
-
-        // ========== 新增接口请求函数 ==========
-        async function generateTurningNodes(isReset = false) {
-          if (!config.text || !pptConfig.imported) { addLog('❌ 请先输入播报文本并导入 PPT', 'error'); return; }
-          const sentences = config.text.replace(/([\u3002\uFF01\uFF1F\u002E\u0021\u003F]+)/g, '$1|SPLIT|').split('|SPLIT|').map(s => s.trim()).filter(s => s.length > 0);
-          currentSentences = sentences;
-          addLog('🤖 正在生成智能翻页节点...', 'info');
-          try {
-            const res = await fetch(`${API_BASE_URL}/ai/generate-turning-nodes`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'X-Feishu-OpenId': feishuUserInfo.openId },
-              body: JSON.stringify({ speak_sentences: sentences, ppt_pages: pptConfig.pages })
-            });
-            const result = await res.json();
-            if (result.code !== 0) throw new Error(result.msg);
-            pageTurningNodes.value = result.data.page_turning_nodes;
-            addLog(`✅ 翻页节点生成成功，共${pageTurningNodes.value.length}个节点`, 'success');
-            if (!isReset) { currentEditPage.value = 1; }
-          } catch (e) { addLog(`❌ 翻页节点生成失败：${e.message}`, 'error'); }
-        }
-        
-        async function importFeishuPpt(code) {
-          addLog('📄 正在拉取飞书 PPT 内容...', 'info');
-          try {
-            const res = await fetch(`${API_BASE_URL}/feishu/oauth/callback?code=${code}&state=ppt_import`);
-            const result = await res.json();
-            if (result.code !== 0) throw new Error(result.msg);
-            feishuUserInfo.openId = result.data.open_id;
-            feishuUserInfo.accessToken = result.data.access_token;
-            const pptRes = await fetch(`${API_BASE_URL}/feishu/ppt/import`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ ppt_url: pptConfig.pptUrl, access_token: feishuUserInfo.accessToken })
-            });
-            const pptResult = await pptRes.json();
-            if (pptResult.code !== 0) throw new Error(pptResult.msg);
-            pptConfig.imported = true;
-            pptConfig.pptId = pptResult.data.ppt_id;
-            pptConfig.pptTitle = pptResult.data.ppt_title;
-            pptConfig.totalPages = pptResult.data.total_pages;
-            pptConfig.pages = pptResult.data.pages;
-            currentPptPage.value = 1; currentEditPage.value = 1;
-            await preloadPptImages();
-            pptImportStatus.value = { type: 'success', text: `PPT 导入成功，共${pptConfig.totalPages}页` };
-            await loadCloudProjectList();
-          } catch (e) {
-            pptImportStatus.value = { type: 'error', text: `PPT 导入失败：${e.message}` };
-            addLog(`❌ PPT 导入失败：${e.message}`, 'error');
-          }
-        }
-        
-        async function confirmSaveProject() {
-          addLog('☁️ 正在保存项目到云端...', 'info');
-          try {
-            const params = {
-              project_name: saveProjectForm.name, project_desc: saveProjectForm.desc,
-              avatar_config: { ...config }, speak_text: config.text, speak_sentences: currentSentences,
-              ppt_data: { ...pptConfig }, page_turning_rules: pageTurningNodes.value,
-              video_file: saveProjectForm.saveVideo && videoBlob.value ? await blobToBase64(videoBlob.value) : null
-            };
-            const res = await fetch(`${API_BASE_URL}/project/save`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'X-Feishu-OpenId': feishuUserInfo.openId },
-              body: JSON.stringify(params)
-            });
-            const result = await res.json();
-            if (result.code !== 0) throw new Error(result.msg);
-            addLog('✅ 项目保存成功', 'success');
-            saveProjectModalOpen.value = false;
-            await loadCloudProjectList();
-          } catch (e) { addLog(`❌ 项目保存失败：${e.message}`, 'error'); }
-        }
-        
-        async function loadCloudProjectList() {
-          if (!feishuUserInfo.openId) return;
-          try {
-            const res = await fetch(`${API_BASE_URL}/project/list`, { headers: { 'X-Feishu-OpenId': feishuUserInfo.openId } });
-            const result = await res.json();
-            if (result.code !== 0) throw new Error(result.msg);
-            cloudProjectList.value = result.data.list;
-            addLog(`☁️ 加载了${cloudProjectList.value.length}个云端项目`, 'success');
-          } catch (e) { addLog(`❌ 云端项目加载失败：${e.message}`, 'error'); }
-        }
-        
-        async function reuseProject(project) {
-          addLog(`☁️ 正在加载项目：${project.project_name}`, 'info');
-          try {
-            const res = await fetch(`${API_BASE_URL}/project/detail?project_id=${project.project_id}`, { headers: { 'X-Feishu-OpenId': feishuUserInfo.openId } });
-            const result = await res.json();
-            if (result.code !== 0) throw new Error(result.msg);
-            const data = result.data;
-            Object.assign(config, data.avatar_config);
-            Object.assign(pptConfig, data.ppt_data);
-            pageTurningNodes.value = data.page_turning_rules;
-            pageTurningConfirmed.value = true;
-            await preloadPptImages();
-            addLog('✅ 项目加载完成，可直接开始播报', 'success');
-          } catch (e) { addLog(`❌ 项目加载失败：${e.message}`, 'error'); }
-        }
-        
-        async function editProject(project) { await reuseProject(project); }
-        
-        async function downloadCloudVideo(project) {
-          addLog(`☁️ 正在下载视频：${project.project_name}`, 'info');
-          // TODO: 实现云端视频下载
-        }
-        
-        async function deleteCloudProject(project) {
-          if (!confirm(`确定删除项目"${project.project_name}"吗？`)) return;
-          try {
-            const res = await fetch(`${API_BASE_URL}/project/delete`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'X-Feishu-OpenId': feishuUserInfo.openId },
-              body: JSON.stringify({ project_id: project.project_id })
-            });
-            const result = await res.json();
-            if (result.code !== 0) throw new Error(result.msg);
-            addLog('✅ 项目删除成功', 'success');
-            await loadCloudProjectList();
-          } catch (e) { addLog(`❌ 项目删除失败：${e.message}`, 'error'); }
-        }
-        
-        function blobToBase64(blob) {
-          return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result);
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
-          });
-        }
-        // ========== 新增接口函数结束 ==========
-
-        // 【核心重写】彻底放弃 requestAnimationFrame,改用 setInterval 强制 25fps 绘制(无视后台降频)
+        // 【核心重写】彻底放弃 requestAnimationFrame，改用 setInterval 强制 25fps 绘制（无视后台降频）
         function compositeFrame() {
-          // 如果已经有定时器在跑,先清掉
+          // 如果已经有定时器在跑，先清掉
           if (compositeInterval) {
             clearInterval(compositeInterval);
             compositeInterval = null;
           }
 
-          addLog('🎨 启动强制绘制模式 (25fps 固定帧率,无视后台降频)...', 'info');
+          addLog('🎨 启动强制绘制模式 (25fps 固定帧率，无视后台降频)...', 'info');
 
-          // 强制 25fps,即每 40ms 绘制一帧
+          // 强制 25fps，即每 40ms 绘制一帧
           const FRAME_INTERVAL = 40;
 
           compositeInterval = setInterval(() => {
-            // 如果不在录制或播报状态,立刻停止定时器
+            // 如果不在录制或播报状态，立刻停止定时器
             if (!isRecording.value && !isBroadcasting.value) {
               clearInterval(compositeInterval);
               compositeInterval = null;
@@ -1363,22 +710,10 @@
             const videoEl = document.querySelector('#digital-human-container video');
 
             try {
-              // 1. 强制清空画布(防止帧残留)
+              // 1. 强制清空画布（防止帧残留）
               ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-
-              // ========== 新增：PPT 底层绘制 ==========
-              if (broadcastMode.value === 'horizontal' && pptConfig.imported && pageTurningConfirmed.value) {
-                const currentPageData = pptConfig.pages.find(item => item.page_num === currentPptPage.value);
-                if (currentPageData && currentPageData.page_image) {
-                  ctx.drawImage(currentPageData.page_image, 0, 0, 1344, 1080);
-                } else {
-                  ctx.fillStyle = '#1a1a1a';
-                  ctx.fillRect(0, 0, 1344, 1080);
-                }
-              }
-              // ========== 新增结束 ==========
-              // 2. 如果视频未就绪,画黑屏等待
+              // 2. 如果视频未就绪，画黑屏等待
               if (!videoEl || videoEl.readyState < 2) {
                 ctx.fillStyle = '#000';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1389,12 +724,8 @@
                 return;
               }
 
-              // 3. 强制绘制当前视频帧(不管有没有新帧,都画一次,保证时间戳连续)
-              if (broadcastMode.value === 'horizontal') {
-                ctx.drawImage(videoEl, 1344, 0, 576, 1080);
-              } else {
-                ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
-              }
+              // 3. 强制绘制当前视频帧（不管有没有新帧，都画一次，保证时间戳连续）
+              ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
 
               // 4. 绘制字幕
               if (currentSubtitle) {
@@ -1454,7 +785,7 @@
                 ctx.shadowOffsetY = 0;
               }
             } catch (e) {
-              // 忽略绘制异常,防止单帧错误导致整个录制崩溃
+              // 忽略绘制异常，防止单帧错误导致整个录制崩溃
               // addLog('绘制异常:' + e.message, 'warn');
             }
           }, FRAME_INTERVAL);
@@ -1478,11 +809,11 @@
               const usedMB = (performance.memory.usedJSHeapSize / 1024 / 1024).toFixed(0);
               const limitMB = (performance.memory.jsHeapSizeLimit / 1024 / 1024).toFixed(0);
 
-              // 超过 1.5GB 发出橙色预警,超过 2GB 发出红色预警
+              // 超过 1.5GB 发出橙色预警，超过 2GB 发出红色预警
               if (usedMB > 2000) {
-                addLog(`🔴 内存严重不足:${usedMB}MB / ${limitMB}MB,建议立即停止录制并分段`, 'error');
+                addLog(`🔴 内存严重不足：${usedMB}MB / ${limitMB}MB，建议立即停止录制并分段`, 'error');
               } else if (usedMB > 1500) {
-                addLog(`🟠 内存使用过高:${usedMB}MB / ${limitMB}MB`, 'warn');
+                addLog(`🟠 内存使用过高：${usedMB}MB / ${limitMB}MB`, 'warn');
               }
             }, 5000); // 每 5 秒检查一次
           }
@@ -1591,27 +922,27 @@
               addLog('⚠️ 没有音频轨道,将录制无声视频', 'warn');
             }
 
-            // 选择最佳编码格式(优先尝试 H.264 编码,兼容性最好)
+            // 选择最佳编码格式（优先尝试 H.264 编码，兼容性最好）
             let options = null;
 
-            // 【方案 1】优先尝试 H.264 编码 (webm 容器封装,兼容性最接近 MP4)
+            // 【方案 1】优先尝试 H.264 编码 (webm 容器封装，兼容性最接近 MP4)
             const h264Type = 'video/webm;codecs=h264,opus';
             if (MediaRecorder.isTypeSupported(h264Type)) {
-              options = {
-                mimeType: h264Type,
-                videoBitsPerSecond: 1000000, // H.264 稍微给高点码率,画质更好
+              options = { 
+                mimeType: h264Type, 
+                videoBitsPerSecond: 1000000, // H.264 稍微给高点码率，画质更好
                 audioBitsPerSecond: 128000    // H.264 配 128kbps AAC 音质
               };
               addLog('✅ 使用 H.264 编码 (最佳兼容性)', 'success');
-            }
-            // 【方案 2】如果不支持 H.264,退回到最稳的 VP8
+            } 
+            // 【方案 2】如果不支持 H.264，退回到最稳的 VP8
             else {
-              options = {
-                mimeType: 'video/webm;codecs=vp8,opus',
-                videoBitsPerSecond: 800000,
-                audioBitsPerSecond: 64000
+              options = { 
+                mimeType: 'video/webm;codecs=vp8,opus', 
+                videoBitsPerSecond: 800000,  
+                audioBitsPerSecond: 64000     
               };
-              addLog('⚠️ 浏览器不支持 H.264,使用 VP8 编码', 'warn');
+              addLog('⚠️ 浏览器不支持 H.264，使用 VP8 编码', 'warn');
             }
 
             addLog(`📦 使用编码格式:${options.mimeType}`, 'info');
@@ -1622,12 +953,12 @@
               if (e.data.size > 0) {
                 recordedChunks.push(e.data);
 
-                // 【优化 1】日志瘦身:只保留最后 50 条日志,防止日志占用内存
+                // 【优化 1】日志瘦身：只保留最后 50 条日志，防止日志占用内存
                 if (logs.value.length > 200) {
                   logs.value = logs.value.slice(-50);
                 }
 
-                // 【优化 2】实时显示内存累计占用,心里有底
+                // 【优化 2】实时显示内存累计占用，心里有底
                 const totalMemMB = recordedChunks.reduce((sum, chunk) => sum + chunk.size, 0) / 1024 / 1024;
                 addLog(`📥 录制数据块:${(e.data.size / 1024).toFixed(1)} KB (内存累计:${totalMemMB.toFixed(1)} MB)`, 'info');
               }
@@ -2019,23 +1350,23 @@
 
           await waitForVideoElement();
 
-          // 确保 video 元素不静音,音量最大(关键修复:确保音频可捕获)
+          // 确保 video 元素不静音，音量最大（关键修复：确保音频可捕获）
           const videoEl = document.querySelector('#digital-human-container video');
           if (videoEl) {
             videoEl.muted = false;
             videoEl.volume = 1.0;
             videoEl.autoplay = true;
             videoEl.playsInline = true;
-
+            
             // 禁用所有可能影响音频的属性
             videoEl.removeAttribute('muted');
-
-            addLog('🔊 Video 元素已配置:muted=false, volume=1.0, autoplay=true', 'success');
-
+            
+            addLog('🔊 Video 元素已配置：muted=false, volume=1.0, autoplay=true', 'success');
+            
             // 监听视频元素事件
             videoEl.onplay = () => addLog('▶️ Video 开始播放', 'success');
             videoEl.onpause = () => addLog('⏸️ Video 暂停', 'warn');
-            videoEl.onvolumechange = () => addLog(`🔊 Volume 变化:${videoEl.volume}, muted=${videoEl.muted}`, 'info');
+            videoEl.onvolumechange = () => addLog(`🔊 Volume 变化：${videoEl.volume}, muted=${videoEl.muted}`, 'info');
           } else {
             addLog('⚠️ Video 元素未找到', 'warn');
           }
@@ -2186,15 +1517,6 @@
         onMounted(async () => {
           await loadCachedVideos();
           addLog('页面加载完成', 'success');
-          // ========== 新增：飞书授权回调处理 ==========
-          const urlParams = new URLSearchParams(window.location.search);
-          const code = urlParams.get('code');
-          const state = urlParams.get('state');
-          if (code && state === 'ppt_import') {
-            window.history.replaceState({}, document.title, window.location.pathname);
-            await importFeishuPpt(code);
-          }
-          // ========== 新增结束 ==========
         });
 
         onUnmounted(() => {
@@ -2249,30 +1571,5 @@
       }
     }).mount('#app');
   </script>
-
-  <!-- 保存项目弹窗 -->
-  <div class="modal-mask" v-if="saveProjectModalOpen" @click.self="saveProjectModalOpen = false">
-    <div class="modal-box">
-      <div class="modal-title">保存项目到云端</div>
-      <div class="form-group">
-        <label>项目名称 *</label>
-        <input v-model="saveProjectForm.name" placeholder="请输入项目名称">
-      </div>
-      <div class="form-group">
-        <label>项目备注</label>
-        <textarea v-model="saveProjectForm.desc" placeholder="请输入项目备注(选填)"></textarea>
-      </div>
-      <div class="form-group">
-        <label>
-          <input type="checkbox" v-model="saveProjectForm.saveVideo">
-          同时保存成品视频到云端
-        </label>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-default" @click="saveProjectModalOpen = false">取消</button>
-        <button class="btn btn-primary" @click="confirmSaveProject" :disabled="!saveProjectForm.name">确认保存</button>
-      </div>
-    </div>
-  </div>
 </body>
 </html>
