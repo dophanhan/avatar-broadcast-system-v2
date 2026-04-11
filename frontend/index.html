@@ -538,20 +538,23 @@
                     ref="pptFileInput"
                     accept=".ppt,.pptx"
                     @change="handleLocalPptUpload"
-                    style="padding: 10px; border: 2px dashed #e0e0e0; border-radius: 8px;"
+                    style="padding: 10px; border: 2px dashed #e0e0e0; border-radius: 8px; margin-bottom: 10px;"
                   >
+                  <!-- ✅ 修复：始终显示上传按钮，用 disabled 控制状态 -->
+                  <button
+                    class="btn btn-primary"
+                    @click="uploadLocalPpt"
+                    :disabled="!localPptFile || uploadingLocalPpt"
+                    style="margin-top: 10px; width: 100%;"
+                  >
+                    <span v-if="!localPptFile">📤 请先选择 PPT 文件</span>
+                    <span v-else-if="uploadingLocalPpt">⏳ 上传中...</span>
+                    <span v-else>🚀 上传并解析</span>
+                  </button>
+                  <!-- 文件信息显示 -->
                   <div v-if="localPptFile" class="status-tip success" style="margin-top: 8px;">
                     ✅ 已选择：{{ localPptFile.name }} ({{ (localPptFile.size / 1024 / 1024).toFixed(2) }} MB)
                   </div>
-                  <button
-                    v-if="localPptFile"
-                    class="btn btn-primary"
-                    @click="uploadLocalPpt"
-                    :disabled="uploadingLocalPpt"
-                    style="margin-top: 10px;"
-                  >
-                    {{ uploadingLocalPpt ? '上传中...' : '上传并解析' }}
-                  </button>
                 </div>
                 <div class="status-tip warn" style="margin-top: 8px; font-size: 12px;">
                   ℹ️ 支持格式：.ppt, .pptx | 最大 50MB | 自动解析为图片并生成翻页节点
