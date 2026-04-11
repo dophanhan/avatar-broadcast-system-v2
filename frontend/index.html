@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>数字人播报系统 v3.0 - 最终修复版-currentSentences 修复</title>
-  <meta http-equiv=202604112236"Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv=202604112236"Pragma" content="no-cache">
-  <meta http-equiv=202604112236"Expires" content="0">
+  <title>数字人播报系统 v3.0 - 最终修复版-v2-画中画优化</title>
+  <meta http-equiv=202604112359"Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv=202604112359"Pragma" content="no-cache">
+  <meta http-equiv=202604112359"Expires" content="0">
   <script src="https://unpkg.com/vue@3.4.21/dist/vue.global.prod.js"></script>
   <script type="module">
-    import { PlayerEvents, default as AvatarSDK } from './sdk/avatar-sdk-web/index.js?v=202604112236';
+    import { PlayerEvents, default as AvatarSDK } from './sdk/avatar-sdk-web/index.js?v=202604112359';
     window.AVATAR_SDK = { AvatarSDK, PlayerEvents };
     console.log('✅ SDK 模块加载成功:', AvatarSDK);
   </script>
@@ -745,10 +745,16 @@
             <button
               class="btn btn-primary"
               @click="startBroadcast"
-              :disabled="isBroadcasting || !config.text"
+              :disabled="isBroadcasting || !config.text || (pptConfig.imported && !pageTurningConfirmed)"
             >
               🎙️ {{ isBroadcasting ? '播报中...' : '开始播报' }}
             </button>
+            
+            <!-- 新增：未确认规则时的警告提示 -->
+            <div v-if="pptConfig.imported && !pageTurningConfirmed" class="status-tip warn" style="margin-top: 8px;">
+              请先点击上方的确认翻页规则以激活 PPT 背景
+            </div>
+            
             <button
               class="btn btn-danger"
               @click="stopBroadcast"
@@ -1694,7 +1700,9 @@
             if (!compositeCanvas.value) return;
             const canvas = compositeCanvas.value;
             const ctx = canvas.getContext('2d');
-            const videoEl = document.querySelector('#digital-human-container video');
+            // 优先抓取 canvas
+            const avatarSource = document.querySelector('#digital-human-container canvas') || 
+                                 document.querySelector('#digital-human-container video');
             try {
               // 清空画布
               ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1703,7 +1711,7 @@
               if (broadcastMode.value === 'horizontal' && pptConfig.imported && pageTurningConfirmed.value) {
                 const currentPageData = pptConfig.pages.find(item => item.page_num === currentPptPage.value);
                 if (currentPageData && currentPageData.page_image) {
-                  ctx.drawImage(currentPageData.page_image, 0, 0, 1344, 1080);
+                  ctx.drawImage(currentPageData.page_image, 0, 0, canvas.width, canvas.height);
                 } else {
                   ctx.fillStyle = '#1a1a1a';
                   ctx.fillRect(0, 0, 1344, 1080);
@@ -1711,7 +1719,7 @@
               }
 
               // 视频未就绪处理
-              if (!videoEl || videoEl.readyState < 2) {
+              if (!avatarSource || (avatarSource.tagName == "VIDEO" && avatarSource.readyState < 2)) {
                 ctx.fillStyle = '#000';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 ctx.fillStyle = '#fff';
@@ -1721,11 +1729,16 @@
                 return;
               }
 
-              // 绘制数字人视频帧
+              // 绘制数字人 (画中画模式)
               if (broadcastMode.value === 'horizontal') {
-                ctx.drawImage(videoEl, 1344, 0, 576, 1080);
+                const avatarW = 500;
+                const avatarH = (avatarSource.height / avatarSource.width) * avatarW || 888;
+                const posX = canvas.width - avatarW - 40;
+                const posY = canvas.height - avatarH - 40;
+                
+                ctx.drawImage(avatarSource, posX, posY, avatarW, avatarH);
               } else {
-                ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+                ctx.drawImage(avatarSource, 0, 0, canvas.width, canvas.height);
               }
 
               // 绘制字幕
@@ -1848,7 +1861,9 @@
           // 启动录制核心函数
           const startRecordingWhenReady = () => {
             let audioStream = null;
-            const videoEl = document.querySelector('#digital-human-container video');
+            // 优先抓取 canvas
+            const avatarSource = document.querySelector('#digital-human-container canvas') || 
+                                 document.querySelector('#digital-human-container video');
             const allAudios = document.querySelectorAll('audio');
 
             // 优先从video元素获取音频
@@ -2105,7 +2120,9 @@
                 resolve();
                 return;
               }
-              const videoEl = document.querySelector('#digital-human-container video');
+              // 优先抓取 canvas
+            const avatarSource = document.querySelector('#digital-human-container canvas') || 
+                                 document.querySelector('#digital-human-container video');
               if (videoEl && videoEl.readyState >= 2 && videoEl.videoWidth > 0) {
                 addLog(`Video 元素就绪 (${videoEl.videoWidth}x${videoEl.videoHeight})`, 'success');
                 resolve();
@@ -2228,7 +2245,9 @@
           await waitForVideoElement();
 
           // 配置视频元素音频
-          const videoEl = document.querySelector('#digital-human-container video');
+          // 优先抓取 canvas
+            const avatarSource = document.querySelector('#digital-human-container canvas') || 
+                                 document.querySelector('#digital-human-container video');
           if (videoEl) {
             videoEl.muted = false;
             videoEl.volume = 1.0;
