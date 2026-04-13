@@ -649,7 +649,7 @@ input:checked + .switch-slider:before {
   to { transform: translateX(0); opacity: 1; }
 }
 
-/* ========== [P0_FIX] 修复：顶部步骤导航条样式 ========== */
+/* ========== [P0_FIX] 修复:顶部步骤导航条样式 ========== */
 .process-nav {
   display: flex;
   justify-content: space-between;
@@ -669,7 +669,7 @@ input:checked + .switch-slider:before {
   transition: all 0.3s;
   cursor: default;
 }
-/* 修复：横线位置 */
+/* 修复:横线位置 */
 .process-step:not(:last-child)::after {
   content: '';
   position: absolute;
@@ -711,7 +711,7 @@ input:checked + .switch-slider:before {
   display: none;
 }
 
-/* ========== [P0_FIX] 新增：模式选择样式 ========== */
+/* ========== [P0_FIX] 新增:模式选择样式 ========== */
 .mode-selector {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -759,7 +759,7 @@ input:checked + .switch-slider:before {
         <h1>🎬 数字人播报系统</h1>
         <p>讯飞 XRtc 数字人 + 自动录制 + 视频缓存</p>
       </div>
-      <!-- [P0_FIX] 修复：简化顶部导航条，移除开关 ========== -->
+      <!-- [P0_FIX] 修复:简化顶部导航条,移除开关 ========== -->
       <div class="process-nav">
         <div class="process-step" :class="{ active: step >= 1, completed: step > 1 }">
           <span class="step-num">1</span>
@@ -789,27 +789,27 @@ input:checked + .switch-slider:before {
         <div class="panel">
           <h2>⚙️ 配置面板</h2>
 
-          <!-- [P0_FIX] 新增：模式选择面板 ========== -->
+          <!-- [P0_FIX] 新增:模式选择面板 ========== -->
           <div class="panel">
             <h2>🎯 播报模式选择</h2>
             <div class="mode-selector">
-              <div 
-                class="mode-card" 
-                :class="{ active: !usePPT }" 
+              <div
+                class="mode-card"
+                :class="{ active: !usePPT }"
                 @click="switchMode(false)"
               >
                 <div class="mode-icon">🎤</div>
                 <div class="mode-title">纯数字人播报</div>
-                <div class="mode-desc">无需 PPT，直接输入文案播报</div>
+                <div class="mode-desc">无需 PPT,直接输入文案播报</div>
               </div>
-              <div 
-                class="mode-card" 
-                :class="{ active: usePPT }" 
+              <div
+                class="mode-card"
+                :class="{ active: usePPT }"
                 @click="switchMode(true)"
               >
                 <div class="mode-icon">📑</div>
                 <div class="mode-title">PPT 宣讲播报</div>
-                <div class="mode-desc">上传 PPT，自动匹配翻页</div>
+                <div class="mode-desc">上传 PPT,自动匹配翻页</div>
               </div>
             </div>
           </div>
@@ -1073,7 +1073,7 @@ input:checked + .switch-slider:before {
             </div>
           </div>
 
-          <!-- [P0_HIDDEN] 开始：隐藏云端项目模块 ==========
+          <!-- [P0_HIDDEN] 开始:隐藏云端项目模块 ==========
 <!-- 云端项目管理面板 -->
           <div class="ppt-collapse">
             <div class="ppt-collapse-header" @click="cloudProjectCollapseOpen = !cloudProjectCollapseOpen">
@@ -1115,7 +1115,7 @@ input:checked + .switch-slider:before {
             </div>
           </div>
           <!-- 云端项目管理面板结束 -->
-<!-- [P0_HIDDEN] 结束：隐藏云端项目模块 ==========
+<!-- [P0_HIDDEN] 结束:隐藏云端项目模块 ==========
 --> [P0_HIDDEN] -->
 
           <div class="log-container" v-if="logs.length > 0">
@@ -1502,9 +1502,9 @@ input:checked + .switch-slider:before {
           };
         })
 
-        // [P0_FIX] 修复：模式切换逻辑 ==========
+        // [P0_FIX] 修复:模式切换逻辑 ==========
         function switchMode(enablePPT) {
-          console.log('切换模式，enablePPT:', enablePPT);
+          console.log('切换模式,enablePPT:', enablePPT);
 
           if (enablePPT) {
             usePPT.value = true;
@@ -1826,7 +1826,7 @@ input:checked + .switch-slider:before {
           addLog(`📊 上传前:pptConfig.imported=${pptConfig.imported}`, 'info');
 
           let loadingToast = null;
-          try {  
+          try {
 
             // 读取文件为 base64
             const fileToBase64 = (file) => {
@@ -1915,18 +1915,26 @@ input:checked + .switch-slider:before {
               fileInput.value = '';
             }
 
+            // [P0_FIX] 成功 Toast
+            if (loadingToast) {
               closeToast(loadingToast);
-    showToast(`PPT 解析失败:${e.message}`, 'error');
-} catch (e) {
+            }
+            showToast(`PPT 解析成功，共${pptConfig.totalPages}页`, 'success');
+            // 步骤自动推进
+            step.value = 3;
+
+          } catch (e) {
             pptImportStatus.value = { type: 'error', text: `上传失败:${e.message}` };
             addLog(`❌ PPT 上传失败:${e.message}`, 'error');
             addLog(`📊 失败时 pptConfig.imported=${pptConfig.imported}`, 'error');
 
-    closeToast(loadingToast);
-    showToast(`PPT 解析成功,共${pptConfig.totalPages}页`, 'success');
-    // 步骤自动推进
-    step.value = 3;
-} finally {
+            // [P0_FIX] 错误 Toast
+            if (loadingToast) {
+              closeToast(loadingToast);
+            }
+            showToast(`PPT 解析失败：${e.message}`, 'error');
+
+          } finally {
             uploadingLocalPpt.value = false;
           }
         }
@@ -2058,10 +2066,10 @@ ${sentencesList}
             }
 
             pageTurningNodes.value = validNodes;
-            addLog(`✅ 翻页节点生成成功，共${pageTurningNodes.value.length}个节点，覆盖${assignedSentences.size}/${totalSentences}句`, 'success');
+            addLog(`✅ 翻页节点生成成功,共${pageTurningNodes.value.length}个节点,覆盖${assignedSentences.size}/${totalSentences}句`, 'success');
             // [P0_NEW] 成功 Toast
             closeToast(loadingToast);
-            showToast(`翻页节点生成成功，共${pageTurningNodes.value.length}个节点`, 'success');
+            showToast(`翻页节点生成成功,共${pageTurningNodes.value.length}个节点`, 'success');
             // 步骤自动推进
             step.value = 5;
 
@@ -2070,7 +2078,7 @@ ${sentencesList}
             addLog(`❌ 翻页节点生成失败:${e.message}`, 'error');
             // [P0_NEW] 错误 Toast
             closeToast(loadingToast);
-            showToast(`节点生成失败：${e.message}`, 'error');
+            showToast(`节点生成失败:${e.message}`, 'error');
           }
         }
 
