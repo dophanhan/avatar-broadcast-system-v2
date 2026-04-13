@@ -1066,12 +1066,13 @@
           showPptPreview.value = true;
           addLog('打开 PPT 大图预览', 'info');
         }
-        // [修复] 句子高亮函数移到顶层，模板可访问
+        // [修复 3] 句子高亮函数 - 修正查找逻辑
         function isSentenceHighlight(sentenceIndex) {
-          if (!currentNode.value || !pageTurningNodes.value || pageTurningNodes.value.length === 0) {
+          if (!pageTurningNodes.value || pageTurningNodes.value.length === 0) {
             return false;
           }
-          const node = pageTurningNodes.value[currentEditPage.value - 1];
+          // 【修复 3】使用 find 查找对应页码的节点，而不是数组索引
+          const node = pageTurningNodes.value.find(n => n.page_num === currentEditPage.value);
           if (!node) return false;
           return sentenceIndex >= node.start_sentence_index && sentenceIndex <= node.end_sentence_index;
         }
@@ -1508,6 +1509,8 @@ ${sentencesList}
             addLog(`✅ 翻页节点生成成功，共${pageTurningNodes.value.length}个节点，覆盖${assignedSentences.size}/${totalSentences}句`, 'success');
             closeToast(loadingToast);
             showToast(`翻页节点生成成功，共${pageTurningNodes.value.length}个节点`, 'success');
+            // 【修复 2】缓存当前文本，用于下次播报时检测变化
+            localStorage.setItem('lastTextForTurningNodes', config.text);
             step.value = 5;
             if (!isReset) { currentEditPage.value = 1; }
           } catch (e) {
@@ -2297,6 +2300,15 @@ ${sentencesList}
             sentences.forEach((s, i) => {
               addLog(`  句${i + 1}: ${s.substring(0, 50)}${s.length > 50 ? '...' : ''}`, 'info');
             });
+            // 【修复 2】播报前检查文本是否变化，自动重新生成翻页节点
+            if (pptConfig.imported && pageTurningConfirmed.value) {
+              const lastText = localStorage.getItem('lastTextForTurningNodes') || '';
+              if (config.text !== lastText && lastText !== '') {
+                addLog('⚠️ 文本已变化，重新生成翻页节点', 'warn');
+                await generateTurningNodes(true);
+              }
+            }
+            
             startRecording();
             currentSentences.value = sentences;
             sentenceIndex = 0;
