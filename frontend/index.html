@@ -50,12 +50,13 @@
       gap: 25px;
       align-items: flex-start;
     }
+    /* 视频容器比例调整为 16:8（2:1），与右侧按钮列高度对齐 */
     .video-container {
       position: relative;
       width: 100%;
       max-width: 720px;
       margin: 0;
-      padding-bottom: 56.25%;
+      padding-bottom: 50%; /* 修改：从 56.25% (16:9) 改为 50% (16:8) */
       background: #000;
       border-radius: 15px;
       overflow: hidden;
