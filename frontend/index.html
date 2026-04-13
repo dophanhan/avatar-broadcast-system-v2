@@ -985,6 +985,17 @@ input:checked + .switch-slider:before {
           </div>
           <!-- PPT 宣讲配置面板结束 -->
 
+          <!-- [P0_FIX] 播报文本输入区（仅 PPT 模式显示） ========== -->
+          <div class="form-group" v-if="usePPT">
+            <label>📝 播报文本</label>
+            <textarea
+              v-model="config.text"
+              placeholder="请输入要播报的文本内容..."
+              @input="clearCache"
+            ></textarea>
+          </div>
+          <!-- [P0_FIX] 播报文本输入区结束 ========== -->
+
           <div class="form-group">
             <label>数字人形象</label>
             <select v-model="config.roleId" @change="clearCache">
@@ -1001,15 +1012,6 @@ input:checked + .switch-slider:before {
                 {{ voice.name }} ({{ voice.rdn }})
               </option>
             </select>
-          </div>
-
-          <div class="form-group">
-            <label>播报文本</label>
-            <textarea
-              v-model="config.text"
-              placeholder="请输入要播报的文本内容..."
-              @input="clearCache"
-            ></textarea>
           </div>
 
           <div class="form-group">
@@ -1073,9 +1075,9 @@ input:checked + .switch-slider:before {
             </div>
           </div>
 
-          <!-- [P0_HIDDEN] 开始:隐藏云端项目模块 ==========
-<!-- 云端项目管理面板 -->
-          <div class="ppt-collapse">
+          <!-- [P0_HIDDEN] 开始：隐藏云端项目模块 ==========
+  <!-- 云端项目管理面板 -->
+          <div class="ppt-collapse" style="display:none;">
             <div class="ppt-collapse-header" @click="cloudProjectCollapseOpen = !cloudProjectCollapseOpen">
               <span>☁️ 我的云端项目</span>
               <span>{{ cloudProjectCollapseOpen ? '▼' : '▶' }}</span>
@@ -1919,7 +1921,7 @@ input:checked + .switch-slider:before {
             if (loadingToast) {
               closeToast(loadingToast);
             }
-            showToast(`PPT 解析成功，共${pptConfig.totalPages}页`, 'success');
+            showToast(`PPT 解析成功,共${pptConfig.totalPages}页`, 'success');
             // 步骤自动推进
             step.value = 3;
 
@@ -1932,7 +1934,7 @@ input:checked + .switch-slider:before {
             if (loadingToast) {
               closeToast(loadingToast);
             }
-            showToast(`PPT 解析失败：${e.message}`, 'error');
+            showToast(`PPT 解析失败:${e.message}`, 'error');
 
           } finally {
             uploadingLocalPpt.value = false;
