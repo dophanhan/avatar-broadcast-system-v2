@@ -27,13 +27,13 @@
       max-width: 1400px;
       margin: 0 auto;
       background: white;
-      border-radius: 20px;
+      border-radius: 0; /* 统一去圆角 */
       box-shadow: 0 20px 60px rgba(0,0,0,0.3);
       overflow: hidden;
     }
     .header {
-      /* 原有背景、颜色、居中代码保留 */
-      padding: 18px 25px;
+      /* 统一间距 */
+      padding: 20px 30px;
       text-align: center;
       border-radius: 0; /* 标题无圆角 */
       margin-bottom: 25px; /* 标题 ↔ 实时预览 拉开距离 */
@@ -52,19 +52,14 @@
     }
     
     /* ========== 顶部预览区样式（修改为左右分栏） ========== */
+    /* 实时预览外层容器：统一间距 */
     .preview-section {
-      padding: 20px;
-      background: #f8f9fa;
-      border-radius: 0;
-      margin-bottom: 25px;
-      width: 100%;
-      box-sizing: border-box;
-      border-radius: 0 !important; /* 无圆角 */
-      margin: 0 0 20px 0; /* 底部留白，不贴播报模式 */
-      width: 100%;
-      box-sizing: border-box;
       padding: 20px 30px;
       background: #f8f9fa;
+      border-radius: 0; /* 统一去圆角 */
+      margin-bottom: 25px; /* 预览 ↔ 播报模式 拉开距离 */
+      width: 100%;
+      box-sizing: border-box;
     }
     .preview-panel { 
       margin: 0;
@@ -676,7 +671,7 @@
         </div>
       </div>
       <!-- 👇 播报模式选择（移到这里，步骤条上方） -->
-      <div class="config-section" style="padding: 20px 30px; margin-bottom: 20px;">
+      <div class="config-section">
         <div class="panel config-panel">
           <h2>🎯 播报模式选择</h2>
           <div class="mode-selector">
