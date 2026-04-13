@@ -1,19 +1,21 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>数字人播报系统 v3.0 - 最终修复版-v2-画中画优化</title>
-  <meta http-equiv=202604112359"Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv=202604112359"Pragma" content="no-cache">
-  <meta http-equiv=202604112359"Expires" content="0">
+  <title>数字人播报系统 V2.0 - 上下布局重构版</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <script src="https://unpkg.com/vue@3.4.21/dist/vue.global.prod.js"></script>
+  <script src="https://unpkg.com/mp4box@0.5.2/dist/mp4box.all.min.js"></script>
   <script type="module">
-    import { PlayerEvents, default as AvatarSDK } from './sdk/avatar-sdk-web/index.js?v=202604112359';
+    import { PlayerEvents, default as AvatarSDK } from './sdk/avatar-sdk-web/index.js';
     window.AVATAR_SDK = { AvatarSDK, PlayerEvents };
     console.log('✅ SDK 模块加载成功:', AvatarSDK);
   </script>
   <style>
+    /* ========== 全局样式重置 ========== */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Microsoft Yahei', Arial, sans-serif;
@@ -36,17 +38,140 @@
       text-align: center;
     }
     .header h1 { font-size: 2.5em; margin-bottom: 10px; }
-    .main-content {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 30px;
-      padding: 30px;
+    
+    /* ========== 顶部预览区样式 ========== */
+    .preview-section {
+      padding: 20px 30px;
+      background: #f8f9fa;
+    }
+    .preview-panel { margin: 0; }
+    .video-container {
+      position: relative;
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+      padding-bottom: 56.25%;
+      background: #000;
+      border-radius: 15px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .video-container.fullscreen {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      padding-bottom: 0;
+      z-index: 9999;
+      border-radius: 0;
+      max-width: 100%;
+    }
+    .video-container.fullscreen canvas {
+      width: 100%; height: 100%;
+      object-fit: contain;
+    }
+    .fullscreen-btn {
+      position: absolute;
+      top: 10px; right: 10px;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      z-index: 10;
+    }
+    .video-container canvas {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+    .page-manual-btn {
+      position: absolute;
+      bottom: 20px; left: 20px;
+      display: flex;
+      gap: 10px;
+      z-index: 10;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .video-container:hover .page-manual-btn { opacity: 0.8; }
+    .page-num-tip {
+      position: absolute;
+      bottom: 20px; right: 20px;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 14px;
+      z-index: 10;
+    }
+    .core-btn-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+      justify-content: center;
+    }
+    
+    /* ========== 步骤导航条样式 ========== */
+    .process-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 30px;
+      background: #ffffff;
+      border-top: 1px solid #e0e0e0;
+      border-bottom: 1px solid #e0e0e0;
+      gap: 10px;
+    }
+    .process-step {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      position: relative;
+      color: #999;
+      transition: all 0.3s;
+    }
+    .process-step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 14px; left: 50%;
+      width: calc(100% - 28px);
+      height: 2px;
+      background: #e0e0e0;
+    }
+    .process-step.completed:not(:last-child)::after { background: #667eea; }
+    .process-step.active { color: #667eea; font-weight: 600; }
+    .process-step.completed { color: #11998e; }
+    .step-num {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: #e0e0e0;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      z-index: 10;
+    }
+    .process-step.active .step-num { background: #667eea; }
+    .process-step.completed .step-num { background: #11998e; }
+    .process-step.hidden { display: none; }
+    
+    /* ========== 全宽配置区样式 ========== */
+    .config-section {
+      padding: 20px 30px 30px;
+      background: #f8f9fa;
     }
     .panel {
-      background: #f8f9fa;
+      background: #ffffff;
       border-radius: 15px;
       padding: 25px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
     }
     .panel h2 {
       color: #667eea;
@@ -55,6 +180,12 @@
       display: flex;
       align-items: center;
       gap: 10px;
+    }
+    .config-panel:last-child { margin-bottom: 0; }
+    .config-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 20px;
     }
     .form-group { margin-bottom: 20px; }
     .form-group label {
@@ -69,7 +200,6 @@
       border: 2px solid #e0e0e0;
       border-radius: 10px;
       font-size: 14px;
-      transition: all 0.3s;
       font-family: inherit;
     }
     select:focus, textarea:focus, input:focus {
@@ -77,10 +207,7 @@
       border-color: #667eea;
       box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
     }
-    textarea {
-      resize: vertical;
-      min-height: 150px;
-    }
+    textarea { resize: vertical; min-height: 150px; }
     .btn {
       padding: 14px 30px;
       border: none;
@@ -95,99 +222,41 @@
       margin-right: 10px;
       margin-bottom: 10px;
     }
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    .btn-primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-    }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
     .btn-primary:hover:not(:disabled) {
       transform: translateY(-2px);
       box-shadow: 0 6px 20px rgba(102,126,234,0.4);
     }
-    .btn-success {
-      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-      color: white;
+    .btn-success { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; }
+    .btn-danger { background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%); color: white; }
+    .btn-default { background: #e0e0e0; color: #333; }
+    .btn-small { padding: 6px 12px; font-size: 12px; }
+    
+    /* ========== 模式选择样式 ========== */
+    .mode-selector {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
     }
-    .btn-success:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(17,153,142,0.4);
-    }
-    .btn-danger {
-      background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
-      color: white;
-    }
-    .btn-danger:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(235,51,73,0.4);
-    }
-    .btn-default {
-      background: #e0e0e0;
-      color: #333;
-    }
-    .btn-default:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-      background: #d0d0d0;
-    }
-    .video-container {
-      position: relative;
-      width: 100%;
-      padding-bottom: 177.78%;
-      background: #000;
-      border-radius: 15px;
-      overflow: hidden;
-      margin-bottom: 20px;
-      transition: all 0.3s ease;
-    }
-    .video-container.fullscreen {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      padding-bottom: 0;
-      z-index: 9999;
-      border-radius: 0;
-    }
-    .video-container.fullscreen canvas {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-    .fullscreen-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: rgba(0, 0, 0, 0.6);
-      color: white;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 8px;
+    .mode-card {
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
       cursor: pointer;
-      font-size: 14px;
-      z-index: 10;
       transition: all 0.3s;
     }
-    .fullscreen-btn:hover {
-      background: rgba(0, 0, 0, 0.8);
+    .mode-card:hover { border-color: #667eea; background: #f0f4ff; }
+    .mode-card.active {
+      border-color: #667eea;
+      background: linear-gradient(135deg, #f0f4ff 0%, #e8eaf6 100%);
     }
-    .video-container.fullscreen .fullscreen-btn {
-      top: 20px;
-      right: 20px;
-      padding: 12px 20px;
-      font-size: 16px;
-    }
-    .video-container canvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
+    .mode-icon { font-size: 32px; margin-bottom: 10px; }
+    .mode-title { font-weight: 600; color: #333; margin-bottom: 5px; }
+    .mode-desc { font-size: 12px; color: #666; }
+    
+    /* ========== 状态条、进度条、缓存样式 ========== */
     .status-bar {
       background: #f8f9fa;
       padding: 15px 25px;
@@ -197,35 +266,15 @@
       align-items: center;
       flex-wrap: wrap;
       gap: 15px;
+      border-radius: 10px;
     }
-    .status-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px;
-      color: #666;
-    }
-    .status-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #ccc;
-    }
-    .status-dot.active {
-      background: #38ef7d;
-      animation: pulse 2s infinite;
-    }
-    .status-dot.recording {
-      background: #eb3349;
-      animation: pulse 1s infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
+    .status-item { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #666; }
+    .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #ccc; }
+    .status-dot.active { background: #38ef7d; animation: pulse 2s infinite; }
+    .status-dot.recording { background: #eb3349; animation: pulse 1s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     .progress-bar {
-      width: 100%;
-      height: 8px;
+      width: 100%; height: 8px;
       background: #e0e0e0;
       border-radius: 4px;
       overflow: hidden;
@@ -244,11 +293,7 @@
       padding: 15px;
       margin-top: 15px;
     }
-    .cache-info h3 {
-      color: #2e7d32;
-      font-size: 1.1em;
-      margin-bottom: 10px;
-    }
+    .cache-info h3 { color: #2e7d32; font-size: 1.1em; margin-bottom: 10px; }
     .cache-item {
       display: flex;
       justify-content: space-between;
@@ -258,24 +303,18 @@
       border-radius: 8px;
       margin-bottom: 8px;
     }
-    .cache-item-actions {
-      display: flex;
-      gap: 8px;
-    }
-    .btn-small {
-      padding: 6px 12px;
-      font-size: 12px;
-    }
+    .cache-item-actions { display: flex; gap: 8px; }
+    
+    /* ========== 日志样式 ========== */
     .log-container {
       background: #1e1e1e;
       color: #d4d4d4;
       padding: 15px;
       border-radius: 10px;
-      font-family: 'Consolas', 'Monaco', monospace;
+      font-family: 'Consolas', monospace;
       font-size: 12px;
       max-height: 200px;
       overflow-y: auto;
-      margin-top: 15px;
     }
     .log-entry {
       margin-bottom: 5px;
@@ -286,13 +325,17 @@
     .log-entry.error { border-left-color: #eb3349; color: #f48771; }
     .log-entry.success { border-left-color: #38ef7d; color: #89d185; }
     .log-entry.warn { border-left-color: #cca700; color: #dcdcaa; }
-    /* ========== PPT 宣讲功能样式 ========== */
-    .ppt-collapse {
-      border: 1px solid #e0e0e0;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      overflow: hidden;
+    .status-tip {
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin-top: 8px;
+      font-size: 13px;
     }
+    .status-tip.success { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+    .status-tip.error { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+    .status-tip.warn { background: #fff3e0; color: #e65100; border: 1px solid #ffe0b2; }
+    
+    /* ========== PPT 相关样式 ========== */
     .ppt-collapse-header {
       padding: 15px 20px;
       background: #f8f9fa;
@@ -303,23 +346,15 @@
       font-weight: 600;
       color: #667eea;
     }
-    .ppt-collapse-content {
-      padding: 20px;
-      border-top: 1px solid #e0e0e0;
-    }
     .ppt-input-row {
       display: flex;
       gap: 10px;
       align-items: center;
       margin-bottom: 15px;
     }
-    .ppt-input-row input {
-      flex: 1;
-      margin: 0;
-    }
     .ppt-thumb-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(4, 1fr);
       gap: 10px;
       margin-top: 15px;
       max-height: 200px;
@@ -336,11 +371,7 @@
       border-color: #667eea;
       background: #f0f4ff;
     }
-    .ppt-thumb-item img {
-      width: 100%;
-      border-radius: 4px;
-      margin-bottom: 5px;
-    }
+    .ppt-thumb-item img { width: 100%; border-radius: 4px; margin-bottom: 5px; }
     .ppt-thumb-title {
       font-size: 12px;
       color: #333;
@@ -362,27 +393,17 @@
       padding: 10px;
       overflow-y: auto;
     }
-    .column-title {
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 10px;
-      font-size: 14px;
-    }
+    .column-title { font-weight: 600; color: #333; margin-bottom: 10px; font-size: 14px; }
     .sentence-item {
       padding: 8px 10px;
       border-radius: 6px;
       margin-bottom: 5px;
       font-size: 13px;
       cursor: grab;
-      transition: all 0.3s;
     }
-    .sentence-item:hover {
-      background: #f8f9fa;
-    }
-    .sentence-item.bound {
-      background: #e8f5e9;
-      border-left: 3px solid #38ef7d;
-    }
+    .sentence-item:hover { background: #f8f9fa; }
+    .sentence-item.bound { background: #e8f5e9; border-left: 3px solid #38ef7d; }
+    .sentence-item.highlight { background: #e3f2fd; border-left: 3px solid #2196f3; font-weight: 600; }
     .adjust-row {
       display: flex;
       gap: 10px;
@@ -390,49 +411,71 @@
       margin-bottom: 10px;
       flex-wrap: wrap;
     }
-    .adjust-row select {
-      flex: 1;
-      min-width: 120px;
-    }
-    .page-manual-btn {
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
+    .adjust-row select { flex: 1; min-width: 120px; }
+    
+    /* ========== Toast 样式 ========== */
+    .toast-container {
+      position: fixed;
+      top: 20px; right: 20px;
+      z-index: 99999;
       display: flex;
+      flex-direction: column;
       gap: 10px;
-      z-index: 10;
-      opacity: 0;
-      transition: opacity 0.3s;
     }
-    .video-container:hover .page-manual-btn {
-      opacity: 0.8;
-    }
-    .page-num-tip {
-      position: absolute;
-      bottom: 20px;
-      right: 20px;
-      background: rgba(0,0,0,0.6);
-      color: white;
-      padding: 5px 10px;
-      border-radius: 6px;
+    .toast-item {
+      padding: 12px 20px;
+      border-radius: 8px;
+      background: white;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
       font-size: 14px;
-      z-index: 10;
+      min-width: 280px;
+      animation: toastSlideIn 0.3s ease;
     }
+    .toast-item.success { border-left: 4px solid #38ef7d; color: #2e7d32; }
+    .toast-item.error { border-left: 4px solid #eb3349; color: #c62828; }
+    .toast-item.warn { border-left: 4px solid #ff9800; color: #e65100; }
+    @keyframes toastSlideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    
+    /* ========== PPT 预览弹窗 ========== */
+    .ppt-preview-modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.85);
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .preview-img { max-width: 90vw; max-height: 90vh; border-radius: 8px; }
+    .preview-close {
+      position: absolute;
+      top: 20px; right: 20px;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+    }
+    .preview-close:hover { background: rgba(255,255,255,0.4); }
+    
+    /* ========== 弹窗样式 ========== */
     .modal-mask {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
       background: rgba(0,0,0,0.5);
-      display: none !important;  // 默认强制隐藏,Vue 控制显示
+      display: none !important;
       justify-content: center;
       align-items: center;
       z-index: 99999;
     }
-    .modal-mask.vue-mounted {
-      display: flex !important;  // Vue 挂载后才允许显示
-    }
+    .modal-mask.vue-mounted { display: flex !important; }
     .modal-box {
       background: white;
       border-radius: 15px;
@@ -440,423 +483,52 @@
       max-width: 90vw;
       padding: 30px;
     }
-    .modal-title {
-      font-size: 1.5em;
-      color: #333;
-      margin-bottom: 20px;
-      font-weight: 600;
-    }
-    .modal-footer {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      margin-top: 20px;
-    }
-    .project-card {
-      border: 1px solid #e0e0e0;
-      border-radius: 10px;
-      padding: 15px;
-      margin-bottom: 10px;
-    }
-    .project-card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 10px;
-    }
-    .project-card-title {
-      font-weight: 600;
-      color: #333;
-    }
-    .project-card-meta {
-      font-size: 12px;
-      color: #666;
-      margin-bottom: 10px;
-    }
-    .project-card-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .status-tip {
-      padding: 8px 12px;
-      border-radius: 6px;
-      margin-top: 8px;
-      font-size: 13px;
-    }
-    .status-tip.success {
-      background: #e8f5e9;
-      color: #2e7d32;
-      border: 1px solid #c8e6c9;
-    }
-    .status-tip.error {
-      background: #ffebee;
-      color: #c62828;
-      border: 1px solid #ffcdd2;
-    }
-    .status-tip.warn {
-      background: #fff3e0;
-      color: #e65100;
-      border: 1px solid #ffe0b2;
-    }
-    /* 防止 Vue 初始化时闪现 */
-    [v-cloak] {
-      display: none !important;
+    .modal-title { font-size: 1.5em; color: #333; margin-bottom: 20px; font-weight: 600; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+    [v-cloak] { display: none !important; }
+    
+    /* ========== 响应式 ========== */
+    @media (max-width: 1200px) { .config-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 768px) {
+      body { padding: 10px; }
+      .header h1 { font-size: 1.8em; }
+      .process-nav { padding: 15px 10px; overflow-x: auto; justify-content: flex-start; }
+      .process-step { min-width: 120px; }
+      .preview-section, .config-section { padding: 15px 10px; }
+      .config-grid { grid-template-columns: 1fr; }
+      .mode-selector { grid-template-columns: 1fr; }
+      .dual-column-panel { flex-direction: column; height: auto; }
+      .ppt-thumb-grid { grid-template-columns: repeat(2, 1fr); }
+      .core-btn-group { justify-content: flex-start; }
     }
   </style>
 </head>
 <body>
-  <!-- 讯飞 SDK 渲染容器(移出Vue根节点,避免渲染错乱) -->
-  <div id="digital-human-container" style="width: 1px; height: 1px; opacity: 0; position: fixed; top: -9999px; left: -9999px; z-index: -999;"></div>
-
-  <!-- Vue 根节点 -->
+  <div id="digital-human-container" style="width:1px;height:1px;opacity:0;position:fixed;top:-9999px;left:-9999px;z-index:-999;"></div>
   <div id="app">
     <div class="container">
+      <!-- 1. 顶部标题栏 -->
       <div class="header">
         <h1>🎬 数字人播报系统</h1>
         <p>讯飞 XRtc 数字人 + 自动录制 + 视频缓存</p>
       </div>
-
-      <div class="main-content">
-        <!-- 左侧控制面板 -->
-        <div class="panel">
-          <h2>⚙️ 配置面板</h2>
-
-          <!-- PPT 宣讲配置面板 -->
-          <div class="ppt-collapse">
-            <div class="ppt-collapse-header" @click="pptCollapseOpen = !pptCollapseOpen">
-              <span>📑 PPT 宣讲配置</span>
-              <span>{{ pptCollapseOpen ? '▼' : '▶' }}</span>
-            </div>
-            <div class="ppt-collapse-content" v-if="pptCollapseOpen">
-              <!-- 本地 PPT 文件上传 -->
-              <div class="form-group">
-                <label>📤 本地 PPT 文件上传</label>
-                <div class="ppt-input-row" style="flex-direction: column; align-items: stretch;">
-                  <input
-                    type="file"
-                    ref="pptFileInput"
-                    accept=".ppt,.pptx"
-                    @change="handleLocalPptUpload"
-                    style="padding: 10px; border: 2px dashed #e0e0e0; border-radius: 8px; margin-bottom: 10px;"
-                  >
-                  <!-- ✅ 修复:始终显示上传按钮,用 disabled 控制状态 -->
-                  <button
-                    class="btn btn-primary"
-                    @click="uploadLocalPpt"
-                    :disabled="!localPptFile || uploadingLocalPpt"
-                    style="margin-top: 10px; width: 100%;"
-                  >
-                    <span v-if="!localPptFile">📤 请先选择 PPT 文件</span>
-                    <span v-else-if="uploadingLocalPpt">⏳ 上传中...</span>
-                    <span v-else>🚀 上传并解析</span>
-                  </button>
-                  <!-- 文件信息显示 -->
-                  <div v-if="localPptFile" class="status-tip success" style="margin-top: 8px;">
-                    ✅ 已选择:{{ localPptFile.name }} ({{ (localPptFile.size / 1024 / 1024).toFixed(2) }} MB)
-                  </div>
-                </div>
-                <div class="status-tip warn" style="margin-top: 8px; font-size: 12px;">
-                  i️ 支持格式:.ppt, .pptx | 最大 50MB | 自动解析为图片并生成翻页节点
-                </div>
-                <!-- ✅ 修复:添加错误信息显示 -->
-                <div v-if="pptImportStatus" :class="['status-tip', pptImportStatus.type]" style="margin-top: 8px;">
-                  {{ pptImportStatus.text }}
-                </div>
-                <!-- 飞书在线导入功能暂时隐藏 -->
-              </div>
-
-              <!-- ✅ 优化:生成翻页节点按钮前置,始终可见,仅控制禁用状态 -->
-              <div class="form-group">
-                <button
-                  class="btn btn-primary"
-                  style="width: 100%;"
-                  @click="generateTurningNodes"
-                  :disabled="!config.text || !pptConfig.imported"
-                >
-                  🤖 生成智能翻页节点
-                </button>
-                <!-- 新增:按钮禁用提示 -->
-                <div v-if="!config.text && !pptConfig.imported" class="status-tip warn" style="margin-top: 8px;">
-                  ⚠️ 请先完成 PPT 导入,并填写播报文本后,即可生成翻页节点
-                </div>
-                <div v-else-if="!pptConfig.imported" class="status-tip warn" style="margin-top: 8px;">
-                  ⚠️ 请先完成 PPT 授权导入,再生成翻页节点
-                </div>
-                <div v-else-if="!config.text" class="status-tip warn" style="margin-top: 8px;">
-                  ⚠️ 请先填写播报文本,再生成翻页节点
-                </div>
-                <!-- 调试信息 -->
-                <div class="status-tip" style="margin-top: 8px; font-size: 11px; background: #f0f0f0;">
-                  调试:PPT 已导入={{ pptConfig.imported }}, 文本={{ config.text ? '已填写' : '未填写' }}, 页数={{ pptConfig.totalPages }}
-                </div>
-              </div>
-
-              <!-- PPT 导入结果预览 -->
-              <div v-if="pptConfig.imported" class="form-group">
-                <label>PPT 导入结果 ({{ pptConfig.totalPages }}页)</label>
-                <div class="ppt-thumb-grid">
-                  <div
-                    class="ppt-thumb-item"
-                    :class="{ active: currentEditPage === item.page_num }"
-                    v-for="item in pptConfig.pages"
-                    :key="item.page_num"
-                    @click="currentEditPage = item.page_num"
-                  >
-                    <img :src="item.page_image_url" :alt="item.page_title">
-                    <div class="ppt-thumb-title">第{{ item.page_num }}页 | {{ item.page_title }}</div>
-                  </div>
-                </div>
-                <button class="btn btn-small btn-primary" @click="reImportPpt" style="margin-top: 10px;">
-                  重新导入
-                </button>
-              </div>
-
-              <!-- 翻页节点生成 -->
-              <div v-if="pptConfig.imported" class="form-group">
-                <button
-                  class="btn btn-primary"
-                  style="width: 100%;"
-                  @click="generateTurningNodes"
-                  :disabled="!config.text || !pptConfig.imported"
-                >
-                  🤖 生成智能翻页节点
-                </button>
-              </div>
-
-              <!-- 双列联动调整面板 -->
-              <div v-if="pageTurningNodes.length > 0" class="form-group">
-                <div class="dual-column-panel">
-                  <div class="column-box">
-                    <div class="column-title">📑 PPT 页面列表</div>
-                    <div
-                      class="ppt-thumb-item"
-                      :class="{ active: currentEditPage === item.page_num }"
-                      v-for="item in pptConfig.pages"
-                      :key="item.page_num"
-                      @click="currentEditPage = item.page_num"
-                    >
-                      <div class="ppt-thumb-title">第{{ item.page_num }}页 | {{ item.page_title }}</div>
-                    </div>
-                  </div>
-                  <div class="column-box">
-                    <div class="column-title">📝 绑定的播报句子</div>
-                    <div
-                      class="sentence-item"
-                      :class="{ bound: isSentenceBound(index) }"
-                      v-for="(sentence, index) in currentSentences"
-                      :key="index"
-                      draggable="true"
-                      @dragstart="dragSentence(index)"
-                      @drop="dropSentence"
-                      @dragover.prevent
-                    >
-                      句{{ index+1 }}: {{ sentence }}
-                    </div>
-                  </div>
-                </div>
-
-                <!-- 人工调整操作区 -->
-                <div class="adjust-row">
-                  <label>起始句:</label>
-                  <select v-model="currentNode.start_sentence_index">
-                    <option v-for="(sentence, index) in currentSentences" :key="index" :value="index">
-                      句{{ index+1 }}
-                    </option>
-                  </select>
-                  <label>结束句:</label>
-                  <select v-model="currentNode.end_sentence_index">
-                    <option v-for="(sentence, index) in currentSentences" :key="index" :value="index">
-                      句{{ index+1 }}
-                    </option>
-                  </select>
-                </div>
-                <div class="adjust-row">
-                  <button class="btn btn-small btn-primary" @click="adjustPageTurn(-1)">提前 1 句翻页</button>
-                  <button class="btn btn-small btn-primary" @click="adjustPageTurn(1)">延后 1 句翻页</button>
-                  <button class="btn btn-small btn-warning" @click="resetTurningNodes">一键重置</button>
-                </div>
-
-                <!-- 操作按钮区 -->
-                <div class="adjust-row" style="justify-content: space-between; margin-top: 20px;">
-                  <button class="btn btn-primary" @click="previewTurningNodes">📺 模拟预览</button>
-                  <div>
-                    <button class="btn btn-default" @click="cancelTurningEdit">取消</button>
-                    <button class="btn btn-success" @click="confirmTurningRules">✅ 确认翻页规则</button>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 横竖屏模式切换 -->
-              <div class="form-group" style="margin-top: 20px;">
-                <label>播报模式</label>
-                <select v-model="broadcastMode" @change="onModeChange">
-                  <option value="vertical">竖屏模式(默认)</option>
-                  <option value="horizontal">横屏 PPT 宣讲模式</option>
-                </select>
-              </div>
-            </div>
-          </div>
-          <!-- PPT 宣讲配置面板结束 -->
-
-          <div class="form-group">
-            <label>数字人形象</label>
-            <select v-model="config.roleId" @change="clearCache">
-              <option v-for="role in roles" :key="role.role_id" :value="role.role_id">
-                {{ role.role_name }}
-              </option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>发音人</label>
-            <select v-model="config.rdn" @change="clearCache">
-              <option v-for="voice in voices" :key="voice.rdn" :value="voice.rdn">
-                {{ voice.name }} ({{ voice.rdn }})
-              </option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>播报文本</label>
-            <textarea
-              v-model="config.text"
-              placeholder="请输入要播报的文本内容..."
-              @input="clearCache"
-            ></textarea>
-          </div>
-
-          <div class="form-group">
-            <label>语速</label>
-            <input
-              type="range"
-              min="0.5"
-              max="2"
-              step="0.1"
-              v-model.number="config.speed"
-              @change="clearCache"
-            >
-            <div style="text-align: center; margin-top: 5px; color: #666;">
-              {{ config.speed }}x
-            </div>
-          </div>
-
-          <div style="margin-top: 20px;">
-            <button
-              class="btn btn-primary"
-              @click="startBroadcast"
-              :disabled="isBroadcasting || !config.text || (pptConfig.imported && !pageTurningConfirmed)"
-            >
-              🎙️ {{ isBroadcasting ? '播报中...' : '开始播报' }}
-            </button>
-            
-            <!-- 新增：未确认规则时的警告提示 -->
-            <div v-if="pptConfig.imported && !pageTurningConfirmed" class="status-tip warn" style="margin-top: 8px;">
-              请先点击上方的确认翻页规则以激活 PPT 背景
-            </div>
-            
-            <button
-              class="btn btn-danger"
-              @click="stopBroadcast"
-              :disabled="!isBroadcasting"
-            >
-              ⏹️ 停止播报
-            </button>
-            <button
-              class="btn btn-success"
-              @click="playCachedVideo"
-              :disabled="!hasCachedVideo || isBroadcasting"
-            >
-              📼 播放缓存
-            </button>
-          </div>
-
-          <div v-if="cachedVideos.length > 0" class="cache-info">
-            <h3>📼 视频缓存 ({{ cachedVideos.length }}个)</h3>
-            <div v-for="(cache, index) in cachedVideos" :key="index" class="cache-item">
-              <div>
-                <strong>{{ cache.text.substring(0, 20) }}{{ cache.text.length > 20 ? '...' : '' }}</strong>
-                <div style="font-size: 12px; color: #666;">
-                  {{ new Date(cache.timestamp).toLocaleString() }} | {{ formatDuration(cache.duration) }}
-                </div>
-              </div>
-              <div class="cache-item-actions">
-                <button class="btn btn-small btn-primary" @click="playCache(index)">▶️ 播放</button>
-                <button class="btn btn-small btn-danger" @click="deleteCache(index)">🗑️ 删除</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- 云端项目管理面板 -->
-          <div class="ppt-collapse">
-            <div class="ppt-collapse-header" @click="cloudProjectCollapseOpen = !cloudProjectCollapseOpen">
-              <span>☁️ 我的云端项目</span>
-              <span>{{ cloudProjectCollapseOpen ? '▼' : '▶' }}</span>
-            </div>
-            <div class="ppt-collapse-content" v-if="cloudProjectCollapseOpen">
-              <button
-                class="btn btn-primary"
-                style="width: 100%; margin-bottom: 15px;"
-                @click="openSaveProjectModal"
-                :disabled="!config.text || (!pageTurningConfirmed && !hasVideoBlob)"
-              >
-                💾 保存项目到云端
-              </button>
-              <div v-if="cloudProjectList.length > 0">
-                <div
-                  class="project-card"
-                  v-for="project in cloudProjectList"
-                  :key="project.project_id"
-                >
-                  <div class="project-card-header">
-                    <div class="project-card-title">{{ project.project_name }}</div>
-                  </div>
-                  <div class="project-card-meta">
-                    {{ project.create_time }} | {{ project.video_duration ? '时长:' + project.video_duration : '未录制' }}
-                  </div>
-                  <div class="project-card-actions">
-                    <button class="btn btn-small btn-primary" @click="reuseProject(project)">一键复用</button>
-                    <button class="btn btn-small btn-primary" @click="editProject(project)">编辑</button>
-                    <button class="btn btn-small btn-success" @click="downloadCloudVideo(project)" :disabled="!project.video_duration">下载视频</button>
-                    <button class="btn btn-small btn-danger" @click="deleteCloudProject(project)">删除</button>
-                  </div>
-                </div>
-              </div>
-              <div v-else class="empty-tip" style="text-align: center; color: #999; padding: 20px 0;">
-                暂无云端项目
-              </div>
-            </div>
-          </div>
-          <!-- 云端项目管理面板结束 -->
-
-          <div class="log-container" v-if="logs.length > 0">
-            <div v-for="(log, index) in logs.slice(-20)" :key="index"
-                 :class="['log-entry', log.type]">
-              [{{ log.time }}] {{ log.message }}
-            </div>
-          </div>
-        </div>
-
-        <!-- 右侧视频显示 -->
-        <div class="panel">
-          <h2>📺 视频预览</h2>
+      <!-- 2. 核心预览区 -->
+      <div class="preview-section">
+        <div class="panel preview-panel">
+          <h2>📺 实时预览</h2>
           <div class="video-container" ref="videoContainer">
             <canvas ref="compositeCanvas" :width="canvasSize.width" :height="canvasSize.height"></canvas>
-            <button class="fullscreen-btn" @click="toggleFullscreen" title="全屏播放">
-              <span v-if="!isFullscreen">⛶ 全屏</span>
-              <span v-else>⛶ 退出</span>
+            <button class="fullscreen-btn" @click="toggleFullscreen">
+              <span v-if="!isFullscreen">⛶ 全屏</span><span v-else>⛶ 退出</span>
             </button>
-            <!-- 手动翻页按钮 -->
             <div class="page-manual-btn" v-if="broadcastMode === 'horizontal' && pageTurningConfirmed">
               <button class="btn btn-small btn-primary" @click="manualTurnPage(-1)" :disabled="currentPptPage <= 1">上一页</button>
               <button class="btn btn-small btn-primary" @click="manualTurnPage(1)" :disabled="currentPptPage >= pptConfig.totalPages">下一页</button>
             </div>
-            <!-- 页码提示 -->
             <div class="page-num-tip" v-if="broadcastMode === 'horizontal' && pageTurningConfirmed && showPageTip">
               第{{ currentPptPage }}页 / 共{{ pptConfig.totalPages }}页
             </div>
           </div>
-
           <div class="status-bar">
             <div class="status-item">
               <div class="status-dot" :class="{ active: isConnected, recording: isRecording }"></div>
@@ -869,39 +541,221 @@
               <span>📝 句 {{ currentSentence }}/{{ totalSentences }}</span>
             </div>
           </div>
-
           <div class="progress-bar" v-if="isBroadcasting">
             <div class="progress-fill" :style="{ width: progressPercent + '%' }"></div>
           </div>
-
-          <!-- 下载和缓存按钮 -->
-          <div style="margin-top: 20px;">
-            <button
-              class="btn btn-success"
-              @click="downloadVideo"
-              :disabled="!hasVideoBlob"
-            >
-              💾 下载视频
+          <div class="core-btn-group">
+            <button class="btn btn-primary" @click="startBroadcast" :disabled="isBroadcasting || step < 5 || !config.text || (usePPT && !pageTurningConfirmed)">
+              🎙️ {{ isBroadcasting ? '播报中...' : '开始播报' }}
             </button>
-            <button
-              class="btn btn-primary"
-              @click="saveToCache"
-              :disabled="!hasVideoBlob"
-            >
-              💾 保存到缓存
-            </button>
+            <button class="btn btn-danger" @click="stopBroadcast" :disabled="!isBroadcasting">⏹️ 停止播报</button>
+            <button class="btn btn-success" @click="playCachedVideo" :disabled="!hasCachedVideo || isBroadcasting">📼 播放缓存</button>
+            <button class="btn btn-success" @click="downloadVideo" :disabled="!hasVideoBlob">💾 下载视频</button>
+            <button class="btn btn-primary" @click="saveToCache" :disabled="!hasVideoBlob">💾 保存到缓存</button>
           </div>
-
-          <!-- 视频预览 -->
-          <video
-            ref="previewVideo"
-            style="width: 100%; margin-top: 20px; border-radius: 10px;"
-            controls
-          ></video>
+          <div v-if="usePPT && !pageTurningConfirmed" class="status-tip warn" style="margin-top:15px;">
+            请先完成 PPT 导入并确认翻页规则，以激活 PPT 背景
+          </div>
+          <video ref="previewVideo" style="width:100%;margin-top:20px;border-radius:10px;" controls></video>
+          <div v-if="cachedVideos.length > 0" class="cache-info">
+            <h3>📼 视频缓存 ({{ cachedVideos.length }}个)</h3>
+            <div v-for="(cache, index) in cachedVideos" :key="index" class="cache-item">
+              <div>
+                <strong>{{ cache.text.substring(0, 20) }}{{ cache.text.length > 20 ? '...' : '' }}</strong>
+                <div style="font-size:12px;color:#666;">{{ new Date(cache.timestamp).toLocaleString() }} | {{ formatDuration(cache.duration) }}</div>
+              </div>
+              <div class="cache-item-actions">
+                <button class="btn btn-small btn-primary" @click="playCache(index)">▶️ 播放</button>
+                <button class="btn btn-small btn-danger" @click="deleteCache(index)">🗑️ 删除</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-
-      <!-- 保存项目弹窗(Vue渲染范围内,响应式完全生效) -->
+      <!-- 3. 步骤导航条 -->
+      <div class="process-nav">
+        <div class="process-step" :class="{ active: step >= 1, completed: step > 1 }">
+          <span class="step-num">1</span><span class="step-text">基础配置</span>
+        </div>
+        <div class="process-step" :class="{ active: step >= 2, completed: step > 2, hidden: !usePPT }">
+          <span class="step-num">2</span><span class="step-text">PPT 导入</span>
+        </div>
+        <div class="process-step" :class="{ active: step >= 3, completed: step > 3 }">
+          <span class="step-num">3</span><span class="step-text">文案输入</span>
+        </div>
+        <div class="process-step" :class="{ active: step >= 4, completed: step > 4, hidden: !usePPT }">
+          <span class="step-num">4</span><span class="step-text">翻页节点</span>
+        </div>
+        <div class="process-step" :class="{ active: step >= 5, completed: step > 5 }">
+          <span class="step-num">5</span><span class="step-text">播报导出</span>
+        </div>
+      </div>
+      <!-- 4. 全宽配置区 -->
+      <div class="config-section">
+        <!-- 4.1 模式选择 -->
+        <div class="panel config-panel">
+          <h2>🎯 播报模式选择</h2>
+          <div class="mode-selector">
+            <div class="mode-card" :class="{ active: !usePPT }" @click="switchMode(false)">
+              <div class="mode-icon">🎤</div>
+              <div class="mode-title">纯数字人播报</div>
+              <div class="mode-desc">无需 PPT，直接输入文案播报</div>
+            </div>
+            <div class="mode-card" :class="{ active: usePPT }" @click="switchMode(true)">
+              <div class="mode-icon">📑</div>
+              <div class="mode-title">PPT 宣讲播报</div>
+              <div class="mode-desc">上传 PPT，自动匹配翻页</div>
+            </div>
+          </div>
+        </div>
+        <!-- 4.2 基础配置 -->
+        <div class="panel config-panel">
+          <h2>⚙️ 基础配置</h2>
+          <div class="config-grid">
+            <div class="form-group">
+              <label>数字人形象</label>
+              <select v-model="config.roleId" @change="clearCache">
+                <option v-for="role in roles" :key="role.role_id" :value="role.role_id">{{ role.role_name }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>发音人</label>
+              <select v-model="config.rdn" @change="clearCache">
+                <option v-for="voice in voices" :key="voice.rdn" :value="voice.rdn">{{ voice.name }} ({{ voice.rdn }})</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>语速 ({{ config.speed }}x)</label>
+              <input type="range" min="0.5" max="2" step="0.1" v-model.number="config.speed" @change="clearCache">
+            </div>
+            <div class="form-group">
+              <label>字幕字体大小 ({{ config.subtitleFontSize }}px)</label>
+              <input type="range" min="12" max="48" step="2" v-model.number="config.subtitleFontSize">
+            </div>
+          </div>
+        </div>
+        <!-- 4.3 PPT 导入配置（仅 PPT 模式） -->
+        <div class="panel config-panel" v-if="usePPT">
+          <h2>📑 PPT 导入配置</h2>
+          <div class="form-group">
+            <label>📤 本地 PPT 文件上传</label>
+            <div style="flex-direction:column;align-items:stretch;">
+              <input type="file" ref="pptFileInput" accept=".ppt,.pptx" @change="handleLocalPptUpload" style="padding:10px;border:2px dashed #e0e0e0;border-radius:8px;margin-bottom:10px;">
+              <button class="btn btn-primary" @click="uploadLocalPpt" :disabled="!localPptFile || uploadingLocalPpt" style="margin-top:10px;width:100%;">
+                <span v-if="!localPptFile">📤 请先选择 PPT 文件</span>
+                <span v-else-if="uploadingLocalPpt">⏳ 上传中...</span>
+                <span v-else>🚀 上传并解析</span>
+              </button>
+              <div v-if="localPptFile" class="status-tip success" style="margin-top:8px;">
+                ✅ 已选择:{{ localPptFile.name }} ({{ (localPptFile.size / 1024 / 1024).toFixed(2) }} MB)
+              </div>
+            </div>
+            <div class="status-tip warn" style="margin-top:8px;font-size:12px;">
+              支持格式:.ppt, .pptx | 最大 50MB | 自动解析为图片并生成翻页节点
+            </div>
+            <div v-if="pptImportStatus" :class="['status-tip', pptImportStatus.type]" style="margin-top:8px;">
+              {{ pptImportStatus.text }}
+            </div>
+          </div>
+          <div class="form-group">
+            <button class="btn btn-primary" style="width:100%;" @click="generateTurningNodes" :disabled="!config.text || !pptConfig.imported">
+              🤖 生成智能翻页节点
+            </button>
+            <div v-if="!config.text && !pptConfig.imported" class="status-tip warn" style="margin-top:8px;">
+              ⚠️ 请先完成 PPT 导入，并填写播报文本后，即可生成翻页节点
+            </div>
+            <div v-else-if="!pptConfig.imported" class="status-tip warn" style="margin-top:8px;">
+              ⚠️ 请先完成 PPT 导入，再生成翻页节点
+            </div>
+            <div v-else-if="!config.text" class="status-tip warn" style="margin-top:8px;">
+              ⚠️ 请先填写播报文本，再生成翻页节点
+            </div>
+          </div>
+          <div v-if="pptConfig.imported" class="form-group">
+            <label>PPT 导入结果 ({{ pptConfig.totalPages }}页)</label>
+            <div class="ppt-thumb-grid">
+              <div class="ppt-thumb-item" :class="{ active: currentEditPage === item.page_num }" v-for="item in pptConfig.pages" :key="item.page_num" @click="currentEditPage = item.page_num; openPptPreview(item.page_image_url);">
+                <img :src="item.page_image_url" :alt="item.page_title" style="cursor:zoom-in;">
+                <div class="ppt-thumb-title">第{{ item.page_num }}页 | {{ item.page_title }}</div>
+              </div>
+            </div>
+            <button class="btn btn-small btn-primary" @click="reImportPpt" style="margin-top:10px;">重新导入</button>
+          </div>
+          <div v-if="pageTurningNodes.length > 0" class="form-group">
+            <div class="dual-column-panel">
+              <div class="column-box">
+                <div class="column-title">📑 PPT 页面列表</div>
+                <div class="ppt-thumb-item" :class="{ active: currentEditPage === item.page_num }" v-for="item in pptConfig.pages" :key="item.page_num" @click="currentEditPage = item.page_num">
+                  <div class="ppt-thumb-title">第{{ item.page_num }}页 | {{ item.page_title }}</div>
+                </div>
+              </div>
+              <div class="column-box">
+                <div class="column-title">📝 绑定的播报句子</div>
+                <div class="sentence-item" :class="{ bound: isSentenceBound(index), highlight: isSentenceHighlight(index) }" v-for="(sentence, index) in currentSentences" :key="index" draggable="true" @dragstart="dragSentence(index)" @drop="dropSentence" @dragover.prevent>
+                  句{{ index+1 }}: {{ sentence }}
+                </div>
+              </div>
+            </div>
+            <div class="adjust-row">
+              <label>起始句:</label>
+              <select v-model="currentNode.start_sentence_index">
+                <option v-for="(sentence, index) in currentSentences" :key="index" :value="index">句{{ index+1 }}</option>
+              </select>
+              <label>结束句:</label>
+              <select v-model="currentNode.end_sentence_index">
+                <option v-for="(sentence, index) in currentSentences" :key="index" :value="index">句{{ index+1 }}</option>
+              </select>
+            </div>
+            <div class="adjust-row">
+              <button class="btn btn-small btn-primary" @click="adjustPageTurn(-1)">提前 1 句翻页</button>
+              <button class="btn btn-small btn-primary" @click="adjustPageTurn(1)">延后 1 句翻页</button>
+              <button class="btn btn-small btn-warning" @click="resetTurningNodes">一键重置</button>
+            </div>
+            <div class="adjust-row" style="justify-content:flex-end;margin-top:20px;">
+              <button class="btn btn-default" @click="cancelTurningEdit">取消</button>
+              <button class="btn btn-success" @click="confirmTurningRules">✅ 确认翻页规则</button>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:20px;">
+            <label>播报模式</label>
+            <select v-model="broadcastMode" @change="onModeChange">
+              <option value="vertical">竖屏模式 (默认)</option>
+              <option value="horizontal">横屏 PPT 宣讲模式</option>
+            </select>
+          </div>
+        </div>
+        <!-- 4.4 播报文本 -->
+        <div class="panel config-panel">
+          <h2>📝 播报文本</h2>
+          <div class="form-group">
+            <textarea v-model="config.text" placeholder="请输入要播报的文本内容..." @input="clearCache" style="height:200px;"></textarea>
+            <div style="text-align:right;margin-top:5px;color:#666;font-size:12px;">共 {{ currentSentences.length }} 句</div>
+          </div>
+        </div>
+        <!-- 4.5 系统日志 -->
+        <div class="panel config-panel">
+          <div class="ppt-collapse-header" @click="logCollapseOpen = !logCollapseOpen" style="padding:0;margin-bottom:15px;cursor:pointer;">
+            <h2 style="margin:0;">📋 系统日志</h2>
+            <span>{{ logCollapseOpen ? '▼' : '▶' }}</span>
+          </div>
+          <div class="log-container" v-if="logCollapseOpen && logs.length > 0">
+            <div v-for="(log, index) in logs.slice(-20)" :key="index" :class="['log-entry', log.type]">
+              [{{ log.time }}] {{ log.message }}
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Toast 容器 -->
+      <div class="toast-container">
+        <div v-for="(toast, index) in toastList" :key="index" :class="['toast-item', toast.type]">{{ toast.message }}</div>
+      </div>
+      <!-- PPT 大图预览弹窗 -->
+      <div class="ppt-preview-modal" v-if="showPptPreview" @click.self="showPptPreview=false">
+        <img :src="currentPreviewPptImg" alt="PPT 大图预览" class="preview-img">
+        <button class="preview-close" @click="showPptPreview=false">×</button>
+      </div>
+      <!-- [P0_HIDDEN] 云端项目模块已隐藏 -->
+      <!-- 保存项目弹窗 -->
       <div class="modal-mask" :class="{ 'vue-mounted': isVueMounted }" v-if="saveProjectModalOpen" v-cloak @click.self="closeSaveModal">
         <div class="modal-box" @click.stop>
           <div class="modal-title">保存项目到云端</div>
@@ -911,10 +765,10 @@
           </div>
           <div class="form-group">
             <label>项目备注</label>
-            <textarea v-model="saveProjectForm.desc" placeholder="请输入项目备注(选填)" style="min-height: 80px;"></textarea>
+            <textarea v-model="saveProjectForm.desc" placeholder="请输入项目备注 (选填)" style="min-height:80px;"></textarea>
           </div>
           <div class="form-group">
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
               <input type="checkbox" v-model="saveProjectForm.saveVideo">
               同时保存成品视频到云端
             </label>
@@ -927,13 +781,11 @@
       </div>
     </div>
   </div>
-
-  <script>
+<script>
     // IndexedDB 配置
     const DB_NAME = 'AvatarBroadcastDB';
     const DB_VERSION = 1;
     const STORE_NAME = 'videos';
-
     // 打开数据库
     function openDB() {
       return new Promise((resolve, reject) => {
@@ -948,7 +800,6 @@
         request.onerror = () => reject(request.error);
       });
     }
-
     // 保存视频到缓存
     async function saveVideoToCache(videoBlob, text, duration) {
       const db = await openDB();
@@ -966,7 +817,6 @@
         request.onerror = () => reject(request.error);
       });
     }
-
     // 获取所有缓存视频
     async function getAllCachedVideos() {
       const db = await openDB();
@@ -978,7 +828,6 @@
         request.onerror = () => reject(request.error);
       });
     }
-
     // 删除缓存视频
     async function deleteCachedVideo(id) {
       const db = await openDB();
@@ -990,22 +839,20 @@
         request.onerror = () => reject(request.error);
       });
     }
-
     // Vue 应用初始化
     const { createApp } = Vue;
     createApp({
       setup() {
-        // Vue 核心API解构
+        // Vue 核心 API 解构
         const { onMounted, onBeforeMount, ref, reactive, computed, onUnmounted, nextTick } = Vue;
-
         // 核心配置响应式数据
         const config = reactive({
           roleId: '111204004',  // 默认知夏形象
           rdn: 'x4_yezi',
           text: '',
-          speed: 1.0
+          speed: 1.0,
+          subtitleFontSize: 28
         });
-
         // 数字人形象列表
         const roles = ref([
           { role_id: 'cnrfb86h2000000004', role_name: '【免费】超拟人 - 晓雅' },
@@ -1030,7 +877,6 @@
           { role_id: '111192001', role_name: '诸葛亮' },
           { role_id: '111227001', role_name: '西施' }
         ]);
-
         // 发音人列表
         const voices = ref([
           { rdn: 'x4_yezi', name: '小露' },
@@ -1053,7 +899,6 @@
           { rdn: 'x4_yifei', name: '一菲' },
           { rdn: 'x4_lingbosong', name: '聆伯松' }
         ]);
-
         // 核心状态变量
         const isBroadcasting = ref(false);
         const isConnected = ref(false);
@@ -1065,15 +910,13 @@
         const cachedVideos = ref([]);
         const logs = ref([]);
         const videoBlob = ref(null);
-
-        // DOM引用
+        // DOM 引用
         const compositeCanvas = ref(null);
         const previewVideo = ref(null);
         const videoContainer = ref(null);
-
+        const pptFileInput = ref(null);
         // 全屏状态
         const isFullscreen = ref(false);
-
         // 全局实例变量
         let sdkInstance = null;
         let compositeInterval = null;
@@ -1082,22 +925,21 @@
         let recordTimer = null;
         let animationFrame = null;
         let currentSubtitle = '';
-        let recordStartTime = 0;
+        let recordingStartTime = 0;
+        let avatarSourceDom = null;
         let broadcastEndTimer = null;
         let lastFrameStartTime = 0;
         let waitingForBroadcastEnd = false;
-
         // 字幕相关变量
         let sentenceIndex = 0;
-        const currentSentences = ref([]);  // ✅ 改为响应式
+        const currentSentences = ref([]);
         let isBroadcastingSentence = false;
         let isStopping = false;
-
-        // ==================== PPT宣讲功能相关变量 ====================
+        let videoMimeType = '';
+        // ==================== PPT 宣讲功能相关变量 ====================
         const FEISHU_APP_ID = 'cli_a914c5cbe1385cb5';
         const API_BASE_URL = 'https://avatar-adcast-v-uzttmfxmdi.cn-hangzhou.fcapp.run';
-
-        // PPT配置核心状态
+        // PPT 配置核心状态
         const pptCollapseOpen = ref(true);
         const pptConfig = reactive({
           pptUrl: '',
@@ -1106,7 +948,8 @@
           pptId: '',
           pptTitle: '',
           totalPages: 0,
-          pages: []
+          pages: [],
+          isLocal: false
         });
         // 本地 PPT 上传相关
         const localPptFile = ref(null);
@@ -1114,12 +957,13 @@
         const pptImportStatus = ref(null);
         const currentPptPage = ref(1);
         const currentEditPage = ref(1);
-
+        // PPT 预览相关（修复：补充模板依赖的响应式变量）
+        const showPptPreview = ref(false);
+        const currentPreviewPptImg = ref('');
         // 翻页节点状态
         const pageTurningNodes = ref([]);
         const pageTurningConfirmed = ref(false);
         const draggedSentenceIndex = ref(null);
-
         // 播报模式
         const broadcastMode = ref('vertical');
         const canvasSize = reactive({
@@ -1127,35 +971,80 @@
           height: 1280
         });
         const showPageTip = ref(false);
-
         // 云端项目状态
         const cloudProjectCollapseOpen = ref(false);
         const saveProjectModalOpen = ref(false);
-        const isVueMounted = ref(false);  // 防止弹窗闪现
+        const isVueMounted = ref(false);
         const saveProjectForm = reactive({
           name: '',
           desc: '',
           saveVideo: false
         });
         const cloudProjectList = ref([]);
+        // 步骤导航相关
+        const step = ref(1);
+        const usePPT = ref(false);
+        // Toast 相关
+        const toastList = ref([]);
+        // 生成本地用户"云端身份证"
+        let localOpenId = localStorage.getItem('avatar_open_id');
+        if (!localOpenId || !localOpenId.startsWith('ou_')) {
+          localOpenId = 'ou_local_' + Date.now();
+          localStorage.setItem('avatar_open_id', localOpenId);
+        }
         const feishuUserInfo = reactive({
-          openId: '',
+          openId: localOpenId,
           accessToken: ''
-        });
+        })
 
-        // ==================== 计算属性 ====================
-        const hasCachedVideo = computed(() => cachedVideos.value.length > 0);
-        const hasVideoBlob = computed(() => videoBlob.value && videoBlob.value.size > 0);
-        // 当前编辑的翻页节点
-        const currentNode = computed(() => {
-          return pageTurningNodes.value.find(node => node.page_num === currentEditPage.value) || {
-            page_num: currentEditPage.value,
-            start_sentence_index: 0,
-            end_sentence_index: 0
-          };
-        });
-
-        // ==================== 工具函数 ====================
+        // ==================== 全局工具函数 ====================
+        // [修复] 移到顶层，模板可访问
+        function showToast(message, type = 'info', duration = 3000) {
+          const toastItem = { message, type };
+          toastList.value.push(toastItem);
+          if (type !== 'loading') {
+            setTimeout(() => {
+              const index = toastList.value.indexOf(toastItem);
+              if (index > -1) toastList.value.splice(index, 1);
+            }, duration);
+          }
+          return toastItem;
+        }
+        function closeToast(toastItem) {
+          const index = toastList.value.indexOf(toastItem);
+          if (index > -1) toastList.value.splice(index, 1);
+        }
+        // [修复] PPT 预览函数移到顶层，模板可访问
+        function openPptPreview(imageUrl) {
+          currentPreviewPptImg.value = imageUrl;
+          showPptPreview.value = true;
+          addLog('打开 PPT 大图预览', 'info');
+        }
+        // [修复] 句子高亮函数移到顶层，模板可访问
+        function isSentenceHighlight(sentenceIndex) {
+          if (!currentNode.value || !pageTurningNodes.value || pageTurningNodes.value.length === 0) {
+            return false;
+          }
+          const node = pageTurningNodes.value[currentEditPage.value - 1];
+          if (!node) return false;
+          return sentenceIndex >= node.start_sentence_index && sentenceIndex <= node.end_sentence_index;
+        }
+        // 模式切换逻辑
+        function switchMode(enablePPT) {
+          console.log('切换模式，enablePPT:', enablePPT);
+          if (enablePPT) {
+            usePPT.value = true;
+            step.value = 2;
+            showToast('已切换到 PPT 宣讲模式', 'success', 2000);
+          } else {
+            usePPT.value = false;
+            reImportPpt();
+            step.value = 3;
+            showToast('已切换到纯播报模式', 'success', 2000);
+          }
+          console.log('当前步骤:', step.value);
+        }
+        // 日志工具
         function addLog(message, type = 'info') {
           logs.value.push({
             time: new Date().toLocaleTimeString(),
@@ -1164,18 +1053,15 @@
           });
           console.log(`[${type}] ${message}`);
         }
-
         function formatDuration(seconds) {
           const mins = Math.floor(seconds / 60);
           const secs = Math.floor(seconds % 60);
           return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
         }
-
         function clearCache() {
           videoBlob.value = null;
-          addLog('配置已更改,缓存已清除', 'warn');
+          addLog('配置已更改，缓存已清除', 'warn');
         }
-
         // 缓存相关函数
         async function loadCachedVideos() {
           try {
@@ -1187,14 +1073,12 @@
             addLog('加载缓存失败:' + e.message, 'error');
           }
         }
-
         async function deleteCache(index) {
           const cache = cachedVideos.value[index];
           await deleteCachedVideo(cache.id);
           cachedVideos.value.splice(index, 1);
           addLog('已删除缓存', 'success');
         }
-
         async function playCache(index) {
           const cache = cachedVideos.value[index];
           const videoUrl = URL.createObjectURL(cache.video);
@@ -1202,11 +1086,9 @@
           previewVideo.value.play();
           addLog(`播放缓存视频:${cache.text.substring(0, 20)}...`, 'success');
         }
-
         async function playCachedVideo() {
           if (cachedVideos.value.length > 0) playCache(0);
         }
-
         async function saveToCache() {
           if (!videoBlob.value) {
             addLog('没有可保存的视频', 'warn');
@@ -1220,29 +1102,28 @@
             addLog('保存缓存失败:' + e.message, 'error');
           }
         }
-
         function downloadVideo() {
           if (!videoBlob.value || videoBlob.value.size === 0) {
             addLog('❌ 没有可下载的视频', 'error');
             return;
           }
           if (previewVideo.value && previewVideo.value.readyState < 1) {
-            addLog('⏳ 视频正在加载中,请稍候...', 'warn');
+            addLog('⏳ 视频正在加载中，请稍候...', 'warn');
             setTimeout(downloadVideo, 1000);
             return;
           }
           const videoUrl = URL.createObjectURL(videoBlob.value);
           const a = document.createElement('a');
           a.href = videoUrl;
-          a.download = `数字人播报_${new Date().toLocaleString().replace(/[/:\s]/g, '-')}.webm`;
+          const fileExt = videoBlob.value.type.includes('mp4') ? 'mp4' : 'webm';
+          a.download = `数字人播报_${new Date().toLocaleString().replace(/[/:\s]/g, '-')}.${fileExt}`;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
-          addLog('💡 提示:请使用 PotPlayer、VLC 或 最新版 Chrome/Edge 播放视频', 'info');
+          addLog('💡 提示：所有主流播放器均支持拖拽进度条', 'info');
           addLog('✅ 视频下载已触发', 'success');
         }
-
-        // ==================== PPT功能工具函数 ====================
+        // ==================== PPT 功能工具函数 ====================
         function checkPptUrlFormat() {
           const url = pptConfig.pptUrl;
           if (!url) {
@@ -1250,7 +1131,6 @@
             pptImportStatus.value = { type: 'warn', text: '请输入飞书 PPT 链接' };
             return;
           }
-          // 支持多种飞书链接格式
           const validPatterns = [
             'feishu.cn/docx',
             'feishu.cn/slides',
@@ -1266,32 +1146,39 @@
             pptImportStatus.value = { type: 'error', text: '仅支持飞书在线幻灯片/文档链接' };
           }
         }
-
         function startFeishuAuth() {
           const redirectUri = encodeURIComponent(window.location.href.split('?')[0]);
           window.location.href = `https://open.feishu.cn/open-apis/authen/v1/index?app_id=${FEISHU_APP_ID}&redirect_uri=${redirectUri}&state=ppt_import`;
         }
-
         async function preloadPptImages() {
           addLog('📄 开始预加载 PPT 图片', 'info');
           await Promise.all(pptConfig.pages.map(page => new Promise(resolve => {
+            if (page.page_image && page.page_image.complete) {
+              addLog(`📄 第${page.page_num}页图片已加载，跳过`, 'info');
+              resolve();
+              return;
+            }
             const img = new Image();
             img.crossOrigin = 'anonymous';
-            img.onload = () => { page.page_image = img; resolve(); };
-            img.onerror = () => { resolve(); };
+            img.onload = () => {
+              addLog(`✅ 第${page.page_num}页图片加载成功`, 'success');
+              page.page_image = img;
+              resolve();
+            };
+            img.onerror = () => {
+              addLog(`⚠️ 第${page.page_num}页图片加载失败`, 'warn');
+              resolve();
+            };
             img.src = page.page_image_url;
           })));
           addLog('✅ PPT 图片预加载完成', 'success');
         }
-
         function isSentenceBound(index) {
           return pageTurningNodes.value.some(node => index >= node.start_sentence_index && index <= node.end_sentence_index);
         }
-
         function dragSentence(index) {
           draggedSentenceIndex.value = index;
         }
-
         function dropSentence() {
           if (draggedSentenceIndex.value === null) return;
           const node = pageTurningNodes.value.find(n => n.page_num === currentEditPage.value);
@@ -1301,48 +1188,45 @@
           }
           draggedSentenceIndex.value = null;
         }
-
         function adjustPageTurn(offset) {
           const node = pageTurningNodes.value.find(n => n.page_num === currentEditPage.value);
           if (!node) return;
           node.start_sentence_index = Math.max(0, node.start_sentence_index + offset);
-          node.end_sentence_index = Math.min(currentSentences.value.length - 1, node.end_sentence_index + offset);  // ✅ 添加 .value
+          node.end_sentence_index = Math.min(currentSentences.value.length - 1, node.end_sentence_index + offset);
           addLog(`📄 第${currentEditPage.value}页翻页时机已调整`, 'info');
         }
-
         function resetTurningNodes() {
           generateTurningNodes(true);
         }
-
         function cancelTurningEdit() {
           pageTurningNodes.value = [];
           pageTurningConfirmed.value = false;
           addLog('已取消翻页规则编辑', 'info');
         }
-
         function confirmTurningRules() {
-          let idx = 0, valid = true;
-          for (let node of [...pageTurningNodes.value].sort((a,b)=>a.page_num-b.page_num)) {
-            if (node.start_sentence_index !== idx) { valid = false; break; }
-            idx = node.end_sentence_index + 1;
+          const nodes = [...pageTurningNodes.value].sort((a,b)=>a.page_num-b.page_num);
+          if (nodes.length === 0) {
+            addLog('❌ 没有翻页节点数据', 'error');
+            return;
           }
-          if (idx !== currentSentences.value.length) valid = false;  // ✅ 添加 .value
-          if (!valid) { addLog('❌ 翻页规则校验失败', 'error'); return; }
+          let expectedStart = 0;
+          for (let i = 0; i < nodes.length; i++) {
+            nodes[i].start_sentence_index = Number(nodes[i].start_sentence_index);
+            nodes[i].end_sentence_index = Number(nodes[i].end_sentence_index);
+            nodes[i].start_sentence_index = expectedStart;
+            if (nodes[i].end_sentence_index < nodes[i].start_sentence_index) {
+              nodes[i].end_sentence_index = nodes[i].start_sentence_index;
+            }
+            if (nodes[i].end_sentence_index >= currentSentences.value.length) {
+              nodes[i].end_sentence_index = currentSentences.value.length - 1;
+            }
+            expectedStart = nodes[i].end_sentence_index + 1;
+          }
+          nodes[nodes.length - 1].end_sentence_index = currentSentences.value.length - 1;
+          pageTurningNodes.value = nodes;
           pageTurningConfirmed.value = true;
-          addLog('✅ 翻页规则已确认生效', 'success');
+          addLog('✅ 翻页规则已自动纠偏并确认生效!', 'success');
         }
-
-        async function previewTurningNodes() {
-          addLog('📺 开始模拟预览', 'info');
-          for (let node of [...pageTurningNodes.value].sort((a,b)=>a.page_num-b.page_num)) {
-            currentPptPage.value = node.page_num;
-            showPageTip.value = true;
-            await new Promise(r => setTimeout(r, 1500));
-            showPageTip.value = false;
-          }
-          addLog('✅ 模拟预览完成', 'success');
-        }
-
         function manualTurnPage(offset) {
           const p = currentPptPage.value + offset;
           if (p < 1 || p > pptConfig.totalPages) return;
@@ -1351,7 +1235,6 @@
           setTimeout(() => { showPageTip.value = false; }, 1000);
           addLog(`📄 手动切换到第${p}页`, 'info');
         }
-
         function onModeChange() {
           if (broadcastMode.value === 'horizontal') {
             canvasSize.width = 1920;
@@ -1367,22 +1250,19 @@
             compositeCanvas.value.height = canvasSize.height;
           }
         }
-
         function reImportPpt() {
           pptConfig.imported = false;
           pptConfig.pages = [];
           pageTurningNodes.value = [];
           pageTurningConfirmed.value = false;
           localPptFile.value = null;
+          if (pptFileInput.value) pptFileInput.value = '';
           addLog('已清空 PPT 数据', 'info');
         }
-
         // 处理本地 PPT 文件选择
         function handleLocalPptUpload(event) {
           const file = event.target.files[0];
           if (!file) return;
-
-          // 验证文件格式
           const validTypes = ['.ppt', '.pptx'];
           const fileExt = '.' + file.name.split('.').pop().toLowerCase();
           if (!validTypes.includes(fileExt)) {
@@ -1390,32 +1270,26 @@
             event.target.value = '';
             return;
           }
-
-          // 验证文件大小(最大 50MB)
           if (file.size > 50 * 1024 * 1024) {
             pptImportStatus.value = { type: 'error', text: '文件大小不能超过 50MB' };
             event.target.value = '';
             return;
           }
-
           localPptFile.value = file;
           pptImportStatus.value = { type: 'success', text: `已选择:${file.name}` };
           addLog(`📄 已选择本地 PPT: ${file.name} (${(file.size/1024/1024).toFixed(2)}MB)`, 'success');
         }
-
         // 上传并解析本地 PPT
         async function uploadLocalPpt() {
           if (!localPptFile.value) {
             pptImportStatus.value = { type: 'error', text: '请先选择 PPT 文件' };
             return;
           }
-
           uploadingLocalPpt.value = true;
           addLog('📤 正在上传 PPT 文件...', 'info');
           addLog(`📊 上传前:pptConfig.imported=${pptConfig.imported}`, 'info');
-
+          let loadingToast = null;
           try {
-            // 读取文件为 base64
             const fileToBase64 = (file) => {
               return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -1424,11 +1298,8 @@
                 reader.readAsDataURL(file);
               });
             };
-
             const base64Data = await fileToBase64(localPptFile.value);
             addLog(`📊 文件已转换为 base64,长度:${base64Data.length}`, 'info');
-
-            // 发送到后端
             const res = await fetch(`${API_BASE_URL}/ppt/upload`, {
               method: 'POST',
               headers: {
@@ -1439,124 +1310,166 @@
                 filename: localPptFile.value.name
               })
             });
-
             addLog(`📊 后端响应状态:${res.status}`, 'info');
-
             const result = await res.json();
             addLog(`📊 后端返回数据:${JSON.stringify(result)}`, 'info');
-
             if (result.code !== 0) {
               throw new Error(result.msg || '上传失败');
             }
-
-            // 解析成功,保存 PPT 数据 - 使用 nextTick 强制触发响应式更新
             await nextTick();
-
-            // 🔍 调试:打印后端返回的原始数据
             addLog(`🔍 后端返回 data 对象:${JSON.stringify(result.data)}`, 'info');
             addLog(`🔍 result.data.total_pages = ${result.data.total_pages}`, 'info');
             addLog(`🔍 result.data.pages 长度 = ${result.data.pages ? result.data.pages.length : 0}`, 'info');
-
-            // 重新赋值整个 pptConfig 对象来触发响应式更新
-            const newPptConfig = {
-              pptUrl: '',
-              urlValid: false,
-              imported: true,  // 关键:设置为 true
-              pptId: result.data.ppt_id || 'local-ppt-' + Date.now(),
-              pptTitle: result.data.ppt_title || localPptFile.value.name,
-              totalPages: result.data.total_pages || (result.data.pages ? result.data.pages.length : 0),
-              pages: result.data.pages || [],
-              isLocal: true
-            };
-
-            addLog(`🔍 新 pptConfig: imported=${newPptConfig.imported}, totalPages=${newPptConfig.totalPages}, pages 长度=${newPptConfig.pages.length}`, 'info');
-
-            // ✅ 修复:用 Object.assign 替换逐个赋值,触发 Vue 响应式
-            pptConfig.pptId = newPptConfig.pptId;
-            pptConfig.pptTitle = newPptConfig.pptTitle;
-            pptConfig.totalPages = newPptConfig.totalPages;
-            pptConfig.pages = newPptConfig.pages;
-            pptConfig.imported = true;  // 关键:最后设置
-            pptConfig.isLocal = newPptConfig.isLocal;
+            pptConfig.pages = result.data.pages.map(p => {
+              const img = new Image();
+              img.crossOrigin = "anonymous";
+              img.src = p.page_image_url || p.page_image_base64;
+              return {
+                page_num: p.page_num,
+                page_image: img,
+                page_image_url: p.page_image_url || p.page_image_base64,
+                page_text: p.page_text,
+                page_title: p.page_title
+              };
+            });
+            pptConfig.pptId = result.data.ppt_id || 'local-ppt-' + Date.now();
+            pptConfig.pptTitle = result.data.ppt_title || localPptFile.value.name;
+            pptConfig.totalPages = result.data.total_pages || (result.data.pages ? result.data.pages.length : 0);
+            pptConfig.imported = true;
+            pptConfig.isLocal = true;
             await nextTick();
-
             addLog(`🔍 赋值后检查:pptConfig.imported=${pptConfig.imported}, pptConfig.totalPages=${pptConfig.totalPages}, pptConfig.pages 长度=${pptConfig.pages.length}`, 'success');
-
             addLog(`📊 上传后:pptConfig.imported=${pptConfig.imported}, totalPages=${pptConfig.totalPages}`, 'success');
-
             currentPptPage.value = 1;
             currentEditPage.value = 1;
-
-            // 预加载图片
             if (pptConfig.pages.length > 0) {
               await preloadPptImages();
             }
-
-            pptImportStatus.value = { type: 'success', text: `PPT 解析成功,共${pptConfig.totalPages}页` };
-            addLog('✅ PPT 解析成功,可生成翻页节点', 'success');
-
-            // 清空文件选择
+            pptImportStatus.value = { type: 'success', text: `PPT 解析成功，共${pptConfig.totalPages}页` };
+            addLog('✅ PPT 解析成功，可生成翻页节点', 'success');
             localPptFile.value = null;
-            const fileInput = document.querySelector('input[type="file"]');
-            if (fileInput) {
-              fileInput.value = '';
-            }
-
+            if (pptFileInput.value) pptFileInput.value = '';
+            if (loadingToast) closeToast(loadingToast);
+            showToast(`PPT 解析成功，共${pptConfig.totalPages}页`, 'success');
+            step.value = 3;
           } catch (e) {
             pptImportStatus.value = { type: 'error', text: `上传失败:${e.message}` };
             addLog(`❌ PPT 上传失败:${e.message}`, 'error');
             addLog(`📊 失败时 pptConfig.imported=${pptConfig.imported}`, 'error');
+            if (loadingToast) closeToast(loadingToast);
+            showToast(`PPT 解析失败:${e.message}`, 'error');
           } finally {
             uploadingLocalPpt.value = false;
           }
         }
-
         // 弹窗核心控制函数
         function closeSaveModal() {
           saveProjectModalOpen.value = false;
-          // 关闭时重置表单
           saveProjectForm.name = '';
           saveProjectForm.desc = '';
           saveProjectForm.saveVideo = false;
-          // DOM更新兜底
           nextTick(() => {
             saveProjectModalOpen.value = false;
           });
           addLog('已关闭项目保存弹窗', 'info');
         }
-
         function openSaveProjectModal() {
           saveProjectForm.name = '';
           saveProjectForm.desc = '';
           saveProjectForm.saveVideo = false;
           saveProjectModalOpen.value = true;
         }
-
         // ==================== 接口请求函数 ====================
         async function generateTurningNodes(isReset = false) {
           if (!config.text || !pptConfig.imported) {
-            addLog('❌ 请先输入播报文本并导入 PPT', 'error');
+            showToast('请先输入播报文本并导入 PPT', 'error');
             return;
           }
-          const sentences = config.text.replace(/([\u3002\uFF01\uFF1F\u002E\u0021\u003F]+)/g, '$1|SPLIT|').split('|SPLIT|').map(s => s.trim()).filter(s => s.length > 0);
-          currentSentences.value = sentences;  // ✅ 添加 .value
+          const loadingToast = showToast('正在分析 PPT 与文案，生成智能翻页节点，请稍候', 'loading');
+          const sentences = config.text.split(/[.!?!\n]+/).filter(s => s.trim().length > 0);
+          currentSentences.value = sentences;
+          const totalSentences = sentences.length;
+          let pptContext = pptConfig.pages.map(p =>
+            `第${p.page_num}页:${p.page_text || '无文字'}`
+          ).join('\n');
+          const sentencesList = sentences.map((s, i) =>
+            `  [${i}]: "${s.substring(0, 50)}${s.length > 50 ? '...' : ''}"`
+          ).join('\n');
+          const superPrompt = `
+你是一个专业的视频导播专家。
+【重要规则】
+1. 句子索引从 0 开始，对应下方【句子列表】中的编号
+2. 你必须使用【句子列表】中已有的句子，不能自己重新切分
+3. 每一页 PPT 对应一段连续的句子 (有起始索引和结束索引)
+4. 所有句子必须被完全分配，不能遗漏也不能重复
+【PPT 内容】
+${pptContext}
+【句子列表】(共${totalSentences}句)
+${sentencesList}
+【任务】
+请根据 PPT 内容，为每一页分配对应的句子索引范围。
+【输出格式】
+严格返回 JSON 格式，不要任何其他内容:
+{
+  "page_turning_nodes": [
+    {"page_num": 1, "start_sentence_index": 0, "end_sentence_index": 2},
+    {"page_num": 2, "start_sentence_index": 3, "end_sentence_index": 5}
+  ]
+}
+`;
           addLog('🤖 正在生成智能翻页节点...', 'info');
           try {
             const res = await fetch(`${API_BASE_URL}/ai/generate-turning-nodes`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json', 'X-Feishu-OpenId': feishuUserInfo.openId },
-              body: JSON.stringify({ speak_sentences: sentences, ppt_pages: pptConfig.pages })
+              body: JSON.stringify({
+                prompt: superPrompt,
+                sentences: sentences,
+                page_count: pptConfig.totalPages
+              })
             });
             const result = await res.json();
             if (result.code !== 0) throw new Error(result.msg);
-            pageTurningNodes.value = result.data.page_turning_nodes;
-            addLog(`✅ 翻页节点生成成功,共${pageTurningNodes.value.length}个节点`, 'success');
+            let nodes = result.data.page_turning_nodes || [];
+            addLog(`📊 收到${nodes.length}个翻页节点`, 'info');
+            const validNodes = nodes.map(node => {
+              if (node.start_sentence_index < 0 || node.start_sentence_index >= totalSentences) {
+                addLog(`⚠️ 节点${node.page_num}起始索引${node.start_sentence_index}越界，已修正`, 'warn');
+                node.start_sentence_index = Math.max(0, Math.min(node.start_sentence_index, totalSentences - 1));
+              }
+              if (node.end_sentence_index < 0 || node.end_sentence_index >= totalSentences) {
+                addLog(`⚠️ 节点${node.page_num}结束索引${node.end_sentence_index}越界，已修正`, 'warn');
+                node.end_sentence_index = Math.max(0, Math.min(node.end_sentence_index, totalSentences - 1));
+              }
+              if (node.end_sentence_index < node.start_sentence_index) {
+                addLog(`⚠️ 节点${node.page_num}索引倒挂，已修正`, 'warn');
+                node.end_sentence_index = node.start_sentence_index;
+              }
+              return node;
+            });
+            const assignedSentences = new Set();
+            validNodes.forEach(node => {
+              for (let i = node.start_sentence_index; i <= node.end_sentence_index; i++) {
+                assignedSentences.add(i);
+              }
+            });
+            const missingCount = totalSentences - assignedSentences.size;
+            if (missingCount > 0 && validNodes.length > 0) {
+              addLog(`⚠️ 有${missingCount}个句子未被分配，已自动补充到最后一页`, 'warn');
+              validNodes[validNodes.length - 1].end_sentence_index = totalSentences - 1;
+            }
+            pageTurningNodes.value = validNodes;
+            addLog(`✅ 翻页节点生成成功，共${pageTurningNodes.value.length}个节点，覆盖${assignedSentences.size}/${totalSentences}句`, 'success');
+            closeToast(loadingToast);
+            showToast(`翻页节点生成成功，共${pageTurningNodes.value.length}个节点`, 'success');
+            step.value = 5;
             if (!isReset) { currentEditPage.value = 1; }
           } catch (e) {
             addLog(`❌ 翻页节点生成失败:${e.message}`, 'error');
+            closeToast(loadingToast);
+            showToast(`节点生成失败:${e.message}`, 'error');
           }
         }
-
         async function importFeishuPpt(code) {
           addLog('📄 正在拉取飞书 PPT 内容...', 'info');
           try {
@@ -1580,26 +1493,34 @@
             currentPptPage.value = 1;
             currentEditPage.value = 1;
             await preloadPptImages();
-            pptImportStatus.value = { type: 'success', text: `PPT 导入成功,共${pptConfig.totalPages}页` };
+            pptImportStatus.value = { type: 'success', text: `PPT 导入成功，共${pptConfig.totalPages}页` };
             await loadCloudProjectList();
           } catch (e) {
             pptImportStatus.value = { type: 'error', text: `PPT 导入失败:${e.message}` };
             addLog(`❌ PPT 导入失败:${e.message}`, 'error');
           }
         }
-
         async function confirmSaveProject() {
-          addLog('☁️ 正在保存项目到云端...', 'info');
+          addLog('☁️ 正在保存项目配置到云端...', 'info');
           try {
+            let videoBase64 = null;
+            if (saveProjectForm.saveVideo && videoBlob.value) {
+              if (videoBlob.value.size > 15 * 1024 * 1024) {
+                addLog('❌ 视频文件过大 (>15MB),受 JSON 接口限制无法连同视频上云。', 'error');
+                addLog('💡 已为您保存全部 PPT 和文案配置。视频请点击左侧【下载视频】存本地!', 'warn');
+              } else {
+                videoBase64 = await blobToBase64(videoBlob.value);
+              }
+            }
             const params = {
               project_name: saveProjectForm.name,
               project_desc: saveProjectForm.desc,
               avatar_config: { ...config },
               speak_text: config.text,
-              speak_sentences: currentSentences.value,  // ✅ 添加 .value
+              speak_sentences: currentSentences.value,
               ppt_data: { ...pptConfig },
               page_turning_rules: pageTurningNodes.value,
-              video_file: saveProjectForm.saveVideo && videoBlob.value ? await blobToBase64(videoBlob.value) : null
+              video_file: videoBase64
             };
             const res = await fetch(`${API_BASE_URL}/project/save`, {
               method: 'POST',
@@ -1608,27 +1529,33 @@
             });
             const result = await res.json();
             if (result.code !== 0) throw new Error(result.msg);
-            addLog('✅ 项目保存成功', 'success');
+            addLog('✅ 项目全套配置保存成功', 'success');
             saveProjectModalOpen.value = false;
             await loadCloudProjectList();
           } catch (e) {
             addLog(`❌ 项目保存失败:${e.message}`, 'error');
           }
         }
-
         async function loadCloudProjectList() {
           if (!feishuUserInfo.openId) return;
           try {
-            const res = await fetch(`${API_BASE_URL}/project/list`, { headers: { 'X-Feishu-OpenId': feishuUserInfo.openId } });
+            const res = await fetch(`${API_BASE_URL}/project/list`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-Feishu-OpenId': feishuUserInfo.openId
+              },
+              body: JSON.stringify({ open_id: feishuUserInfo.openId })
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status} - 网关拒绝访问`);
             const result = await res.json();
             if (result.code !== 0) throw new Error(result.msg);
-            cloudProjectList.value = result.data.list;
+            cloudProjectList.value = result.data.list || [];
             addLog(`☁️ 加载了${cloudProjectList.value.length}个云端项目`, 'success');
           } catch (e) {
-            addLog(`❌ 云端项目加载失败:${e.message}`, 'error');
+            addLog(`❌ 云端项目加载失败：${e.message}`, 'error');
           }
         }
-
         async function reuseProject(project) {
           addLog(`☁️ 正在加载项目:${project.project_name}`, 'info');
           try {
@@ -1641,23 +1568,19 @@
             pageTurningNodes.value = data.page_turning_rules;
             pageTurningConfirmed.value = true;
             await preloadPptImages();
-            addLog('✅ 项目加载完成,可直接开始播报', 'success');
+            addLog('✅ 项目加载完成，可直接开始播报', 'success');
           } catch (e) {
             addLog(`❌ 项目加载失败:${e.message}`, 'error');
           }
         }
-
         async function editProject(project) {
           await reuseProject(project);
         }
-
         async function downloadCloudVideo(project) {
           addLog(`☁️ 正在下载视频:${project.project_name}`, 'info');
-          // TODO: 实现云端视频下载
         }
-
         async function deleteCloudProject(project) {
-          if (!confirm(`确定删除项目"${project.project_name}"吗?`)) return;
+          if (!confirm(`确定删除项目"${project.project_name}"吗？`)) return;
           try {
             const res = await fetch(`${API_BASE_URL}/project/delete`, {
               method: 'POST',
@@ -1672,7 +1595,6 @@
             addLog(`❌ 项目删除失败:${e.message}`, 'error');
           }
         }
-
         function blobToBase64(blob) {
           return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -1681,69 +1603,70 @@
             reader.readAsDataURL(blob);
           });
         }
-
         // ==================== 画面合成核心函数 ====================
         function compositeFrame() {
           if (compositeInterval) {
             clearInterval(compositeInterval);
             compositeInterval = null;
           }
-          addLog('🎨 启动强制绘制模式 (25fps 固定帧率,无视后台降频)...', 'info');
+          addLog('🎨 启动强制绘制模式 (25fps 固定帧率，无视后台降频)...', 'info');
           const FRAME_INTERVAL = 40;
           compositeInterval = setInterval(() => {
             if (!isRecording.value && !isBroadcasting.value) {
-              clearInterval(compositeInterval);
-              compositeInterval = null;
-              addLog('⏹️ 强制绘制模式已停止', 'info');
+              setTimeout(() => {
+                if (compositeInterval) {
+                  clearInterval(compositeInterval);
+                  compositeInterval = null;
+                  addLog('⏹️ 强制绘制模式已停止', 'info');
+                }
+              }, 500);
               return;
             }
             if (!compositeCanvas.value) return;
             const canvas = compositeCanvas.value;
             const ctx = canvas.getContext('2d');
-            // 优先抓取 canvas
-            const avatarSource = document.querySelector('#digital-human-container canvas') || 
-                                 document.querySelector('#digital-human-container video');
+            if (!avatarSourceDom) {
+              ctx.fillStyle = '#fff';
+              ctx.font = '24px Microsoft Yahei';
+              ctx.textAlign = 'center';
+              ctx.fillText('等待数字人...', canvas.width/2, canvas.height/2);
+              return;
+            }
+            if (avatarSourceDom.tagName == "VIDEO" && avatarSourceDom.readyState < 2) {
+              ctx.fillStyle = '#fff';
+              ctx.font = '24px Microsoft Yahei';
+              ctx.textAlign = 'center';
+              ctx.fillText('等待数字人...', canvas.width/2, canvas.height/2);
+              return;
+            }
             try {
-              // 清空画布
-              ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-              // PPT底层绘制
+              ctx.fillStyle = broadcastMode.value === 'horizontal' ? '#0f172a' : '#000000';
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
               if (broadcastMode.value === 'horizontal' && pptConfig.imported && pageTurningConfirmed.value) {
                 const currentPageData = pptConfig.pages.find(item => item.page_num === currentPptPage.value);
                 if (currentPageData && currentPageData.page_image) {
-                  ctx.drawImage(currentPageData.page_image, 0, 0, canvas.width, canvas.height);
-                } else {
-                  ctx.fillStyle = '#1a1a1a';
-                  ctx.fillRect(0, 0, 1344, 1080);
+                  const pptWidth = 1440;
+                  const pptHeight = 810;
+                  ctx.save();
+                  ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                  ctx.shadowBlur = 20;
+                  ctx.shadowOffsetX = 10;
+                  ctx.shadowOffsetY = 10;
+                  ctx.drawImage(currentPageData.page_image, 40, 40, pptWidth, pptHeight);
+                  ctx.restore();
                 }
               }
-
-              // 视频未就绪处理
-              if (!avatarSource || (avatarSource.tagName == "VIDEO" && avatarSource.readyState < 2)) {
-                ctx.fillStyle = '#000';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = '#fff';
-                ctx.font = '24px Microsoft Yahei';
-                ctx.textAlign = 'center';
-                ctx.fillText('等待数字人...', canvas.width/2, canvas.height/2);
-                return;
-              }
-
-              // 绘制数字人 (画中画模式)
               if (broadcastMode.value === 'horizontal') {
-                const avatarW = 500;
-                const avatarH = (avatarSource.height / avatarSource.width) * avatarW || 888;
-                const posX = canvas.width - avatarW - 40;
-                const posY = canvas.height - avatarH - 40;
-                
-                ctx.drawImage(avatarSource, posX, posY, avatarW, avatarH);
+                const avatarW = 400;
+                const avatarH = (avatarSourceDom.height / avatarSourceDom.width) * avatarW || 711;
+                const posX = 1920 - avatarW - 20;
+                const posY = 40 + 810 - avatarH;
+                ctx.drawImage(avatarSourceDom, posX, posY, avatarW, avatarH);
               } else {
-                ctx.drawImage(avatarSource, 0, 0, canvas.width, canvas.height);
+                ctx.drawImage(avatarSourceDom, 0, 0, canvas.width, canvas.height);
               }
-
-              // 绘制字幕
               if (currentSubtitle) {
-                ctx.font = 'bold 28px Microsoft Yahei';
+                ctx.font = `bold ${config.subtitleFontSize}px Microsoft Yahei`;
                 ctx.fillStyle = '#ffffff';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'bottom';
@@ -1779,7 +1702,7 @@
                     }
                   });
                   lines.push(line);
-                  const lineHeight = 36;
+                  const lineHeight = config.subtitleFontSize + 8;
                   const subtitleBottom = canvas.height - 50;
                   const bgHeight = lines.length * lineHeight + 20;
                   const bgY = subtitleBottom - bgHeight + 10;
@@ -1796,19 +1719,138 @@
                 ctx.shadowOffsetX = 0;
                 ctx.shadowOffsetY = 0;
               }
-            } catch (e) {
-              // 忽略单帧绘制异常
-            }
+            } catch (e) {}
           }, FRAME_INTERVAL);
         }
-
         // ==================== 录制相关函数 ====================
+        // [修复] 拆分嵌套函数，修正作用域
+        function createRecorderAndStart(audioStream, canvasStream) {
+          let options = null;
+          const mp4Type = 'video/mp4;codecs=avc1.42E01E,mp4a.40.2';
+          const webmH264Type = 'video/webm;codecs=h264,opus';
+          const webmVp8Type = 'video/webm;codecs=vp8,opus';
+          if (MediaRecorder.isTypeSupported(mp4Type)) {
+            options = {
+              mimeType: mp4Type,
+              videoBitsPerSecond: broadcastMode.value === 'horizontal' ? 4000000 : 2500000,
+              audioBitsPerSecond: 192000,
+              videoKeyFrameIntervalCount: 25
+            };
+            addLog('✅ 使用标准 MP4(H.264+AAC) 编码，关键帧间隔 1 秒', 'success');
+          } else if (MediaRecorder.isTypeSupported(webmH264Type)) {
+            options = {
+              mimeType: webmH264Type,
+              videoBitsPerSecond: broadcastMode.value === 'horizontal' ? 4000000 : 2500000,
+              audioBitsPerSecond: 192000,
+              videoKeyFrameIntervalCount: 25
+            };
+            addLog('✅ 使用 WebM(H264) 编码', 'success');
+          } else {
+            options = {
+              mimeType: webmVp8Type,
+              videoBitsPerSecond: 2000000,
+              audioBitsPerSecond: 128000
+            };
+            addLog('⚠️ 浏览器不支持高清编码，使用 VP8 编码', 'warn');
+          }
+          addLog(`📦 使用编码格式:${options.mimeType}`, 'info');
+          const combinedStream = new MediaStream([
+            ...canvasStream.getVideoTracks(),
+            ...audioStream.getAudioTracks()
+          ]);
+          const videoTracks = combinedStream.getVideoTracks();
+          const audioTracks = combinedStream.getAudioTracks();
+          addLog(`🎞️ 最终流状态：视频轨 ${videoTracks.length} 个，音频轨 ${audioTracks.length} 个`, 'success');
+          if (videoTracks.length === 0) {
+            addLog('❌ 没有视频轨道!', 'error');
+            return;
+          }
+          if (audioTracks.length === 0) {
+            addLog('⚠️ 没有音频轨道，将录制无声视频', 'warn');
+          }
+          mediaRecorder = new MediaRecorder(combinedStream, options);
+          mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) {
+              recordedChunks.push(e.data);
+              if (logs.value.length > 200) {
+                logs.value = logs.value.slice(-50);
+              }
+              const totalMemMB = recordedChunks.reduce((sum, chunk) => sum + chunk.size, 0) / 1024 / 1024;
+              addLog(`📥 录制数据块:${(e.data.size / 1024).toFixed(1)} KB (内存累计:${totalMemMB.toFixed(1)} MB)`, 'info');
+            }
+          };
+          mediaRecorder.onstop = async () => {
+            addLog(`🛑 录制停止，数据块数量:${recordedChunks.length}`, 'success');
+            if (animationFrame) cancelAnimationFrame(animationFrame);
+            videoMimeType = mediaRecorder.mimeType || 'video/webm';
+            console.log('🔍 原始视频格式:', videoMimeType);
+            const rawBlob = new Blob(recordedChunks, { type: videoMimeType });
+            console.log('🔍 原始视频大小:', (rawBlob.size / 1024 / 1024).toFixed(2), 'MB');
+            if (rawBlob.size <= 0) {
+              addLog('❌ 视频 Blob 为空!', 'error');
+              return;
+            }
+            let finalBlob = rawBlob;
+            try {
+              if (videoMimeType.includes('mp4') && typeof MP4Box !== 'undefined') {
+                addLog('⏳ 正在优化 MP4 索引，移到文件开头...', 'info');
+                const arrayBuffer = await rawBlob.arrayBuffer();
+                const mp4File = MP4Box.createFile();
+                let moovMovedBuffer = null;
+                let isReady = false;
+                mp4File.onReady = (info) => {
+                  console.log('🔍 MP4 解析成功:', info);
+                  isReady = true;
+                };
+                mp4File.onSegment = (id, user, buffer, sampleNum, isLast) => {
+                  console.log('📦 MP4 Segment:', id, sampleNum, isLast);
+                  moovMovedBuffer = buffer;
+                };
+                mp4File.appendBuffer(arrayBuffer);
+                mp4File.flush();
+                await new Promise((resolve, reject) => {
+                  const check = setInterval(() => {
+                    if (moovMovedBuffer) {
+                      clearInterval(check);
+                      resolve();
+                    }
+                  }, 50);
+                  setTimeout(() => {
+                    clearInterval(check);
+                    if (isReady) {
+                      console.log('i️ MP4 已解析，使用原始数据 (已有时序元数据)');
+                      resolve();
+                    } else {
+                      reject(new Error('MP4 优化超时'));
+                    }
+                  }, 5000);
+                });
+                if (moovMovedBuffer) {
+                  finalBlob = new Blob([moovMovedBuffer], { type: 'video/mp4' });
+                  addLog('✅ MP4 索引优化完成，moov 已移到文件开头，支持进度条拖拽', 'success');
+                } else {
+                  addLog('i️ MP4 已解析，使用原始数据 (已有时序元数据)', 'info');
+                }
+              }
+            } catch (e) {
+              addLog(`⚠️ MP4 优化失败，使用原始视频:${e.message}`, 'warn');
+              finalBlob = rawBlob;
+            }
+            videoBlob.value = finalBlob;
+            const fileSize = (videoBlob.value.size / 1024 / 1024).toFixed(2);
+            addLog(`💾 最终视频生成成功:${fileSize} MB`, 'success');
+            const videoUrl = URL.createObjectURL(videoBlob.value);
+            previewVideo.value.src = videoUrl;
+          };
+          recordingStartTime = Date.now();
+          mediaRecorder.start(100);
+          addLog('🔴 MediaRecorder 已启动 (25fps 视频 + 音频)', 'success');
+        }
         function startRecording() {
           if (isRecording.value) {
             addLog('已经在录制中', 'warn');
             return;
           }
-          // 长视频内存监控
           if (performance && performance.memory) {
             const memoryCheckTimer = setInterval(() => {
               if (!isRecording.value) {
@@ -1818,13 +1860,12 @@
               const usedMB = (performance.memory.usedJSHeapSize / 1024 / 1024).toFixed(0);
               const limitMB = (performance.memory.jsHeapSizeLimit / 1024 / 1024).toFixed(0);
               if (usedMB > 2000) {
-                addLog(`🔴 内存严重不足:${usedMB}MB / ${limitMB}MB,建议立即停止录制并分段`, 'error');
+                addLog(`🔴 内存严重不足:${usedMB}MB / ${limitMB}MB，建议立即停止录制并分段`, 'error');
               } else if (usedMB > 1500) {
                 addLog(`🟠 内存使用过高:${usedMB}MB / ${limitMB}MB`, 'warn');
               }
             }, 5000);
           }
-
           addLog('🎬 开始初始化录制...', 'info');
           recordedChunks = [];
           isRecording.value = true;
@@ -1833,19 +1874,15 @@
           recordTimer = setInterval(() => {
             recordDuration.value = Math.floor((Date.now() - recordStartTime) / 1000);
           }, 1000);
-
-          // 启动画面合成
           addLog('🎨 启动 Canvas 合成循环', 'info');
           compositeFrame();
-
-          // 延迟启动录制
           setTimeout(() => {
             setupMediaRecorderNow(() => {
-              addLog('✅ 录制器就绪,可以开始播报', 'success');
+              addLog('✅ 录制器就绪，可以开始播报', 'success');
             });
           }, 200);
         }
-
+        // [修复] 修正函数闭合，拆分嵌套逻辑
         function setupMediaRecorderNow(onRecorderReady) {
           addLog('📹 启动 MediaRecorder(字幕 + 视频 + 音频三合一版)...', 'info');
           const canvas = compositeCanvas.value;
@@ -1853,20 +1890,13 @@
             addLog('❌ Canvas 不存在', 'error');
             return;
           }
-
-          // 获取Canvas视频流
           const canvasStream = canvas.captureStream(25);
           addLog(`🎬 Canvas 视频流已捕获:${canvasStream.getVideoTracks().length} 个视频轨`, 'success');
-
-          // 启动录制核心函数
+          
           const startRecordingWhenReady = () => {
             let audioStream = null;
-            // 优先抓取 canvas
-            const avatarSource = document.querySelector('#digital-human-container canvas') || 
-                                 document.querySelector('#digital-human-container video');
+            const videoEl = document.querySelector('#digital-human-container video');
             const allAudios = document.querySelectorAll('audio');
-
-            // 优先从video元素获取音频
             if (videoEl && videoEl.readyState >= 3 && !videoEl.muted) {
               try {
                 const tempStream = videoEl.captureStream ? videoEl.captureStream() : (videoEl.mozCaptureStream ? videoEl.mozCaptureStream() : null);
@@ -1878,8 +1908,6 @@
                 addLog(`⚠️ 从 video 获取音频失败:${e.message}`, 'warn');
               }
             }
-
-            // 兜底从audio元素获取音频
             if (!audioStream || audioStream.getAudioTracks().length === 0) {
               for (let i = 0; i < allAudios.length; i++) {
                 const a = allAudios[i];
@@ -1895,118 +1923,41 @@
                 }
               }
             }
-
-            // 音频就绪则开始录制,否则重试
             if (audioStream && audioStream.getAudioTracks().length > 0) {
-              createRecorderAndStart(audioStream);
+              createRecorderAndStart(audioStream, canvasStream);
+              if (onRecorderReady) onRecorderReady();
             } else {
               addLog('⏳ 等待音频轨道就绪...', 'info');
               setTimeout(startRecordingWhenReady, 200);
             }
           };
-
-          // 创建录制器并启动
-          const createRecorderAndStart = (audioStream) => {
-            // 合并视频轨+音频轨
-            const combinedStream = new MediaStream([
-              ...canvasStream.getVideoTracks(),
-              ...audioStream.getAudioTracks()
-            ]);
-            const videoTracks = combinedStream.getVideoTracks();
-            const audioTracks = combinedStream.getAudioTracks();
-            addLog(`🎞️ 最终流状态:视频轨 ${videoTracks.length} 个,音频轨 ${audioTracks.length} 个`, 'success');
-
-            if (videoTracks.length === 0) {
-              addLog('❌ 没有视频轨道!', 'error');
-              return;
-            }
-            if (audioTracks.length === 0) {
-              addLog('⚠️ 没有音频轨道,将录制无声视频', 'warn');
-            }
-
-            // 选择编码格式
-            let options = null;
-            const h264Type = 'video/webm;codecs=h264,opus';
-            if (MediaRecorder.isTypeSupported(h264Type)) {
-              options = {
-                mimeType: h264Type,
-                videoBitsPerSecond: 1000000,
-                audioBitsPerSecond: 128000
-              };
-              addLog('✅ 使用 H.264 编码 (最佳兼容性)', 'success');
-            } else {
-              options = {
-                mimeType: 'video/webm;codecs=vp8,opus',
-                videoBitsPerSecond: 800000,
-                audioBitsPerSecond: 64000
-              };
-              addLog('⚠️ 浏览器不支持 H.264,使用 VP8 编码', 'warn');
-            }
-            addLog(`📦 使用编码格式:${options.mimeType}`, 'info');
-
-            mediaRecorder = new MediaRecorder(combinedStream, options);
-            mediaRecorder.ondataavailable = (e) => {
-              if (e.data.size > 0) {
-                recordedChunks.push(e.data);
-                if (logs.value.length > 200) {
-                  logs.value = logs.value.slice(-50);
-                }
-                const totalMemMB = recordedChunks.reduce((sum, chunk) => sum + chunk.size, 0) / 1024 / 1024;
-                addLog(`📥 录制数据块:${(e.data.size / 1024).toFixed(1)} KB (内存累计:${totalMemMB.toFixed(1)} MB)`, 'info');
-              }
-            };
-
-            mediaRecorder.onstop = () => {
-              addLog(`🛑 录制停止,数据块数量:${recordedChunks.length}`, 'success');
-              if (animationFrame) {
-                cancelAnimationFrame(animationFrame);
-                addLog('⏹️ Canvas 合成循环已停止', 'info');
-              }
-              videoBlob.value = new Blob(recordedChunks, { type: mediaRecorder.mimeType });
-              if (videoBlob.value.size > 0) {
-                const fileSize = (videoBlob.value.size / 1024 / 1024).toFixed(2);
-                addLog(`💾 视频生成成功:${fileSize} MB`, 'success');
-                const videoUrl = URL.createObjectURL(videoBlob.value);
-                previewVideo.value.src = videoUrl;
-                previewVideo.value.onloadeddata = () => {
-                  addLog(`✅ 视频已加载:时长 ${formatDuration(previewVideo.value.duration)},尺寸 ${previewVideo.value.videoWidth}x${previewVideo.value.videoHeight}`, 'success');
-                  if (previewVideo.value.mozHasAudio || previewVideo.value.webkitAudioDecodedByteCount > 0) {
-                    addLog('🔊 视频包含音频轨道', 'success');
-                  } else {
-                    addLog('⚠️ 视频可能没有音频', 'warn');
-                  }
-                };
-                previewVideo.value.onerror = (e) => {
-                  addLog(`❌ 视频加载失败:${JSON.stringify(e)}`, 'error');
-                };
-              } else {
-                addLog('❌ 视频 Blob 为空!', 'error');
-              }
-            };
-
-            mediaRecorder.start(100);
-            addLog('🔴 MediaRecorder 已启动(25fps 视频 + 音频)', 'success');
-            if (onRecorderReady) onRecorderReady();
-          };
-
           startRecordingWhenReady();
         }
-
-        function stopRecording() {
+        async function stopRecording() {
           if (!isRecording.value) {
             addLog('没有在录制', 'warn');
             return;
           }
           addLog('准备停止录制...', 'info');
-
           if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.requestData();
             mediaRecorder.stop();
             addLog('🛑 MediaRecorder 已停止', 'success');
+            await new Promise(resolve => {
+              const check = setInterval(() => {
+                if (mediaRecorder && mediaRecorder.state === 'inactive') {
+                  clearInterval(check);
+                  resolve();
+                }
+              }, 50);
+              setTimeout(() => {
+                clearInterval(check);
+                resolve();
+              }, 3000);
+            });
           } else if (!mediaRecorder) {
-            addLog('⚠️ mediaRecorder 不存在,直接清理状态', 'warn');
+            addLog('⚠️ mediaRecorder 不存在，直接清理状态', 'warn');
           }
-
-          isRecording.value = false;
           if (recordTimer) {
             clearInterval(recordTimer);
             recordTimer = null;
@@ -2021,33 +1972,42 @@
             addLog('⏹️ 强制绘制定时器已清理', 'info');
           }
           addLog('⏹️ Canvas 合成已停止', 'info');
+          isRecording.value = false;
         }
-
         // ==================== 播报生命周期函数 ====================
-        function onBroadcastEnded() {
+        async function onBroadcastEnded() {
           if (isStopping) return;
           if (!isBroadcasting.value && !isRecording.value) return;
-          addLog('🏁 检测到播报完全结束,停止录制', 'success');
-          stopRecording();
-          isBroadcasting.value = false;
-          isBroadcastingSentence = false;
-          currentSentence.value = 0;
-          totalSentences.value = 0;
-          progressPercent.value = 0;
-          waitingForBroadcastEnd = false;
-          sentenceIndex = 0;
-          currentSentences.value = [];  // ✅ 添加 .value
-          currentSubtitle = '';
-
+          addLog('🏁 检测到播报完全结束，正在停止录制...', 'success');
+          if (isRecording.value) {
+            await stopRecording();
+          }
           setTimeout(() => {
-            if (videoBlob.value && videoBlob.value.size > 0) {
-              addLog(`🎉 播报流程全部完成!视频已准备好下载`, 'success');
-            } else {
-              addLog('⚠️ 播报完成,但视频可能未生成', 'warn');
+            isBroadcasting.value = false;
+            isBroadcastingSentence = false;
+            currentSentence.value = 0;
+            totalSentences.value = 0;
+            progressPercent.value = 0;
+            waitingForBroadcastEnd = false;
+            sentenceIndex = 0;
+            currentSentences.value = [];
+            currentSubtitle = '';
+            if (sdkInstance) {
+              try {
+                sdkInstance.stop();
+                sdkInstance.destroy();
+                sdkInstance = null;
+              } catch (e) {}
             }
-          }, 500);
+            setTimeout(() => {
+              if (videoBlob.value && videoBlob.value.size > 0) {
+                addLog(`🎉 播报流程全部完成！视频已准备好下载`, 'success');
+              } else {
+                addLog('⚠️ 播报完成，但视频可能未生成', 'warn');
+              }
+            }, 500);
+          }, 1000);
         }
-
         function onBroadcastFailed(reason) {
           if (isStopping) return;
           addLog(`❌ 播报失败:${reason}`, 'error');
@@ -2060,29 +2020,28 @@
           currentSentence.value = 0;
           totalSentences.value = 0;
           progressPercent.value = 0;
-
           setTimeout(() => {
             if (videoBlob.value && videoBlob.value.size > 0) {
-              addLog(`✅ 已录制的视频已保存,可以下载`, 'success');
+              addLog(`✅ 已录制的视频已保存，可以下载`, 'success');
             } else {
               addLog('⚠️ 视频可能未生成', 'warn');
             }
           }, 500);
         }
-
         async function speakSingleSentence(text) {
           if (!sdkInstance) {
             throw new Error('SDK 未初始化');
           }
-
+          if (isStopping) {
+            addLog('⚠️ 正在停止中，跳过句子播报', 'warn');
+            return;
+          }
           while (isBroadcastingSentence) {
             await new Promise(resolve => setTimeout(resolve, 200));
           }
-
           isBroadcastingSentence = true;
           currentSubtitle = text.trim();
           addLog(`🎤 正在播报句子:${text}`, 'info');
-
           try {
             const requestId = await sdkInstance.writeText(text, {
               nlp: false,
@@ -2094,8 +2053,7 @@
                 pitch: 50
               }
             });
-            addLog(`✅ writeText 成功,requestId: ${requestId}`, 'success');
-
+            addLog(`✅ writeText 成功，requestId: ${requestId}`, 'success');
             while (isBroadcastingSentence) {
               await new Promise(resolve => setTimeout(resolve, 100));
             }
@@ -2104,12 +2062,11 @@
             isBroadcastingSentence = false;
             addLog(`❌ writeText 失败:${JSON.stringify(err)}`, 'error');
             if (err.code === 'InvalidConnect' || err.code === '600003') {
-              onBroadcastFailed('连接异常,已保存已录制的视频');
+              onBroadcastFailed('连接异常，已保存已录制的视频');
             }
             throw err;
           }
         }
-
         async function waitForVideoElement() {
           return new Promise((resolve) => {
             const maxWaitTime = 15000;
@@ -2120,9 +2077,7 @@
                 resolve();
                 return;
               }
-              // 优先抓取 canvas
-            const avatarSource = document.querySelector('#digital-human-container canvas') || 
-                                 document.querySelector('#digital-human-container video');
+              const videoEl = document.querySelector('#digital-human-container video');
               if (videoEl && videoEl.readyState >= 2 && videoEl.videoWidth > 0) {
                 addLog(`Video 元素就绪 (${videoEl.videoWidth}x${videoEl.videoHeight})`, 'success');
                 resolve();
@@ -2133,51 +2088,43 @@
             check();
           });
         }
-
         async function initSDK(authData) {
           if (sdkInstance) {
             sdkInstance.stop();
             sdkInstance.destroy();
             sdkInstance = null;
           }
-
           sdkInstance = new window.AVATAR_SDK.AvatarSDK({
             logLevel: 1,
             useInlinePlayer: true
           });
-
-          // SDK事件监听
           sdkInstance.on('connected', () => {
             addLog('数字人连接成功', 'success');
             isConnected.value = true;
           });
-
           sdkInstance.on('error', (err) => {
             if (err.code === 20017 || (err.message && err.message.includes('illegal text'))) {
-              addLog('❌ 文本包含敏感词汇,请修改后重试', 'error');
-              addLog('提示:避免政治、色情、暴力等敏感内容', 'warn');
+              addLog('❌ 文本包含敏感词汇，请修改后重试', 'error');
+              addLog('提示：避免政治、色情、暴力等敏感内容', 'warn');
             } else if (err.code === 10110 && err.message && err.message.includes('word contain sensitive')) {
-              addLog('❌ 文本包含敏感词汇,请修改后重试', 'error');
+              addLog('❌ 文本包含敏感词汇，请修改后重试', 'error');
             } else {
               addLog('数字人连接失败:' + JSON.stringify(err), 'error');
             }
             stopBroadcast();
           });
-
           sdkInstance.on('disconnected', () => {
             addLog('数字人连接断开', 'warn');
             isConnected.value = false;
           });
-
           sdkInstance.on('render-start', () => {
             addLog('渲染开始', 'success');
           });
-
           sdkInstance.on('frame_start', (data) => {
             lastFrameStartTime = Date.now();
-            if (sentenceIndex < currentSentences.value.length) {  // ✅ 添加 .value
-              currentSubtitle = currentSentences.value[sentenceIndex];  // ✅ 添加 .value
-              addLog(`📝 字幕更新 [句${sentenceIndex + 1}/${currentSentences.value.length}]: ${currentSubtitle.substring(0, 30)}...`, 'info');  // ✅ 添加 .value
+            if (sentenceIndex < currentSentences.value.length) {
+              currentSubtitle = currentSentences.value[sentenceIndex];
+              addLog(`📝 字幕更新 [句${sentenceIndex + 1}/${currentSentences.value.length}]: ${currentSubtitle.substring(0, 30)}...`, 'info');
               sentenceIndex++;
             }
             if (waitingForBroadcastEnd && broadcastEndTimer) {
@@ -2186,36 +2133,30 @@
               waitingForBroadcastEnd = false;
             }
           });
-
           sdkInstance.on('frame_stop', (data) => {
             if (data?.vmr_status === 2) {
               addLog('🏁 单句播报完成', 'success');
               isBroadcastingSentence = false;
-              
-              // 所有句子播报完成则结束录制
-              if (sentenceIndex >= currentSentences.value.length && isBroadcasting.value) {  // ✅ 添加 .value
-                addLog(`✅ 所有句子已播报完成 (${sentenceIndex}/${currentSentences.value.length}),准备结束录制`, 'success');  // ✅ 添加 .value
+              if (sentenceIndex >= currentSentences.value.length && isBroadcasting.value) {
+                addLog(`✅ 所有句子已播报完成 (${sentenceIndex}/${currentSentences.value.length}),准备结束录制`, 'success');
                 setTimeout(() => {
                   onBroadcastEnded();
                 }, 500);
               }
             }
           });
-
-          // SDK配置
           sdkInstance.setApiInfo({
             appId: authData.appId,
             sceneId: authData.sceneId,
             signedUrl: authData.signedUrl
           });
-
           const isSuperRealistic = config.roleId.startsWith('cnr');
           sdkInstance.setGlobalParams({
             stream: {
               protocol: 'xrtc',
               fps: 25,
               bitrate: 1000000,
-              alpha: 1  // ✅ 修复:开启透明通道,让数字人背景透明,露出底层 PPT
+              alpha: 1
             },
             avatar: {
               avatar_id: authData.avatarId || config.roleId,
@@ -2237,17 +2178,14 @@
               add_nonsemantic: 1
             }
           });
-
-          // 启动SDK
           await sdkInstance.start({
             wrapper: document.getElementById('digital-human-container')
           });
           await waitForVideoElement();
-
-          // 配置视频元素音频
-          // 优先抓取 canvas
-            const avatarSource = document.querySelector('#digital-human-container canvas') || 
-                                 document.querySelector('#digital-human-container video');
+          avatarSourceDom = document.querySelector('#digital-human-container canvas') ||
+                            document.querySelector('#digital-human-container video');
+          addLog(`✅ 数字人 DOM 已缓存:${avatarSourceDom?.tagName || '未找到'}`, 'success');
+          const videoEl = document.querySelector('#digital-human-container video');
           if (videoEl) {
             videoEl.muted = false;
             videoEl.volume = 1.0;
@@ -2255,7 +2193,6 @@
             videoEl.playsInline = true;
             videoEl.removeAttribute('muted');
             addLog('🔊 Video 元素已配置:muted=false, volume=1.0, autoplay=true', 'success');
-
             videoEl.onplay = () => addLog('▶️ Video 开始播放', 'success');
             videoEl.onpause = () => addLog('⏸️ Video 暂停', 'warn');
             videoEl.onvolumechange = () => addLog(`🔊 Volume 变化:${videoEl.volume}, muted=${videoEl.muted}`, 'info');
@@ -2264,22 +2201,18 @@
           }
           addLog('SDK 启动成功', 'success');
         }
-
         // ==================== 核心播报控制函数 ====================
         async function startBroadcast() {
           if (!config.text) {
             addLog('请输入播报文本', 'warn');
             return;
           }
-
-          // 敏感词检测提醒
           const sensitiveKeywords = ['政治', '色情', '暴力', '赌博', '毒品'];
           const foundKeywords = sensitiveKeywords.filter(keyword => config.text.includes(keyword));
           if (foundKeywords.length > 0) {
             addLog(`⚠️ 文本可能包含敏感内容:${foundKeywords.join(', ')}`, 'warn');
-            addLog('如播报失败,请修改文本后重试', 'info');
+            addLog('如播报失败，请修改文本后重试', 'info');
           }
-
           if (isBroadcasting.value) return;
           isBroadcasting.value = true;
           currentSentence.value = 0;
@@ -2289,10 +2222,9 @@
           currentSubtitle = '';
           waitingForBroadcastEnd = false;
           broadcastEndTimer = null;
+          isStopping = false;
           addLog('🎬 开始播报流程', 'success');
-
           try {
-            // 获取鉴权信息
             addLog('正在获取鉴权信息...', 'info');
             const authResponse = await fetch('https://avatar-roadcast-shakmjgzdi.cn-hangzhou.fcapp.run', {
               method: 'POST',
@@ -2311,11 +2243,7 @@
               throw new Error(authData.msg || '鉴权失败');
             }
             addLog('鉴权信息获取成功', 'success');
-
-            // 初始化SDK
             await initSDK(authData.data);
-
-            // 拆分播报句子
             const fullText = config.text;
             const sentences = fullText
               .replace(/([\u3002\uFF01\uFF1F\u002E\u0021\u003F]+)/g, '$1|SPLIT|')
@@ -2323,59 +2251,66 @@
               .map(s => s.trim())
               .filter(s => s.length > 0);
             totalSentences.value = sentences.length;
-            addLog(`📝 逐句拆分完成,共 ${sentences.length} 句`, 'success');
+            addLog(`📝 逐句拆分完成，共 ${sentences.length} 句`, 'success');
             sentences.forEach((s, i) => {
               addLog(`  句${i + 1}: ${s.substring(0, 50)}${s.length > 50 ? '...' : ''}`, 'info');
             });
-
-            // 启动录制
             startRecording();
-
-            // 设置当前句子列表
-            currentSentences.value = sentences;  // ✅ 添加 .value
+            currentSentences.value = sentences;
             sentenceIndex = 0;
             currentSubtitle = '';
-
-            // 逐句播报
             for (let i = 0; i < sentences.length; i++) {
               if (isStopping) {
-                addLog('⚠️ 用户停止播报,中断循环', 'warn');
+                addLog('⚠️ 用户停止播报，中断循环', 'warn');
                 break;
               }
               currentSentence.value = i + 1;
               progressPercent.value = Math.round(((i + 1) / sentences.length) * 100);
+              if (pptConfig.imported && pageTurningConfirmed.value) {
+                const targetNode = pageTurningNodes.value.find(
+                  node => i >= node.start_sentence_index && i <= node.end_sentence_index
+                );
+                if (targetNode && currentPptPage.value !== targetNode.page_num) {
+                  currentPptPage.value = targetNode.page_num;
+                  showPageTip.value = true;
+                  setTimeout(() => { showPageTip.value = false; }, 2000);
+                  addLog(`📄 自动导播：精准翻页至第 ${targetNode.page_num} 页`, 'success');
+                }
+              }
               await speakSingleSentence(sentences[i]);
             }
-            addLog('📡 所有句子已发送,等待播报结束', 'info');
+            addLog('📡 所有句子已发送，等待播报结束', 'info');
           } catch (e) {
             addLog('播报失败:' + e.message, 'error');
             onBroadcastFailed(e.message);
           }
         }
-
         async function stopBroadcast() {
           if (isStopping) {
-            addLog('⚠️ 正在停止中,请勿重复操作', 'warn');
+            addLog('⚠️ 正在停止中，请勿重复操作', 'warn');
             return;
           }
           isStopping = true;
           addLog('用户手动停止播报', 'warn');
-
+          if (isRecording.value) {
+            addLog('⏳ 正在停止录制，写入视频元数据...', 'info');
+            await stopRecording();
+            addLog('✅ 录制已停止，元数据写入完成', 'success');
+          }
           if (broadcastEndTimer) {
             clearTimeout(broadcastEndTimer);
             broadcastEndTimer = null;
           }
-
           if (sdkInstance) {
             try {
               sdkInstance.interrupt();
               sdkInstance.stop();
+              sdkInstance.destroy();
+              sdkInstance = null;
             } catch (e) {
               addLog('SDK 停止异常:' + e.message, 'warn');
             }
           }
-
-          stopRecording();
           isBroadcasting.value = false;
           isConnected.value = false;
           isBroadcastingSentence = false;
@@ -2383,12 +2318,11 @@
           totalSentences.value = 0;
           progressPercent.value = 0;
           currentSubtitle = '';
-
+          avatarSourceDom = null;
           setTimeout(() => {
             isStopping = false;
           }, 1000);
         }
-
         // ==================== 全屏切换函数 ====================
         function toggleFullscreen() {
           if (!videoContainer.value) return;
@@ -2401,30 +2335,31 @@
             addLog('📺 退出全屏模式', 'success');
           }
         }
-
-        // ==================== Vue生命周期 ====================
-        // 实例挂载前强制关闭弹窗,杜绝页面加载弹出
+        // ==================== 计算属性 ====================
+        const hasCachedVideo = computed(() => cachedVideos.value.length > 0);
+        const hasVideoBlob = computed(() => videoBlob.value && videoBlob.value.size > 0);
+        const currentNode = computed(() => {
+          return pageTurningNodes.value.find(node => node.page_num === currentEditPage.value) || {
+            page_num: currentEditPage.value,
+            start_sentence_index: 0,
+            end_sentence_index: 0
+          };
+        })
+        // ==================== Vue 生命周期 ====================
         onBeforeMount(() => {
           saveProjectModalOpen.value = false;
         });
-
         onMounted(async () => {
-          // 三重兜底关闭弹窗,杜绝任何闪现
           saveProjectModalOpen.value = false;
           await nextTick(() => {
             saveProjectModalOpen.value = false;
-            // 再次确认关闭
             setTimeout(() => {
               saveProjectModalOpen.value = false;
-              // Vue 完全挂载后才允许弹窗显示
               isVueMounted.value = true;
             }, 0);
           });
-
           await loadCachedVideos();
           addLog('页面加载完成', 'success');
-
-          // 飞书授权回调处理
           const urlParams = new URLSearchParams(window.location.search);
           const code = urlParams.get('code');
           const state = urlParams.get('state');
@@ -2432,18 +2367,17 @@
             window.history.replaceState({}, document.title, window.location.pathname);
             await importFeishuPpt(code);
           }
+          await loadCloudProjectList();
         });
-
         onUnmounted(() => {
           stopBroadcast();
         });
-
         // ==================== 导出响应式数据和方法 ====================
         return {
           config,
           roles,
           voices,
-          currentSentences,  // ✅ 新增：暴露给模板
+          currentSentences,
           isBroadcasting,
           isConnected,
           isRecording,
@@ -2456,6 +2390,7 @@
           compositeCanvas,
           previewVideo,
           videoContainer,
+          pptFileInput,
           isFullscreen,
           hasCachedVideo,
           hasVideoBlob,
@@ -2469,7 +2404,7 @@
           clearCache,
           formatDuration,
           toggleFullscreen,
-          // PPT宣讲功能
+          // PPT 宣讲功能
           pptCollapseOpen,
           pptConfig,
           pptImportStatus,
@@ -2481,26 +2416,36 @@
           currentPptPage,
           currentEditPage,
           currentNode,
-          // 💡 修复:必须导出这两个变量,上传按钮才能显示!
           localPptFile,
           uploadingLocalPpt,
+          step,
+          usePPT,
+          toastList,
+          switchMode,
+          showToast,
+          closeToast,
           cloudProjectCollapseOpen,
           cloudProjectList,
           saveProjectModalOpen,
           saveProjectForm,
           isVueMounted,
-          // PPT功能函数
+          // [修复] 补充模板依赖的响应式变量
+          showPptPreview,
+          currentPreviewPptImg,
+          // PPT 功能函数
           checkPptUrlFormat,
           startFeishuAuth,
           generateTurningNodes,
           isSentenceBound,
+          // [修复] 补充模板依赖的函数
+          openPptPreview,
+          isSentenceHighlight,
           dragSentence,
           dropSentence,
           adjustPageTurn,
           resetTurningNodes,
           cancelTurningEdit,
           confirmTurningRules,
-          previewTurningNodes,
           manualTurnPage,
           onModeChange,
           reImportPpt,
@@ -2519,4 +2464,4 @@
   </script>
 </body>
 </html>
-
+<!-- v2-restructure-1776055462-fixed -->
