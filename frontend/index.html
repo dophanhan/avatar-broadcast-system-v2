@@ -682,25 +682,24 @@
               请先完成 PPT 导入并确认翻页规则，以激活 PPT 背景
             </div>
           </div>
-        </div>
-        
-        <!-- 预览视频（在预览区内） -->
-        <video ref="previewVideo" style="width:100%;margin-top:20px;border-radius:10px;" controls></video>
-        
-        <!-- 缓存列表 -->
-        <div v-if="cachedVideos.length > 0" class="cache-info">
-            <h3>📼 视频缓存 ({{ cachedVideos.length }}个)</h3>
-            <div v-for="(cache, index) in cachedVideos" :key="index" class="cache-item">
-              <div>
-                <strong>{{ cache.text.substring(0, 20) }}{{ cache.text.length > 20 ? '...' : '' }}</strong>
-                <div style="font-size:12px;color:#666;">{{ new Date(cache.timestamp).toLocaleString() }} | {{ formatDuration(cache.duration) }}</div>
-              </div>
-              <div class="cache-item-actions">
-                <button class="btn btn-small btn-primary" @click="playCache(index)">▶️ 播放</button>
-                <button class="btn btn-small btn-danger" @click="deleteCache(index)">🗑️ 删除</button>
+          
+          <!-- 预览视频（在 preview-panel 内） -->
+          <video ref="previewVideo" style="width:100%;margin-top:20px;border-radius:10px;" controls></video>
+          
+          <!-- 缓存列表 -->
+          <div v-if="cachedVideos.length > 0" class="cache-info">
+              <h3>📼 视频缓存 ({{ cachedVideos.length }}个)</h3>
+              <div v-for="(cache, index) in cachedVideos" :key="index" class="cache-item">
+                <div>
+                  <strong>{{ cache.text.substring(0, 20) }}{{ cache.text.length > 20 ? '...' : '' }}</strong>
+                  <div style="font-size:12px;color:#666;">{{ new Date(cache.timestamp).toLocaleString() }} | {{ formatDuration(cache.duration) }}</div>
+                </div>
+                <div class="cache-item-actions">
+                  <button class="btn btn-small btn-primary" @click="playCache(index)">▶️ 播放</button>
+                  <button class="btn btn-small btn-danger" @click="deleteCache(index)">🗑️ 删除</button>
+                </div>
               </div>
             </div>
-          </div>
         </div>
       </div>
       <!-- 3. 步骤导航条 -->
