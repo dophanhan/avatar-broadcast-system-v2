@@ -31,15 +31,19 @@
       box-shadow: 0 20px 60px rgba(0,0,0,0.3);
       overflow: hidden;
     }
-    /* 标题极致收窄 */
+    /* 标题栏：加宽上下间距，宽度对齐容器 */
     .header {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
-      padding: 12px 20px; /* 更窄的内边距 */
+      padding: 20px 30px; /* 上下留足间距，不挨紧 */
       text-align: center;
+      border-radius: 0 !important; /* 无圆角 */
+      margin: 0 0 20px 0; /* 底部留白，不贴预览区 */
+      width: 100%;
+      box-sizing: border-box;
     }
     .header h1 { 
-      font-size: 1.6em; /* 更小更紧凑 */
+      font-size: 1.6em;
       margin: 0;
     }
     .header p {
@@ -49,6 +53,10 @@
     
     /* ========== 顶部预览区样式（修改为左右分栏） ========== */
     .preview-section {
+      border-radius: 0 !important; /* 无圆角 */
+      margin: 0 0 20px 0; /* 底部留白，不贴播报模式 */
+      width: 100%;
+      box-sizing: border-box;
       padding: 20px 30px;
       background: #f8f9fa;
     }
@@ -210,15 +218,30 @@
     
     /* ========== 全宽配置区样式 ========== */
     .config-section {
-      padding: 20px 30px 30px;
+      padding: 20px 30px;
       background: #f8f9fa;
+      border-radius: 0 !important; /* 无圆角 */
+      margin: 0 0 20px 0; /* 底部留白，不贴步骤条 */
+      width: 100%;
+      box-sizing: border-box;
     }
+    /* 统一所有面板：无圆角、宽度 100%、内边距一致 */
     .panel {
+      border-radius: 0 !important; /* 全去圆角 */
+      width: 100%; /* 宽度统一 */
+      box-sizing: border-box;
       background: #ffffff;
-      border-radius: 15px;
       padding: 25px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.1);
       margin-bottom: 20px;
+    }
+    /* 预览面板专属：去掉圆角、上下间距拉开 */
+    .preview-panel {
+      margin: 0;
+      display: flex;
+      gap: 25px;
+      align-items: flex-start;
+      border-radius: 0 !important;
     }
     .panel h2 {
       color: #667eea;
@@ -644,7 +667,7 @@
         </div>
       </div>
       <!-- 👇 播报模式选择（移到这里，步骤条上方） -->
-      <div class="config-section" style="padding: 20px 30px 10px;">
+      <div class="config-section" style="padding: 20px 30px; margin-bottom: 20px;">
         <div class="panel config-panel">
           <h2>🎯 播报模式选择</h2>
           <div class="mode-selector">
