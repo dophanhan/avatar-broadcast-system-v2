@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>数字人播报系统 v3.0 - 最终修复版-v2-画中画优化</title>
-  <meta http-equiv=202604112359"Cache-Control" content="no-cache, no-store, must-revalidate">
+  <title>数字人播报系统 V2.0 - P0 阶段</title>
+  <meta http-equiv="20260413093948"Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv=202604112359"Pragma" content="no-cache">
   <meta http-equiv=202604112359"Expires" content="0">
   <script src="https://unpkg.com/vue@3.4.21/dist/vue.global.prod.js"></script>
+  <script src="https://unpkg.com/mp4box@0.5.2/dist/mp4box.all.min.js"></script>
   <script type="module">
     import { PlayerEvents, default as AvatarSDK } from './sdk/avatar-sdk-web/index.js?v=202604112359';
     window.AVATAR_SDK = { AvatarSDK, PlayerEvents };
@@ -503,7 +504,151 @@
     [v-cloak] {
       display: none !important;
     }
-  </style>
+
+/* ========== [P0_NEW] 顶部步骤导航条样式 ========== */
+.process-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 30px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e0e0e0;
+  gap: 10px;
+}
+.process-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  position: relative;
+  color: #999;
+  transition: all 0.3s;
+  cursor: default;
+}
+.process-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  width: calc(100% - 40px);
+  height: 2px;
+  background: #e0e0e0;
+  transform: translateY(-50%);
+}
+.process-step.completed:not(:last-child)::after {
+  background: #667eea;
+}
+.process-step.active {
+  color: #667eea;
+  font-weight: 600;
+}
+.process-step.completed {
+  color: #11998e;
+}
+.step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #e0e0e0;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+.process-step.active .step-num {
+  background: #667eea;
+}
+.process-step.completed .step-num {
+  background: #11998e;
+}
+.step-switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+  margin-left: 8px;
+}
+.step-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.switch-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 20px;
+}
+.switch-slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+input:checked + .switch-slider {
+  background-color: #667eea;
+}
+input:checked + .switch-slider:before {
+  transform: translateX(20px);
+}
+.process-step.hidden {
+  display: none;
+}
+.process-step.disabled {
+  opacity: 0.5;
+}
+
+/* ========== [P0_NEW] 全局 Toast 样式 ========== */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.toast-item {
+  padding: 12px 20px;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  font-size: 14px;
+  min-width: 280px;
+  animation: toastSlideIn 0.3s ease;
+}
+.toast-item.success {
+  border-left: 4px solid #38ef7d;
+  color: #2e7d32;
+}
+.toast-item.error {
+  border-left: 4px solid #eb3349;
+  color: #c62828;
+}
+.toast-item.warn {
+  border-left: 4px solid #ff9800;
+  color: #e65100;
+}
+.toast-item.loading {
+  border-left: 4px solid #667eea;
+  color: #667eea;
+}
+@keyframes toastSlideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+</style>
 </head>
 <body>
   <!-- 讯飞 SDK 渲染容器(移出Vue根节点,避免渲染错乱) -->
@@ -516,8 +661,35 @@
         <h1>🎬 数字人播报系统</h1>
         <p>讯飞 XRtc 数字人 + 自动录制 + 视频缓存</p>
       </div>
-
-      <div class="main-content">
+      <!-- [P0_NEW] 顶部步骤导航条 -->
+      <div class="process-nav">
+        <div class="process-step" :class="{ active: step >= 1, completed: step > 1 }">
+          <span class="step-num">1</span>
+          <span class="step-text">基础配置</span>
+        </div>
+        <div class="process-step" :class="{ active: step >= 2, completed: step > 2, disabled: !usePPT }">
+          <span class="step-num">2</span>
+          <span class="step-text">PPT 导入</span>
+          <label class="step-switch">
+            <input type="checkbox" v-model="usePPT" @change="onUsePPTToggle">
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+        <div class="process-step" :class="{ active: step >= 3, completed: step > 3 }">
+          <span class="step-num">3</span>
+          <span class="step-text">文案输入</span>
+        </div>
+        <div class="process-step" :class="{ active: step >= 4, completed: step > 4, hidden: !usePPT }">
+          <span class="step-num">4</span>
+          <span class="step-text">翻页节点</span>
+        </div>
+        <div class="process-step" :class="{ active: step >= 5, completed: step > 5 }">
+          <span class="step-num">5</span>
+          <span class="step-text">播报导出</span>
+        </div>
+      </div>
+      <!-- [P0_NEW] 步骤导航条结束 -->
+<div class="main-content">
         <!-- 左侧控制面板 -->
         <div class="panel">
           <h2>⚙️ 配置面板</h2>
@@ -585,10 +757,6 @@
                 </div>
                 <div v-else-if="!config.text" class="status-tip warn" style="margin-top: 8px;">
                   ⚠️ 请先填写播报文本,再生成翻页节点
-                </div>
-                <!-- 调试信息 -->
-                <div class="status-tip" style="margin-top: 8px; font-size: 11px; background: #f0f0f0;">
-                  调试:PPT 已导入={{ pptConfig.imported }}, 文本={{ config.text ? '已填写' : '未填写' }}, 页数={{ pptConfig.totalPages }}
                 </div>
               </div>
 
@@ -678,12 +846,9 @@
                 </div>
 
                 <!-- 操作按钮区 -->
-                <div class="adjust-row" style="justify-content: space-between; margin-top: 20px;">
-                  <button class="btn btn-primary" @click="previewTurningNodes">📺 模拟预览</button>
-                  <div>
-                    <button class="btn btn-default" @click="cancelTurningEdit">取消</button>
-                    <button class="btn btn-success" @click="confirmTurningRules">✅ 确认翻页规则</button>
-                  </div>
+                <div class="adjust-row" style="justify-content: flex-end; margin-top: 20px;">
+                  <button class="btn btn-default" @click="cancelTurningEdit">取消</button>
+                  <button class="btn btn-success" @click="confirmTurningRules">✅ 确认翻页规则</button>
                 </div>
               </div>
 
@@ -749,12 +914,12 @@
             >
               🎙️ {{ isBroadcasting ? '播报中...' : '开始播报' }}
             </button>
-            
-            <!-- 新增：未确认规则时的警告提示 -->
+
+            <!-- 新增:未确认规则时的警告提示 -->
             <div v-if="pptConfig.imported && !pageTurningConfirmed" class="status-tip warn" style="margin-top: 8px;">
               请先点击上方的确认翻页规则以激活 PPT 背景
             </div>
-            
+
             <button
               class="btn btn-danger"
               @click="stopBroadcast"
@@ -787,7 +952,7 @@
             </div>
           </div>
 
-          <!-- 云端项目管理面板 -->
+          <!-- [P0_HIDDEN] <!-- 云端项目管理面板 -->
           <div class="ppt-collapse">
             <div class="ppt-collapse-header" @click="cloudProjectCollapseOpen = !cloudProjectCollapseOpen">
               <span>☁️ 我的云端项目</span>
@@ -827,7 +992,7 @@
               </div>
             </div>
           </div>
-          <!-- 云端项目管理面板结束 -->
+          <!-- 云端项目管理面板结束 --> [P0_HIDDEN] -->
 
           <div class="log-container" v-if="logs.length > 0">
             <div v-for="(log, index) in logs.slice(-20)" :key="index"
@@ -926,7 +1091,19 @@
         </div>
       </div>
     </div>
-  </div>
+
+    <!-- [P0_NEW] 全局 Toast 容器 -->
+    <div class="toast-container">
+      <div
+        v-for="(toast, index) in toastList"
+        :key="index"
+        :class="['toast-item', toast.type]"
+      >
+        {{ toast.message }}
+      </div>
+    </div>
+    <!-- [P0_NEW] Toast 容器结束 -->
+</div>
 
   <script>
     // IndexedDB 配置
@@ -1082,7 +1259,8 @@
         let recordTimer = null;
         let animationFrame = null;
         let currentSubtitle = '';
-        let recordStartTime = 0;
+        let recordingStartTime = 0;  // ✅ 修复:全局录制开始时间
+        let avatarSourceDom = null;  // ✅ 修复:缓存数字人渲染 DOM,避免高频查询
         let broadcastEndTimer = null;
         let lastFrameStartTime = 0;
         let waitingForBroadcastEnd = false;
@@ -1138,10 +1316,55 @@
           saveVideo: false
         });
         const cloudProjectList = ref([]);
+        // [P0_NEW] 步骤导航相关
+        const step = ref(1);
+        const usePPT = ref(false);
+
+        // [P0_NEW] Toast 相关
+        const toastList = ref([]);
+
+
+        // 🆔 生成本地用户"云端身份证"(伪装成标准格式)
+        let localOpenId = localStorage.getItem('avatar_open_id');
+        if (!localOpenId || !localOpenId.startsWith('ou_')) {
+          localOpenId = 'ou_local_' + Date.now();
+          localStorage.setItem('avatar_open_id', localOpenId);
+        }
         const feishuUserInfo = reactive({
-          openId: '',
+          openId: localOpenId,
           accessToken: ''
-        });
+        })
+
+        // [P0_NEW] PPT 开关切换逻辑
+        function onUsePPTToggle() {
+          if (usePPT.value) {
+            step.value = 2;
+          } else {
+            // 关闭 PPT 时清空相关数据,不影响核心播报
+            reImportPpt();
+            step.value = 3;
+          }
+        }
+
+        // [P0_NEW] 全局 Toast 方法
+        function showToast(message, type = 'info', duration = 3000) {
+          const toastItem = { message, type };
+          toastList.value.push(toastItem);
+          // 非加载类型自动关闭
+          if (type !== 'loading') {
+            setTimeout(() => {
+              const index = toastList.value.indexOf(toastItem);
+              if (index > -1) toastList.value.splice(index, 1);
+            }, duration);
+          }
+          return toastItem;
+        }
+
+        function closeToast(toastItem) {
+          const index = toastList.value.indexOf(toastItem);
+          if (index > -1) toastList.value.splice(index, 1);
+        }
+;
 
         // ==================== 计算属性 ====================
         const hasCachedVideo = computed(() => cachedVideos.value.length > 0);
@@ -1234,11 +1457,13 @@
           const videoUrl = URL.createObjectURL(videoBlob.value);
           const a = document.createElement('a');
           a.href = videoUrl;
-          a.download = `数字人播报_${new Date().toLocaleString().replace(/[/:\s]/g, '-')}.webm`;
+          // ✅ 自动匹配文件后缀
+          const fileExt = videoBlob.value.type.includes('mp4') ? 'mp4' : 'webm';
+          a.download = `数字人播报_${new Date().toLocaleString().replace(/[/:\s]/g, '-')}.${fileExt}`;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
-          addLog('💡 提示:请使用 PotPlayer、VLC 或 最新版 Chrome/Edge 播放视频', 'info');
+          addLog('💡 提示:所有主流播放器均支持拖拽进度条', 'info');
           addLog('✅ 视频下载已触发', 'success');
         }
 
@@ -1275,11 +1500,25 @@
         async function preloadPptImages() {
           addLog('📄 开始预加载 PPT 图片', 'info');
           await Promise.all(pptConfig.pages.map(page => new Promise(resolve => {
+            // 👈 新增:如果已经有 Image 对象且已加载完成,跳过
+            if (page.page_image && page.page_image.complete) {
+              addLog(`📄 第${page.page_num}页图片已加载,跳过`, 'info');
+              resolve();
+              return;
+            }
+
             const img = new Image();
             img.crossOrigin = 'anonymous';
-            img.onload = () => { page.page_image = img; resolve(); };
-            img.onerror = () => { resolve(); };
-            img.src = page.page_image_url;
+            img.onload = () => {
+              addLog(`✅ 第${page.page_num}页图片加载成功`, 'success');
+              page.page_image = img;
+              resolve();
+            };
+            img.onerror = () => {
+              addLog(`⚠️ 第${page.page_num}页图片加载失败`, 'warn');
+              resolve();
+            };
+            img.src = page.page_image_url;  // 使用保留的 URL
           })));
           addLog('✅ PPT 图片预加载完成', 'success');
         }
@@ -1321,15 +1560,42 @@
         }
 
         function confirmTurningRules() {
-          let idx = 0, valid = true;
-          for (let node of [...pageTurningNodes.value].sort((a,b)=>a.page_num-b.page_num)) {
-            if (node.start_sentence_index !== idx) { valid = false; break; }
-            idx = node.end_sentence_index + 1;
+          const nodes = [...pageTurningNodes.value].sort((a,b)=>a.page_num-b.page_num);
+
+          if (nodes.length === 0) {
+            addLog('❌ 没有翻页节点数据', 'error');
+            return;
           }
-          if (idx !== currentSentences.value.length) valid = false;  // ✅ 添加 .value
-          if (!valid) { addLog('❌ 翻页规则校验失败', 'error'); return; }
+
+          // 🛠️ 开启"自动纠偏"模式:大模型算错的,我们用代码强行拨正!
+          let expectedStart = 0;
+          for (let i = 0; i < nodes.length; i++) {
+            // 1. 强制类型转换(防止 select 绑定的数字变成 string 导致校验失败)
+            nodes[i].start_sentence_index = Number(nodes[i].start_sentence_index);
+            nodes[i].end_sentence_index = Number(nodes[i].end_sentence_index);
+
+            // 2. 强行对齐起点(必须是上一页终点 + 1,绝不允许断层或重叠)
+            nodes[i].start_sentence_index = expectedStart;
+
+            // 3. 兜底防止终点越界或"倒挂"(终点小于起点)
+            if (nodes[i].end_sentence_index < nodes[i].start_sentence_index) {
+              nodes[i].end_sentence_index = nodes[i].start_sentence_index;
+            }
+            if (nodes[i].end_sentence_index >= currentSentences.value.length) {
+              nodes[i].end_sentence_index = currentSentences.value.length - 1;
+            }
+
+            // 更新下一页的期望起点
+            expectedStart = nodes[i].end_sentence_index + 1;
+          }
+
+          // 4. 强行让最后一页的终点,绝对等于最后一句(防止大模型漏掉结尾)
+          nodes[nodes.length - 1].end_sentence_index = currentSentences.value.length - 1;
+
+          // 写回响应式变量
+          pageTurningNodes.value = nodes;
           pageTurningConfirmed.value = true;
-          addLog('✅ 翻页规则已确认生效', 'success');
+          addLog('✅ 翻页规则已自动纠偏并确认生效!', 'success');
         }
 
         async function previewTurningNodes() {
@@ -1414,7 +1680,8 @@
           addLog('📤 正在上传 PPT 文件...', 'info');
           addLog(`📊 上传前:pptConfig.imported=${pptConfig.imported}`, 'info');
 
-          try {
+          try {  const loadingToast = showToast('正在解析 PPT,请稍候(10-30 秒),请勿关闭页面', 'loading');
+
             // 读取文件为 base64
             const fileToBase64 = (file) => {
               return new Promise((resolve, reject) => {
@@ -1457,27 +1724,27 @@
             addLog(`🔍 result.data.total_pages = ${result.data.total_pages}`, 'info');
             addLog(`🔍 result.data.pages 长度 = ${result.data.pages ? result.data.pages.length : 0}`, 'info');
 
-            // 重新赋值整个 pptConfig 对象来触发响应式更新
-            const newPptConfig = {
-              pptUrl: '',
-              urlValid: false,
-              imported: true,  // 关键:设置为 true
-              pptId: result.data.ppt_id || 'local-ppt-' + Date.now(),
-              pptTitle: result.data.ppt_title || localPptFile.value.name,
-              totalPages: result.data.total_pages || (result.data.pages ? result.data.pages.length : 0),
-              pages: result.data.pages || [],
-              isLocal: true
-            };
+            // ✅ 终极修复:既要转换成真正的 Image 对象让 Canvas 能画,又要保留 URL 让模板能显示!
+            pptConfig.pages = result.data.pages.map(p => {
+              const img = new Image();
+              img.crossOrigin = "anonymous";
+              img.src = p.page_image_url || p.page_image_base64;
 
-            addLog(`🔍 新 pptConfig: imported=${newPptConfig.imported}, totalPages=${newPptConfig.totalPages}, pages 长度=${newPptConfig.pages.length}`, 'info');
+              return {
+                page_num: p.page_num,
+                page_image: img,                              // 👈 Canvas 绘制用
+                page_image_url: p.page_image_url || p.page_image_base64,  // 👈 模板显示用
+                page_text: p.page_text,                       // 👈 AI 阅读用
+                page_title: p.page_title
+              };
+            });
 
-            // ✅ 修复:用 Object.assign 替换逐个赋值,触发 Vue 响应式
-            pptConfig.pptId = newPptConfig.pptId;
-            pptConfig.pptTitle = newPptConfig.pptTitle;
-            pptConfig.totalPages = newPptConfig.totalPages;
-            pptConfig.pages = newPptConfig.pages;
+            // 更新其他配置
+            pptConfig.pptId = result.data.ppt_id || 'local-ppt-' + Date.now();
+            pptConfig.pptTitle = result.data.ppt_title || localPptFile.value.name;
+            pptConfig.totalPages = result.data.total_pages || (result.data.pages ? result.data.pages.length : 0);
             pptConfig.imported = true;  // 关键:最后设置
-            pptConfig.isLocal = newPptConfig.isLocal;
+            pptConfig.isLocal = true;
             await nextTick();
 
             addLog(`🔍 赋值后检查:pptConfig.imported=${pptConfig.imported}, pptConfig.totalPages=${pptConfig.totalPages}, pptConfig.pages 长度=${pptConfig.pages.length}`, 'success');
@@ -1502,11 +1769,18 @@
               fileInput.value = '';
             }
 
-          } catch (e) {
+              closeToast(loadingToast);
+    showToast(`PPT 解析失败:${e.message}`, 'error');
+} catch (e) {
             pptImportStatus.value = { type: 'error', text: `上传失败:${e.message}` };
             addLog(`❌ PPT 上传失败:${e.message}`, 'error');
             addLog(`📊 失败时 pptConfig.imported=${pptConfig.imported}`, 'error');
-          } finally {
+
+    closeToast(loadingToast);
+    showToast(`PPT 解析成功,共${pptConfig.totalPages}页`, 'success');
+    // 步骤自动推进
+    step.value = 3;
+} finally {
             uploadingLocalPpt.value = false;
           }
         }
@@ -1535,25 +1809,122 @@
         // ==================== 接口请求函数 ====================
         async function generateTurningNodes(isReset = false) {
           if (!config.text || !pptConfig.imported) {
-            addLog('❌ 请先输入播报文本并导入 PPT', 'error');
+            showToast('请先输入播报文本并导入 PPT', 'error');
             return;
           }
-          const sentences = config.text.replace(/([\u3002\uFF01\uFF1F\u002E\u0021\u003F]+)/g, '$1|SPLIT|').split('|SPLIT|').map(s => s.trim()).filter(s => s.length > 0);
-          currentSentences.value = sentences;  // ✅ 添加 .value
+          // [P0_NEW] 加载 Toast
+          const loadingToast = showToast('正在分析 PPT 与文案,生成智能翻页节点,请稍候', 'loading');
+
+          // 👇 1. 切分句子
+          const sentences = config.text.split(/[.!?!\n]+/).filter(s => s.trim().length > 0);
+          currentSentences.value = sentences;
+          const totalSentences = sentences.length;
+
+          // 2. 提取每一页的 PPT 文本
+          let pptContext = pptConfig.pages.map(p =>
+            `第${p.page_num}页:${p.page_text || '无文字'}`
+          ).join('\n');
+
+          // 👇 3. 构造增强版 Prompt - 明确列出所有句子
+          const sentencesList = sentences.map((s, i) =>
+            `  [${i}]: "${s.substring(0, 50)}${s.length > 50 ? '...' : ''}"`
+          ).join('\n');
+
+          const superPrompt = `
+你是一个专业的视频导播专家。
+
+【重要规则】
+1. 句子索引从 0 开始,对应下方【句子列表】中的编号
+2. 你必须使用【句子列表】中已有的句子,不能自己重新切分
+3. 每一页 PPT 对应一段连续的句子(有起始索引和结束索引)
+4. 所有句子必须被完全分配,不能遗漏也不能重复
+
+【PPT 内容】
+${pptContext}
+
+【句子列表】(共${totalSentences}句)
+${sentencesList}
+
+【任务】
+请根据 PPT 内容,为每一页分配对应的句子索引范围。
+
+【输出格式】
+严格返回 JSON 格式,不要任何其他内容:
+{
+  "page_turning_nodes": [
+    {"page_num": 1, "start_sentence_index": 0, "end_sentence_index": 2},
+    {"page_num": 2, "start_sentence_index": 3, "end_sentence_index": 5}
+  ]
+}
+`;
+
           addLog('🤖 正在生成智能翻页节点...', 'info');
           try {
             const res = await fetch(`${API_BASE_URL}/ai/generate-turning-nodes`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json', 'X-Feishu-OpenId': feishuUserInfo.openId },
-              body: JSON.stringify({ speak_sentences: sentences, ppt_pages: pptConfig.pages })
+              body: JSON.stringify({
+                prompt: superPrompt,
+                sentences: sentences,
+                page_count: pptConfig.totalPages
+              })
             });
             const result = await res.json();
             if (result.code !== 0) throw new Error(result.msg);
-            pageTurningNodes.value = result.data.page_turning_nodes;
-            addLog(`✅ 翻页节点生成成功,共${pageTurningNodes.value.length}个节点`, 'success');
+
+            // 👇 4. 方案三:前端二次校验
+            let nodes = result.data.page_turning_nodes || [];
+            addLog(`📊 收到${nodes.length}个翻页节点`, 'info');
+
+            // 校验并修正节点
+            const validNodes = nodes.map(node => {
+              // 1. 索引不能越界
+              if (node.start_sentence_index < 0 || node.start_sentence_index >= totalSentences) {
+                addLog(`⚠️ 节点${node.page_num}起始索引${node.start_sentence_index}越界,已修正`, 'warn');
+                node.start_sentence_index = Math.max(0, Math.min(node.start_sentence_index, totalSentences - 1));
+              }
+              if (node.end_sentence_index < 0 || node.end_sentence_index >= totalSentences) {
+                addLog(`⚠️ 节点${node.page_num}结束索引${node.end_sentence_index}越界,已修正`, 'warn');
+                node.end_sentence_index = Math.max(0, Math.min(node.end_sentence_index, totalSentences - 1));
+              }
+
+              // 2. 结束索引不能小于起始索引
+              if (node.end_sentence_index < node.start_sentence_index) {
+                addLog(`⚠️ 节点${node.page_num}索引倒挂,已修正`, 'warn');
+                node.end_sentence_index = node.start_sentence_index;
+              }
+
+              return node;
+            });
+
+            // 3. 确保所有句子都被分配
+            const assignedSentences = new Set();
+            validNodes.forEach(node => {
+              for (let i = node.start_sentence_index; i <= node.end_sentence_index; i++) {
+                assignedSentences.add(i);
+              }
+            });
+
+            const missingCount = totalSentences - assignedSentences.size;
+            if (missingCount > 0 && validNodes.length > 0) {
+              addLog(`⚠️ 有${missingCount}个句子未被分配,已自动补充到最后一页`, 'warn');
+              validNodes[validNodes.length - 1].end_sentence_index = totalSentences - 1;
+            }
+
+            pageTurningNodes.value = validNodes;
+            addLog(`✅ 翻页节点生成成功，共${pageTurningNodes.value.length}个节点，覆盖${assignedSentences.size}/${totalSentences}句`, 'success');
+            // [P0_NEW] 成功 Toast
+            closeToast(loadingToast);
+            showToast(`翻页节点生成成功，共${pageTurningNodes.value.length}个节点`, 'success');
+            // 步骤自动推进
+            step.value = 5;
+
             if (!isReset) { currentEditPage.value = 1; }
           } catch (e) {
             addLog(`❌ 翻页节点生成失败:${e.message}`, 'error');
+            // [P0_NEW] 错误 Toast
+            closeToast(loadingToast);
+            showToast(`节点生成失败：${e.message}`, 'error');
           }
         }
 
@@ -1589,18 +1960,31 @@
         }
 
         async function confirmSaveProject() {
-          addLog('☁️ 正在保存项目到云端...', 'info');
+          addLog('☁️ 正在保存项目配置到云端...', 'info');
           try {
+            let videoBase64 = null;
+            if (saveProjectForm.saveVideo && videoBlob.value) {
+              // ⚠️ 防爆盾:如果视频 > 15MB,拦截 Base64 上传,防止服务器崩溃
+              if (videoBlob.value.size > 15 * 1024 * 1024) {
+                addLog('❌ 视频文件过大 (>15MB),受 JSON 接口限制无法连同视频上云。', 'error');
+                addLog('💡 已为您保存全部 PPT 和文案配置。视频请点击左侧【下载视频】存本地!', 'warn');
+              } else {
+                videoBase64 = await blobToBase64(videoBlob.value);
+              }
+            }
+
+            // 完美打包所有资产:PPT、句子、翻页节点、配置全进去!
             const params = {
               project_name: saveProjectForm.name,
               project_desc: saveProjectForm.desc,
               avatar_config: { ...config },
               speak_text: config.text,
-              speak_sentences: currentSentences.value,  // ✅ 添加 .value
+              speak_sentences: currentSentences.value,
               ppt_data: { ...pptConfig },
               page_turning_rules: pageTurningNodes.value,
-              video_file: saveProjectForm.saveVideo && videoBlob.value ? await blobToBase64(videoBlob.value) : null
+              video_file: videoBase64
             };
+
             const res = await fetch(`${API_BASE_URL}/project/save`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json', 'X-Feishu-OpenId': feishuUserInfo.openId },
@@ -1608,9 +1992,9 @@
             });
             const result = await res.json();
             if (result.code !== 0) throw new Error(result.msg);
-            addLog('✅ 项目保存成功', 'success');
+            addLog('✅ 项目全套配置保存成功', 'success');
             saveProjectModalOpen.value = false;
-            await loadCloudProjectList();
+            await loadCloudProjectList(); // 刷新云端列表
           } catch (e) {
             addLog(`❌ 项目保存失败:${e.message}`, 'error');
           }
@@ -1619,13 +2003,25 @@
         async function loadCloudProjectList() {
           if (!feishuUserInfo.openId) return;
           try {
-            const res = await fetch(`${API_BASE_URL}/project/list`, { headers: { 'X-Feishu-OpenId': feishuUserInfo.openId } });
+            // ✅ 修复:强制改用 POST,并把 open_id 放在 body 里双重保险
+            const res = await fetch(`${API_BASE_URL}/project/list`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-Feishu-OpenId': feishuUserInfo.openId
+              },
+              body: JSON.stringify({ open_id: feishuUserInfo.openId })
+            });
+
+            if (!res.ok) throw new Error(`HTTP ${res.status} - 网关拒绝访问`);
+
             const result = await res.json();
             if (result.code !== 0) throw new Error(result.msg);
-            cloudProjectList.value = result.data.list;
+
+            cloudProjectList.value = result.data.list || [];
             addLog(`☁️ 加载了${cloudProjectList.value.length}个云端项目`, 'success');
           } catch (e) {
-            addLog(`❌ 云端项目加载失败:${e.message}`, 'error');
+            addLog(`❌ 云端项目加载失败: ${e.message}`, 'error');
           }
         }
 
@@ -1691,57 +2087,71 @@
           addLog('🎨 启动强制绘制模式 (25fps 固定帧率,无视后台降频)...', 'info');
           const FRAME_INTERVAL = 40;
           compositeInterval = setInterval(() => {
+            // ✅ 修复 BUG3: 延迟 500ms 终止,确保最后一帧绘制完成
             if (!isRecording.value && !isBroadcasting.value) {
-              clearInterval(compositeInterval);
-              compositeInterval = null;
-              addLog('⏹️ 强制绘制模式已停止', 'info');
+              setTimeout(() => {
+                if (compositeInterval) {
+                  clearInterval(compositeInterval);
+                  compositeInterval = null;
+                  addLog('⏹️ 强制绘制模式已停止', 'info');
+                }
+              }, 500);
               return;
             }
             if (!compositeCanvas.value) return;
             const canvas = compositeCanvas.value;
             const ctx = canvas.getContext('2d');
-            // 优先抓取 canvas
-            const avatarSource = document.querySelector('#digital-human-container canvas') || 
-                                 document.querySelector('#digital-human-container video');
-            try {
-              // 清空画布
-              ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-              // PPT底层绘制
+            // ✅ 修复 BUG2: 使用缓存的 DOM,避免高频查询
+            if (!avatarSourceDom) {
+              ctx.fillStyle = '#fff';
+              ctx.font = '24px Microsoft Yahei';
+              ctx.textAlign = 'center';
+              ctx.fillText('等待数字人...', canvas.width/2, canvas.height/2);
+              return;
+            }
+
+            // 视频未就绪处理
+            if (avatarSourceDom.tagName == "VIDEO" && avatarSourceDom.readyState < 2) {
+              ctx.fillStyle = '#fff';
+              ctx.font = '24px Microsoft Yahei';
+              ctx.textAlign = 'center';
+              ctx.fillText('等待数字人...', canvas.width/2, canvas.height/2);
+              return;
+            }
+
+            try {
+              // 1. 铺设背景
+              ctx.fillStyle = broadcastMode.value === 'horizontal' ? '#0f172a' : '#000000';
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+              // 2. PPT 绘制(优化阴影,避免每次重置)
               if (broadcastMode.value === 'horizontal' && pptConfig.imported && pageTurningConfirmed.value) {
                 const currentPageData = pptConfig.pages.find(item => item.page_num === currentPptPage.value);
                 if (currentPageData && currentPageData.page_image) {
-                  ctx.drawImage(currentPageData.page_image, 0, 0, canvas.width, canvas.height);
-                } else {
-                  ctx.fillStyle = '#1a1a1a';
-                  ctx.fillRect(0, 0, 1344, 1080);
+                  const pptWidth = 1440;
+                  const pptHeight = 810;
+                  // ✅ 优化:使用 save/restore 避免影响后续绘制
+                  ctx.save();
+                  ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                  ctx.shadowBlur = 20;
+                  ctx.shadowOffsetX = 10;
+                  ctx.shadowOffsetY = 10;
+                  ctx.drawImage(currentPageData.page_image, 40, 40, pptWidth, pptHeight);
+                  ctx.restore();
                 }
               }
 
-              // 视频未就绪处理
-              if (!avatarSource || (avatarSource.tagName == "VIDEO" && avatarSource.readyState < 2)) {
-                ctx.fillStyle = '#000';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = '#fff';
-                ctx.font = '24px Microsoft Yahei';
-                ctx.textAlign = 'center';
-                ctx.fillText('等待数字人...', canvas.width/2, canvas.height/2);
-                return;
-              }
-
-              // 绘制数字人 (画中画模式)
+              // 3. 绘制数字人(使用缓存 DOM)
               if (broadcastMode.value === 'horizontal') {
-                const avatarW = 500;
-                const avatarH = (avatarSource.height / avatarSource.width) * avatarW || 888;
-                const posX = canvas.width - avatarW - 40;
-                const posY = canvas.height - avatarH - 40;
-                
-                ctx.drawImage(avatarSource, posX, posY, avatarW, avatarH);
+                const avatarW = 400;
+                const avatarH = (avatarSourceDom.height / avatarSourceDom.width) * avatarW || 711;
+                const posX = 1920 - avatarW - 20;
+                const posY = 40 + 810 - avatarH;
+                ctx.drawImage(avatarSourceDom, posX, posY, avatarW, avatarH);
               } else {
-                ctx.drawImage(avatarSource, 0, 0, canvas.width, canvas.height);
+                ctx.drawImage(avatarSourceDom, 0, 0, canvas.width, canvas.height);
               }
-
-              // 绘制字幕
               if (currentSubtitle) {
                 ctx.font = 'bold 28px Microsoft Yahei';
                 ctx.fillStyle = '#ffffff';
@@ -1861,9 +2271,7 @@
           // 启动录制核心函数
           const startRecordingWhenReady = () => {
             let audioStream = null;
-            // 优先抓取 canvas
-            const avatarSource = document.querySelector('#digital-human-container canvas') || 
-                                 document.querySelector('#digital-human-container video');
+            const videoEl = document.querySelector('#digital-human-container video');
             const allAudios = document.querySelectorAll('audio');
 
             // 优先从video元素获取音频
@@ -1924,23 +2332,37 @@
               addLog('⚠️ 没有音频轨道,将录制无声视频', 'warn');
             }
 
-            // 选择编码格式
+            // ✅ 修复:优先用 MP4,Chrome 完美支持
             let options = null;
-            const h264Type = 'video/webm;codecs=h264,opus';
-            if (MediaRecorder.isTypeSupported(h264Type)) {
+            // Chrome 支持的 MP4 格式:avc1.42E01E = H.264 Baseline, mp4a.40.2 = AAC
+            const mp4Type = 'video/mp4;codecs=avc1.42E01E,mp4a.40.2';
+            const webmH264Type = 'video/webm;codecs=h264,opus';
+            const webmVp8Type = 'video/webm;codecs=vp8,opus';
+
+            if (MediaRecorder.isTypeSupported(mp4Type)) {
               options = {
-                mimeType: h264Type,
-                videoBitsPerSecond: 1000000,
-                audioBitsPerSecond: 128000
+                mimeType: mp4Type,
+                videoBitsPerSecond: broadcastMode.value === 'horizontal' ? 4000000 : 2500000,
+                audioBitsPerSecond: 192000,
+                // ✅ 关键修复:每 25 帧(1 秒)一个关键帧
+                videoKeyFrameIntervalCount: 25
               };
-              addLog('✅ 使用 H.264 编码 (最佳兼容性)', 'success');
+              addLog('✅ 使用标准 MP4(H.264+AAC) 编码,关键帧间隔 1 秒', 'success');
+            } else if (MediaRecorder.isTypeSupported(webmH264Type)) {
+              options = {
+                mimeType: webmH264Type,
+                videoBitsPerSecond: broadcastMode.value === 'horizontal' ? 4000000 : 2500000,
+                audioBitsPerSecond: 192000,
+                videoKeyFrameIntervalCount: 25
+              };
+              addLog('✅ 使用 WebM(H264) 编码', 'success');
             } else {
               options = {
-                mimeType: 'video/webm;codecs=vp8,opus',
-                videoBitsPerSecond: 800000,
-                audioBitsPerSecond: 64000
+                mimeType: webmVp8Type,
+                videoBitsPerSecond: 2000000,
+                audioBitsPerSecond: 128000
               };
-              addLog('⚠️ 浏览器不支持 H.264,使用 VP8 编码', 'warn');
+              addLog('⚠️ 浏览器不支持高清编码,使用 VP8 编码', 'warn');
             }
             addLog(`📦 使用编码格式:${options.mimeType}`, 'info');
 
@@ -1956,34 +2378,88 @@
               }
             };
 
-            mediaRecorder.onstop = () => {
+            mediaRecorder.onstop = async () => {
               addLog(`🛑 录制停止,数据块数量:${recordedChunks.length}`, 'success');
-              if (animationFrame) {
-                cancelAnimationFrame(animationFrame);
-                addLog('⏹️ Canvas 合成循环已停止', 'info');
-              }
-              videoBlob.value = new Blob(recordedChunks, { type: mediaRecorder.mimeType });
-              if (videoBlob.value.size > 0) {
-                const fileSize = (videoBlob.value.size / 1024 / 1024).toFixed(2);
-                addLog(`💾 视频生成成功:${fileSize} MB`, 'success');
-                const videoUrl = URL.createObjectURL(videoBlob.value);
-                previewVideo.value.src = videoUrl;
-                previewVideo.value.onloadeddata = () => {
-                  addLog(`✅ 视频已加载:时长 ${formatDuration(previewVideo.value.duration)},尺寸 ${previewVideo.value.videoWidth}x${previewVideo.value.videoHeight}`, 'success');
-                  if (previewVideo.value.mozHasAudio || previewVideo.value.webkitAudioDecodedByteCount > 0) {
-                    addLog('🔊 视频包含音频轨道', 'success');
-                  } else {
-                    addLog('⚠️ 视频可能没有音频', 'warn');
-                  }
-                };
-                previewVideo.value.onerror = (e) => {
-                  addLog(`❌ 视频加载失败:${JSON.stringify(e)}`, 'error');
-                };
-              } else {
+              if (animationFrame) cancelAnimationFrame(animationFrame);
+
+              // 1. 保存视频格式
+              videoMimeType = mediaRecorder.mimeType || 'video/webm';
+              console.log('🔍 原始视频格式:', videoMimeType);
+
+              const rawBlob = new Blob(recordedChunks, { type: videoMimeType });
+              console.log('🔍 原始视频大小:', (rawBlob.size / 1024 / 1024).toFixed(2), 'MB');
+
+              if (rawBlob.size <= 0) {
                 addLog('❌ 视频 Blob 为空!', 'error');
+                return;
               }
+
+              // 2. ✅ 核心修复:用 mp4box.js 把 moov box 移到文件开头
+              let finalBlob = rawBlob;
+              try {
+                if (videoMimeType.includes('mp4') && typeof MP4Box !== 'undefined') {
+                  addLog('⏳ 正在优化 MP4 索引,移到文件开头...', 'info');
+
+                  const arrayBuffer = await rawBlob.arrayBuffer();
+                  const mp4File = MP4Box.createFile();
+                  let moovMovedBuffer = null;
+                  let isReady = false;
+
+                  mp4File.onReady = (info) => {
+                    console.log('🔍 MP4 解析成功:', info);
+                    isReady = true;
+                  };
+
+                  mp4File.onSegment = (id, user, buffer, sampleNum, isLast) => {
+                    console.log('📦 MP4 Segment:', id, sampleNum, isLast);
+                    moovMovedBuffer = buffer;
+                  };
+
+                  mp4File.appendBuffer(arrayBuffer);
+                  mp4File.flush();
+
+                  // 等待 onSegment 回调
+                  await new Promise((resolve, reject) => {
+                    const check = setInterval(() => {
+                      if (moovMovedBuffer) {
+                        clearInterval(check);
+                        resolve();
+                      }
+                    }, 50);
+                    setTimeout(() => {
+                      clearInterval(check);
+                      if (isReady) {
+                        console.log('i️ MP4 已解析,使用原始数据(已有时序元数据)');
+                        resolve();
+                      } else {
+                        reject(new Error('MP4 优化超时'));
+                      }
+                    }, 5000);
+                  });
+
+                  if (moovMovedBuffer) {
+                    finalBlob = new Blob([moovMovedBuffer], { type: 'video/mp4' });
+                    addLog('✅ MP4 索引优化完成,moov 已移到文件开头,支持进度条拖拽', 'success');
+                  } else {
+                    addLog('i️ MP4 已解析,使用原始数据(已有时序元数据)', 'info');
+                  }
+                }
+              } catch (e) {
+                addLog(`⚠️ MP4 优化失败,使用原始视频:${e.message}`, 'warn');
+                finalBlob = rawBlob;
+              }
+
+              // 3. 赋值最终视频 Blob
+              videoBlob.value = finalBlob;
+              const fileSize = (videoBlob.value.size / 1024 / 1024).toFixed(2);
+              addLog(`💾 最终视频生成成功:${fileSize} MB`, 'success');
+
+              // 4. 更新预览视频
+              const videoUrl = URL.createObjectURL(videoBlob.value);
+              previewVideo.value.src = videoUrl;
             };
 
+            recordingStartTime = Date.now();
             mediaRecorder.start(100);
             addLog('🔴 MediaRecorder 已启动(25fps 视频 + 音频)', 'success');
             if (onRecorderReady) onRecorderReady();
@@ -1992,7 +2468,7 @@
           startRecordingWhenReady();
         }
 
-        function stopRecording() {
+        async function stopRecording() {
           if (!isRecording.value) {
             addLog('没有在录制', 'warn');
             return;
@@ -2000,13 +2476,30 @@
           addLog('准备停止录制...', 'info');
 
           if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            // ✅ 优化:强制收集最后一帧数据,确保视频完整
+            mediaRecorder.requestData();
             mediaRecorder.stop();
             addLog('🛑 MediaRecorder 已停止', 'success');
+
+            // ✅ 修复:等待 onstop 回调执行完成
+            await new Promise(resolve => {
+              const check = setInterval(() => {
+                // 检查 mediaRecorder 是否真的停止了
+                if (mediaRecorder && mediaRecorder.state === 'inactive') {
+                  clearInterval(check);
+                  resolve();
+                }
+              }, 50);
+              setTimeout(() => {
+                clearInterval(check);
+                resolve(); // 超时兜底
+              }, 3000);
+            });
           } else if (!mediaRecorder) {
             addLog('⚠️ mediaRecorder 不存在,直接清理状态', 'warn');
           }
 
-          isRecording.value = false;
+          // 清理状态
           if (recordTimer) {
             clearInterval(recordTimer);
             recordTimer = null;
@@ -2021,34 +2514,54 @@
             addLog('⏹️ 强制绘制定时器已清理', 'info');
           }
           addLog('⏹️ Canvas 合成已停止', 'info');
+
+          // ✅ 最后设置 isRecording.value = false
+          isRecording.value = false;
         }
 
         // ==================== 播报生命周期函数 ====================
-        function onBroadcastEnded() {
+                async function onBroadcastEnded() {
           if (isStopping) return;
           if (!isBroadcasting.value && !isRecording.value) return;
-          addLog('🏁 检测到播报完全结束,停止录制', 'success');
-          stopRecording();
-          isBroadcasting.value = false;
-          isBroadcastingSentence = false;
-          currentSentence.value = 0;
-          totalSentences.value = 0;
-          progressPercent.value = 0;
-          waitingForBroadcastEnd = false;
-          sentenceIndex = 0;
-          currentSentences.value = [];  // ✅ 添加 .value
-          currentSubtitle = '';
 
+          addLog('🏁 检测到播报完全结束,正在停止录制...', 'success');
+
+          // 先停止录制,写入元数据
+          if (isRecording.value) {
+            await stopRecording();
+          }
+
+          // 等待录制停止后,再清理状态
           setTimeout(() => {
-            if (videoBlob.value && videoBlob.value.size > 0) {
-              addLog(`🎉 播报流程全部完成!视频已准备好下载`, 'success');
-            } else {
-              addLog('⚠️ 播报完成,但视频可能未生成', 'warn');
+            isBroadcasting.value = false;
+            isBroadcastingSentence = false;
+            currentSentence.value = 0;
+            totalSentences.value = 0;
+            progressPercent.value = 0;
+            waitingForBroadcastEnd = false;
+            sentenceIndex = 0;
+            currentSentences.value = [];
+            currentSubtitle = '';
+            // 最后停止 SDK
+            if (sdkInstance) {
+              try {
+                sdkInstance.stop();
+                sdkInstance.destroy();
+                sdkInstance = null;
+              } catch (e) {}
             }
-          }, 500);
+
+            setTimeout(() => {
+              if (videoBlob.value && videoBlob.value.size > 0) {
+                addLog(`🎉 播报流程全部完成!视频已准备好下载`, 'success');
+              } else {
+                addLog('⚠️ 播报完成,但视频可能未生成', 'warn');
+              }
+            }, 500);
+          }, 1000);
         }
 
-        function onBroadcastFailed(reason) {
+function onBroadcastFailed(reason) {
           if (isStopping) return;
           addLog(`❌ 播报失败:${reason}`, 'error');
           if (isRecording.value) {
@@ -2073,6 +2586,12 @@
         async function speakSingleSentence(text) {
           if (!sdkInstance) {
             throw new Error('SDK 未初始化');
+          }
+
+          // ✅ 修复:检查是否正在停止
+          if (isStopping) {
+            addLog('⚠️ 正在停止中,跳过句子播报', 'warn');
+            return;
           }
 
           while (isBroadcastingSentence) {
@@ -2120,9 +2639,7 @@
                 resolve();
                 return;
               }
-              // 优先抓取 canvas
-            const avatarSource = document.querySelector('#digital-human-container canvas') || 
-                                 document.querySelector('#digital-human-container video');
+              const videoEl = document.querySelector('#digital-human-container video');
               if (videoEl && videoEl.readyState >= 2 && videoEl.videoWidth > 0) {
                 addLog(`Video 元素就绪 (${videoEl.videoWidth}x${videoEl.videoHeight})`, 'success');
                 resolve();
@@ -2191,7 +2708,7 @@
             if (data?.vmr_status === 2) {
               addLog('🏁 单句播报完成', 'success');
               isBroadcastingSentence = false;
-              
+
               // 所有句子播报完成则结束录制
               if (sentenceIndex >= currentSentences.value.length && isBroadcasting.value) {  // ✅ 添加 .value
                 addLog(`✅ 所有句子已播报完成 (${sentenceIndex}/${currentSentences.value.length}),准备结束录制`, 'success');  // ✅ 添加 .value
@@ -2244,10 +2761,13 @@
           });
           await waitForVideoElement();
 
+          // ✅ 修复 BUG2: 缓存数字人渲染 DOM,只执行一次
+          avatarSourceDom = document.querySelector('#digital-human-container canvas') ||
+                            document.querySelector('#digital-human-container video');
+          addLog(`✅ 数字人 DOM 已缓存:${avatarSourceDom?.tagName || '未找到'}`, 'success');
+
           // 配置视频元素音频
-          // 优先抓取 canvas
-            const avatarSource = document.querySelector('#digital-human-container canvas') || 
-                                 document.querySelector('#digital-human-container video');
+          const videoEl = document.querySelector('#digital-human-container video');
           if (videoEl) {
             videoEl.muted = false;
             videoEl.volume = 1.0;
@@ -2344,6 +2864,24 @@
               }
               currentSentence.value = i + 1;
               progressPercent.value = Math.round(((i + 1) / sentences.length) * 100);
+
+              // 👇 ======== 修复 1:自动导播翻页核心逻辑 ======== 👇
+              if (pptConfig.imported && pageTurningConfirmed.value) {
+                // 去翻页规则里,找出当前句子索引 (i) 落在哪一页
+                const targetNode = pageTurningNodes.value.find(
+                  node => i >= node.start_sentence_index && i <= node.end_sentence_index
+                );
+                // 如果发现该翻页了,立刻更新底层 PPT 页码
+                if (targetNode && currentPptPage.value !== targetNode.page_num) {
+                  currentPptPage.value = targetNode.page_num;
+
+                  showPageTip.value = true;
+                  setTimeout(() => { showPageTip.value = false; }, 2000);
+                  addLog(`📄 自动导播:精准翻页至第 ${targetNode.page_num} 页`, 'success');
+                }
+              }
+              // 👆 ============================================== 👆
+
               await speakSingleSentence(sentences[i]);
             }
             addLog('📡 所有句子已发送,等待播报结束', 'info');
@@ -2353,7 +2891,7 @@
           }
         }
 
-        async function stopBroadcast() {
+                async function stopBroadcast() {
           if (isStopping) {
             addLog('⚠️ 正在停止中,请勿重复操作', 'warn');
             return;
@@ -2361,21 +2899,31 @@
           isStopping = true;
           addLog('用户手动停止播报', 'warn');
 
+          // ✅ 核心修复:先停止录制,等文件写入完成,再停止 SDK 断流
+          // 1. 先停止录制,确保元数据完整写入
+          if (isRecording.value) {
+            addLog('⏳ 正在停止录制,写入视频元数据...', 'info');
+            await stopRecording();
+            addLog('✅ 录制已停止,元数据写入完成', 'success');
+          }
+
+          // 2. 再停止 SDK 和音视频流
           if (broadcastEndTimer) {
             clearTimeout(broadcastEndTimer);
             broadcastEndTimer = null;
           }
-
           if (sdkInstance) {
             try {
               sdkInstance.interrupt();
               sdkInstance.stop();
+              sdkInstance.destroy();
+              sdkInstance = null;
             } catch (e) {
               addLog('SDK 停止异常:' + e.message, 'warn');
             }
           }
 
-          stopRecording();
+          // 3. 清理状态
           isBroadcasting.value = false;
           isConnected.value = false;
           isBroadcastingSentence = false;
@@ -2383,13 +2931,14 @@
           totalSentences.value = 0;
           progressPercent.value = 0;
           currentSubtitle = '';
+          avatarSourceDom = null;
 
           setTimeout(() => {
             isStopping = false;
           }, 1000);
         }
 
-        // ==================== 全屏切换函数 ====================
+// ==================== 全屏切换函数 ====================
         function toggleFullscreen() {
           if (!videoContainer.value) return;
           isFullscreen.value = !isFullscreen.value;
@@ -2432,6 +2981,11 @@
             window.history.replaceState({}, document.title, window.location.pathname);
             await importFeishuPpt(code);
           }
+
+          // 🌐 页面一打开就拉取云端项目列表
+          await loadCloudProjectList();
+
+
         });
 
         onUnmounted(() => {
@@ -2443,7 +2997,7 @@
           config,
           roles,
           voices,
-          currentSentences,  // ✅ 新增：暴露给模板
+          currentSentences,  // ✅ 新增:暴露给模板
           isBroadcasting,
           isConnected,
           isRecording,
@@ -2500,7 +3054,6 @@
           resetTurningNodes,
           cancelTurningEdit,
           confirmTurningRules,
-          previewTurningNodes,
           manualTurnPage,
           onModeChange,
           reImportPpt,
