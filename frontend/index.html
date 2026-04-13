@@ -58,13 +58,13 @@
       gap: 25px;
       align-items: stretch; // ✅ 关键：拉伸高度，左右完全等高
     }
-    /* 视频容器：严格 3:3 比例，和右侧按钮栏等高 */
+    /* 视频容器：严格 16:9 比例，和右侧按钮栏等高 */
     .video-container {
       position: relative;
       width: 100%;
       max-width: 720px;
       margin: 0;
-      aspect-ratio: 3/3; /* ✅ 强制 3:3（正方形） */
+      aspect-ratio: 16/9; /* ✅ 强制 16:9（宽屏） */
       height: 100%; /* ✅ 占满父容器拉伸高度 */
       background: #000;
       border-radius: 15px;
