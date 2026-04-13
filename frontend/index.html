@@ -885,6 +885,15 @@
         request.onerror = () => reject(request.error);
       });
     }
+    // ========== 全局工具函数：统一句子拆分逻辑 ==========
+    function splitSentences(text) {
+      return text
+        .replace(/([。！？.!?]+)/g, '$1|SPLIT|')
+        .split('|SPLIT|')
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+    }
+    
     // Vue 应用初始化
     const { createApp } = Vue;
     createApp({
@@ -1433,7 +1442,7 @@
             return;
           }
           const loadingToast = showToast('正在分析 PPT 与文案，生成智能翻页节点，请稍候', 'loading');
-          const sentences = config.text.split(/[.!?!\n]+/).filter(s => s.trim().length > 0);
+          const sentences = splitSentences(config.text);
           currentSentences.value = sentences;
           const totalSentences = sentences.length;
           let pptContext = pptConfig.pages.map(p =>
@@ -2289,12 +2298,7 @@ ${sentencesList}
             }
             addLog('鉴权信息获取成功', 'success');
             await initSDK(authData.data);
-            const fullText = config.text;
-            const sentences = fullText
-              .replace(/([\u3002\uFF01\uFF1F\u002E\u0021\u003F]+)/g, '$1|SPLIT|')
-              .split('|SPLIT|')
-              .map(s => s.trim())
-              .filter(s => s.length > 0);
+            const sentences = splitSentences(config.text);
             totalSentences.value = sentences.length;
             addLog(`📝 逐句拆分完成，共 ${sentences.length} 句`, 'success');
             sentences.forEach((s, i) => {
