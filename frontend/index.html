@@ -39,7 +39,7 @@
     }
     .header h1 { font-size: 2.5em; margin-bottom: 10px; }
     
-    /* ========== 1. 顶部预览区（左右完美等高对齐） ========== */
+    /* ========== 顶部预览区样式（修改为左右分栏） ========== */
     .preview-section {
       padding: 20px 30px;
       background: #f8f9fa;
@@ -50,26 +50,24 @@
       gap: 25px;
       align-items: flex-start;
     }
-    /* 视频容器样式 */
+    /* 视频容器比例调整，与右侧按钮列高度对齐 */
     .video-container {
       position: relative;
-      flex: 0 0 55%; /* 视频区占 55% 宽度 */
-      height: 100%; /* 撑满父级高度 */
+      width: 100%;
+      max-width: 720px;
       margin: 0;
-      padding-bottom: 0; /* 移除之前的比例 padding */
-      background: #0f172a;
+      padding-bottom: 68.5%; /* v2 */ /* 调整：从 50% 增加到 68%，让视频底部与按钮底部对齐 */
+      background: #000;
       border-radius: 15px;
       overflow: hidden;
-      box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
       flex-shrink: 0;
     }
     /* 新增：右侧按钮边栏样式 */
     .button-sidebar {
       flex: 1;
+      min-width: 220px;
       display: flex;
       flex-direction: column;
-      /* 让元素在侧边栏内上下分布，按钮组自动沉底 */
-      justify-content: flex-start;
       gap: 15px;
     }
     .video-container.fullscreen {
@@ -123,34 +121,19 @@
       font-size: 14px;
       z-index: 10;
     }
-    /* ========== 2. 右侧按钮回归正常排布 ========== */
-    .button-sidebar {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 20px; /* 加大间距让排版更舒展 */
-      justify-content: flex-start; /* 保持在上方，不沉底 */
-    }
-    
+    /* 修改：核心按钮组改为垂直排列 */
     .core-btn-group {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-top: 0; /* 移除之前的 margin-top: auto */
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 0;
+      justify-content: flex-start;
+      flex-direction: column;
     }
-    
     .core-btn-group .btn {
       width: 100%;
-      margin: 0;
+      margin-right: 0;
       justify-content: center;
-      padding: 12px 10px;
-    }
-    /* 开始和停止按钮横跨两列，更为醒目 */
-    .core-btn-group .btn-primary:first-child,
-    .core-btn-group .btn-danger {
-      grid-column: span 2;
-      padding: 15px;
-      font-size: 16px;
     }
     
     /* ========== 步骤导航条样式 ========== */
@@ -324,7 +307,6 @@
       transition: width 0.3s;
       width: 0%;
     }
-    /* ========== 3. 缓存视频样式 ========== */
     .cache-info {
       background: #e8f5e9;
       border: 1px solid #c8e6c9;
@@ -391,57 +373,26 @@
       align-items: center;
       margin-bottom: 15px;
     }
-    /* ========== 4. PPT 图片 4 列网格 & 放大交互 ========== */
     .ppt-thumb-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr); /* 保持 4 列 */
-      gap: 15px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
       margin-top: 15px;
-      max-height: 280px;
+      max-height: 200px;
       overflow-y: auto;
-      padding-right: 5px;
     }
     .ppt-thumb-item {
-      position: relative;
-      border: 2px solid transparent;
+      border: 1px solid #e0e0e0;
       border-radius: 8px;
-      padding: 5px;
-      cursor: zoom-in; /* 提示可放大 */
+      padding: 8px;
+      cursor: pointer;
       transition: all 0.3s;
-      background: #fff;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    }
-    /* 增加遮罩放大镜效果 */
-    .ppt-thumb-item::after {
-      content: '🔍 点击放大';
-      position: absolute;
-      top: 5px; left: 5px; right: 5px; bottom: 30px;
-      background: rgba(0,0,0,0.6);
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
-      border-radius: 4px;
-      opacity: 0;
-      transition: opacity 0.2s;
-      pointer-events: none;
-    }
-    .ppt-thumb-item:hover::after {
-      opacity: 1;
     }
     .ppt-thumb-item:hover, .ppt-thumb-item.active {
       border-color: #667eea;
-      transform: translateY(-2px); /* 悬停微动效 */
-      box-shadow: 0 6px 15px rgba(102,126,234,0.2);
+      background: #f0f4ff;
     }
-    .ppt-thumb-item img { 
-      width: 100%; 
-      aspect-ratio: 16/9; 
-      object-fit: cover; 
-      border-radius: 4px; 
-      display: block; 
-    }
+    .ppt-thumb-item img { width: 100%; border-radius: 4px; margin-bottom: 5px; }
     .ppt-thumb-title {
       font-size: 12px;
       color: #333;
@@ -450,67 +401,30 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    /* ========== 5. 智能分段双栏展示优化 ========== */
     .dual-column-panel {
       display: flex;
-      gap: 20px;
-      height: 450px; /* 稍微增加高度 */
+      gap: 10px;
+      height: 400px;
       margin: 15px 0;
-      background: #f8f9fa;
-      padding: 15px;
-      border-radius: 12px;
     }
     .column-box {
       flex: 1;
-      background: white;
-      border: none;
+      border: 1px solid #e0e0e0;
       border-radius: 10px;
-      padding: 15px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+      padding: 10px;
       overflow-y: auto;
     }
     .column-title { font-weight: 600; color: #333; margin-bottom: 10px; font-size: 14px; }
     .sentence-item {
-      padding: 12px 15px;
-      background: #fdfdfd;
-      border: 1px solid #f1f3f5;
-      border-radius: 8px;
-      margin-bottom: 8px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      margin-bottom: 5px;
       font-size: 13px;
       cursor: grab;
-      transition: all 0.25s ease;
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-    }
-    /* 增加句号编号徽章 */
-    .sentence-item::before {
-      content: attr(data-index);
-      background: #e9ecef;
-      color: #495057;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: bold;
-      white-space: nowrap;
     }
     .sentence-item:hover { background: #f8f9fa; }
-    
-    /* 绑定的句子状态 */
-    .sentence-item.bound { 
-      background: #f4fdf8; 
-      border-color: #c3e6cb;
-      border-left: 4px solid #38ef7d; /* 强调左边框 */
-    }
-    /* 当前选中的 PPT 页面对应的高亮句子状态 */
-    .sentence-item.highlight { 
-      background: #eff6ff;
-      border-color: #bfdbfe;
-      border-left: 5px solid #667eea; 
-      font-weight: 600; 
-      transform: translateX(4px); /* 高亮时向右挤压出层级感 */
-      box-shadow: 0 4px 12px rgba(102,126,234,0.15);
-    }
+    .sentence-item.bound { background: #e8f5e9; border-left: 3px solid #38ef7d; }
+    .sentence-item.highlight { background: #e3f2fd; border-left: 3px solid #2196f3; font-weight: 600; }
     .adjust-row {
       display: flex;
       gap: 10px;
@@ -571,21 +485,18 @@
     }
     .preview-close:hover { background: rgba(255,255,255,0.4); }
     
-    /* ========== 弹窗样式（修复刷新闪屏） ========== */
+    /* ========== 弹窗样式 ========== */
     .modal-mask {
       position: fixed;
       top: 0; left: 0;
       width: 100vw; height: 100vh;
       background: rgba(0,0,0,0.5);
-      display: flex;
+      display: none !important;
       justify-content: center;
       align-items: center;
       z-index: 99999;
     }
-    /* 提升 v-cloak 优先级，确保挂载前绝对隐藏 */
-    [v-cloak], .modal-mask[v-cloak] { 
-      display: none !important; 
-    }
+    .modal-mask.vue-mounted { display: flex !important; }
     .modal-box {
       background: white;
       border-radius: 15px;
@@ -616,67 +527,6 @@
       .dual-column-panel { flex-direction: column; height: auto; }
       .ppt-thumb-grid { grid-template-columns: repeat(2, 1fr); }
       .core-btn-group { justify-content: flex-start; }
-    }
-    
-    /* ========== 成品预览视频区（强制显示黑框） ========== */
-    .preview-video-wrap {
-      width: 100%;
-      flex-shrink: 0;
-    }
-    .preview-video-container {
-      width: 100%;
-      position: relative;
-      border-radius: 10px;
-      background: #000000;
-      overflow: hidden;
-      min-height: 280px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    }
-    .preview-video-container video {
-      width: 100%;
-      height: 100%;
-      min-height: 280px;
-      display: block;
-      border-radius: 10px;
-      object-fit: contain;
-    }
-    /* 无视频时的占位提示 */
-    .video-placeholder {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #999;
-      font-size: 14px;
-      pointer-events: none;
-    }
-    
-    /* ========== 响应式适配 ========== */
-    @media (max-width: 1200px) { 
-      .config-grid { grid-template-columns: 1fr 1fr; }
-      .live-preview-row { flex-direction: column; }
-      .video-container { width: 100%; flex: none; min-width: auto; }
-      .button-sidebar { width: 100%; min-width: auto; }
-      .core-btn-group { flex-direction: row; flex-wrap: wrap; }
-      .core-btn-group .btn { width: auto; }
-    }
-    @media (max-width: 768px) {
-      body { padding: 10px; }
-      .header h1 { font-size: 1.8em; }
-      .process-nav { padding: 15px 10px; overflow-x: auto; justify-content: flex-start; }
-      .process-step { min-width: 120px; }
-      .preview-section, .config-section { padding: 15px 10px; }
-      .config-grid { grid-template-columns: 1fr; }
-      .mode-selector { grid-template-columns: 1fr; }
-      .dual-column-panel { flex-direction: column; height: auto; }
-      .ppt-thumb-grid { grid-template-columns: repeat(2, 1fr); }
-      .core-btn-group { justify-content: flex-start; }
-      .preview-video-container { min-height: 200px; }
-      .preview-video-container video { min-height: 200px; }
     }
   </style>
 </head>
@@ -746,26 +596,22 @@
               请先完成 PPT 导入并确认翻页规则，以激活 PPT 背景
             </div>
           </div>
-          
-          <!-- 预览视频容器（新增固定黑框） -->
-          <div class="preview-video-container">
-            <video ref="previewVideo" controls></video>
-          </div>
-          
-          <!-- 缓存列表 -->
-          <div v-if="cachedVideos.length > 0" class="cache-info">
-              <h3>📼 视频缓存 ({{ cachedVideos.length }}个)</h3>
-              <div v-for="(cache, index) in cachedVideos" :key="index" class="cache-item">
-                <div>
-                  <strong>{{ cache.text.substring(0, 20) }}{{ cache.text.length > 20 ? '...' : '' }}</strong>
-                  <div style="font-size:12px;color:#666;">{{ new Date(cache.timestamp).toLocaleString() }} | {{ formatDuration(cache.duration) }}</div>
-                </div>
-                <div class="cache-item-actions">
-                  <button class="btn btn-small btn-primary" @click="playCache(index)">▶️ 播放</button>
-                  <button class="btn btn-small btn-danger" @click="deleteCache(index)">🗑️ 删除</button>
-                </div>
+        </div>
+        <!-- 预览视频（移到 preview-panel 外面，保持全宽） -->
+        <video ref="previewVideo" style="width:100%;margin-top:20px;border-radius:10px;" controls></video>
+        <div v-if="cachedVideos.length > 0" class="cache-info">
+            <h3>📼 视频缓存 ({{ cachedVideos.length }}个)</h3>
+            <div v-for="(cache, index) in cachedVideos" :key="index" class="cache-item">
+              <div>
+                <strong>{{ cache.text.substring(0, 20) }}{{ cache.text.length > 20 ? '...' : '' }}</strong>
+                <div style="font-size:12px;color:#666;">{{ new Date(cache.timestamp).toLocaleString() }} | {{ formatDuration(cache.duration) }}</div>
+              </div>
+              <div class="cache-item-actions">
+                <button class="btn btn-small btn-primary" @click="playCache(index)">▶️ 播放</button>
+                <button class="btn btn-small btn-danger" @click="deleteCache(index)">🗑️ 删除</button>
               </div>
             </div>
+          </div>
         </div>
       </div>
       <!-- 3. 步骤导航条 -->
@@ -951,8 +797,8 @@
         <button class="preview-close" @click="showPptPreview=false">×</button>
       </div>
       <!-- [P0_HIDDEN] 云端项目模块已隐藏 -->
-      <!-- 保存项目弹窗（移除 vue-mounted 类，彻底解决闪屏） -->
-      <div class="modal-mask" v-if="saveProjectModalOpen" v-cloak @click.self="closeSaveModal">
+      <!-- 保存项目弹窗 -->
+      <div class="modal-mask" :class="{ 'vue-mounted': isVueMounted }" v-if="saveProjectModalOpen" v-cloak @click.self="closeSaveModal">
         <div class="modal-box" @click.stop>
           <div class="modal-title">保存项目到云端</div>
           <div class="form-group">
@@ -1170,6 +1016,7 @@
         // 云端项目状态
         const cloudProjectCollapseOpen = ref(false);
         const saveProjectModalOpen = ref(false);
+        const isVueMounted = ref(false);
         const saveProjectForm = reactive({
           name: '',
           desc: '',
@@ -1276,27 +1123,10 @@
         }
         async function playCache(index) {
           const cache = cachedVideos.value[index];
-          try {
-            // 释放旧 URL
-            if (previewVideo.value.src && previewVideo.value.src.startsWith('blob:')) {
-              URL.revokeObjectURL(previewVideo.value.src);
-            }
-            // 创建新 URL
-            const videoUrl = URL.createObjectURL(cache.video);
-            // 强制重载
-            previewVideo.value.src = '';
-            await nextTick();
-            previewVideo.value.src = videoUrl;
-            previewVideo.value.load();
-            // 自动播放
-            await previewVideo.value.play().catch(e => {
-              addLog(`⚠️ 自动播放失败，请手动点击播放:${e.message}`, 'warn');
-            });
-            addLog(`播放缓存视频:${cache.text.substring(0, 20)}...`, 'success');
-          } catch (e) {
-            addLog(`❌ 缓存视频播放失败:${e.message}`, 'error');
-            showToast('缓存视频播放失败', 'error');
-          }
+          const videoUrl = URL.createObjectURL(cache.video);
+          previewVideo.value.src = videoUrl;
+          previewVideo.value.play();
+          addLog(`播放缓存视频:${cache.text.substring(0, 20)}...`, 'success');
         }
         async function playCachedVideo() {
           if (cachedVideos.value.length > 0) playCache(0);
@@ -1998,10 +1828,8 @@ ${sentencesList}
             console.log('🔍 原始视频格式:', videoMimeType);
             const rawBlob = new Blob(recordedChunks, { type: videoMimeType });
             console.log('🔍 原始视频大小:', (rawBlob.size / 1024 / 1024).toFixed(2), 'MB');
-            // 【关键修复 1】空 Blob 拦截，直接报错提示
             if (rawBlob.size <= 0) {
-              addLog('❌ 视频 Blob 为空，录制未采集到画面数据！', 'error');
-              showToast('视频录制失败，未采集到画面数据', 'error');
+              addLog('❌ 视频 Blob 为空!', 'error');
               return;
             }
             let finalBlob = rawBlob;
@@ -2050,30 +1878,11 @@ ${sentencesList}
               addLog(`⚠️ MP4 优化失败，使用原始视频:${e.message}`, 'warn');
               finalBlob = rawBlob;
             }
-            // 【关键修复 2】全局存储视频 Blob，确保响应式更新
             videoBlob.value = finalBlob;
             const fileSize = (videoBlob.value.size / 1024 / 1024).toFixed(2);
             addLog(`💾 最终视频生成成功:${fileSize} MB`, 'success');
-            // 【关键修复 3】彻底解决视频不显示：释放旧 URL、创建新 URL、强制重载
-            try {
-              // 释放之前的 ObjectURL，避免内存泄漏和重复赋值失效
-              if (previewVideo.value.src && previewVideo.value.src.startsWith('blob:')) {
-                URL.revokeObjectURL(previewVideo.value.src);
-              }
-              // 创建新的 ObjectURL
-              const videoUrl = URL.createObjectURL(videoBlob.value);
-              // 强制清空再赋值，触发 DOM 更新
-              previewVideo.value.src = '';
-              await nextTick();
-              previewVideo.value.src = videoUrl;
-              // 强制重载视频
-              previewVideo.value.load();
-              addLog('✅ 视频已加载到预览窗口，可点击播放', 'success');
-              showToast('视频生成成功，已加载到预览区', 'success');
-            } catch (e) {
-              addLog(`❌ 视频预览加载失败:${e.message}`, 'error');
-              showToast('视频预览加载失败', 'error');
-            }
+            const videoUrl = URL.createObjectURL(videoBlob.value);
+            previewVideo.value.src = videoUrl;
           };
           recordingStartTime = Date.now();
           mediaRecorder.start(100);
@@ -2584,8 +2393,13 @@ ${sentencesList}
         });
         onMounted(async () => {
           saveProjectModalOpen.value = false;
-          // 新增：强制等待 DOM 渲染完成，确保 previewVideo ref 能拿到元素
-          await nextTick();
+          await nextTick(() => {
+            saveProjectModalOpen.value = false;
+            setTimeout(() => {
+              saveProjectModalOpen.value = false;
+              isVueMounted.value = true;
+            }, 0);
+          });
           await loadCachedVideos();
           addLog('页面加载完成', 'success');
           const urlParams = new URLSearchParams(window.location.search);
@@ -2656,6 +2470,7 @@ ${sentencesList}
           cloudProjectList,
           saveProjectModalOpen,
           saveProjectForm,
+          isVueMounted,
           // [修复] 补充模板依赖的响应式变量
           showPptPreview,
           currentPreviewPptImg,
