@@ -571,18 +571,21 @@
     }
     .preview-close:hover { background: rgba(255,255,255,0.4); }
     
-    /* ========== 弹窗样式 ========== */
+    /* ========== 弹窗样式（修复刷新闪屏） ========== */
     .modal-mask {
       position: fixed;
       top: 0; left: 0;
       width: 100vw; height: 100vh;
       background: rgba(0,0,0,0.5);
-      display: none !important;
+      display: flex;
       justify-content: center;
       align-items: center;
       z-index: 99999;
     }
-    .modal-mask.vue-mounted { display: flex !important; }
+    /* 提升 v-cloak 优先级，确保挂载前绝对隐藏 */
+    [v-cloak], .modal-mask[v-cloak] { 
+      display: none !important; 
+    }
     .modal-box {
       background: white;
       border-radius: 15px;
@@ -613,6 +616,25 @@
       .dual-column-panel { flex-direction: column; height: auto; }
       .ppt-thumb-grid { grid-template-columns: repeat(2, 1fr); }
       .core-btn-group { justify-content: flex-start; }
+    }
+    
+    /* ========== 预览视频黑框修复 ========== */
+    .preview-video-container {
+      width: 100%;
+      margin-top: 20px;
+      border-radius: 10px;
+      background: #000000;
+      overflow: hidden;
+      min-height: 200px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    .preview-video-container video {
+      width: 100%;
+      height: 100%;
+      min-height: 200px;
+      display: block;
+      border-radius: 10px;
+      object-fit: contain;
     }
   </style>
 </head>
@@ -683,8 +705,10 @@
             </div>
           </div>
           
-          <!-- 预览视频（在 preview-panel 内） -->
-          <video ref="previewVideo" style="width:100%;margin-top:20px;border-radius:10px;" controls></video>
+          <!-- 预览视频容器（新增固定黑框） -->
+          <div class="preview-video-container">
+            <video ref="previewVideo" controls></video>
+          </div>
           
           <!-- 缓存列表 -->
           <div v-if="cachedVideos.length > 0" class="cache-info">
@@ -885,8 +909,8 @@
         <button class="preview-close" @click="showPptPreview=false">×</button>
       </div>
       <!-- [P0_HIDDEN] 云端项目模块已隐藏 -->
-      <!-- 保存项目弹窗 -->
-      <div class="modal-mask" :class="{ 'vue-mounted': isVueMounted }" v-if="saveProjectModalOpen" v-cloak @click.self="closeSaveModal">
+      <!-- 保存项目弹窗（移除 vue-mounted 类，彻底解决闪屏） -->
+      <div class="modal-mask" v-if="saveProjectModalOpen" v-cloak @click.self="closeSaveModal">
         <div class="modal-box" @click.stop>
           <div class="modal-title">保存项目到云端</div>
           <div class="form-group">
@@ -1104,7 +1128,6 @@
         // 云端项目状态
         const cloudProjectCollapseOpen = ref(false);
         const saveProjectModalOpen = ref(false);
-        const isVueMounted = ref(false);
         const saveProjectForm = reactive({
           name: '',
           desc: '',
@@ -2481,13 +2504,6 @@ ${sentencesList}
         });
         onMounted(async () => {
           saveProjectModalOpen.value = false;
-          await nextTick(() => {
-            saveProjectModalOpen.value = false;
-            setTimeout(() => {
-              saveProjectModalOpen.value = false;
-              isVueMounted.value = true;
-            }, 0);
-          });
           await loadCachedVideos();
           addLog('页面加载完成', 'success');
           const urlParams = new URLSearchParams(window.location.search);
@@ -2558,7 +2574,6 @@ ${sentencesList}
           cloudProjectList,
           saveProjectModalOpen,
           saveProjectForm,
-          isVueMounted,
           // [修复] 补充模板依赖的响应式变量
           showPptPreview,
           currentPreviewPptImg,
