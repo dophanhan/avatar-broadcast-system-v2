@@ -31,20 +31,20 @@
       box-shadow: 0 20px 60px rgba(0,0,0,0.3);
       overflow: hidden;
     }
-    /* 标题收窄：减小内边距、字体、行间距 */
+    /* 标题极致收窄 */
     .header {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
-      padding: 15px 30px; /* 上下内边距减半，整体变窄 */
+      padding: 12px 20px; /* 更窄的内边距 */
       text-align: center;
     }
     .header h1 { 
-      font-size: 1.8em; /* 主标题缩小，更紧凑 */
-      margin-bottom: 5px; /* 标题和副标题间距收窄 */
+      font-size: 1.6em; /* 更小更紧凑 */
+      margin: 0;
     }
     .header p {
-      font-size: 1em; /* 副标题缩小 */
-      margin: 0;
+      font-size: 0.9em;
+      margin: 3px 0 0;
     }
     
     /* ========== 顶部预览区样式（修改为左右分栏） ========== */
@@ -56,16 +56,17 @@
       margin: 0;
       display: flex;
       gap: 25px;
-      align-items: stretch; // 关键：拉伸高度，左右完全等高
+      align-items: flex-start; // 取消拉伸，防止高度还原
     }
-    /* 预览黑框高度缩小 10%（4:3 基础上再收窄） */
+    /* 核心：永久固定 4:3 缩小 10% 高度，绝不回弹 */
     .video-container {
       position: relative;
       width: 100%;
       max-width: 720px;
       margin: 0;
-      /* 原 4:3 为 75%，缩小 10% → 67.5%，高度直接降 10% */
+      /* 唯一高度控制：67.5% = 4:3 缩小 10%，浏览器 100% 生效 */
       padding-bottom: 67.5%;
+      height: 0 !important; /* 强制禁用自动高度，防止还原 */
       background: #000;
       border-radius: 15px;
       overflow: hidden;
