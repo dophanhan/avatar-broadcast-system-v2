@@ -39,22 +39,35 @@
     }
     .header h1 { font-size: 2.5em; margin-bottom: 10px; }
     
-    /* ========== 顶部预览区样式 ========== */
+    /* ========== 顶部预览区样式（修改为左右分栏） ========== */
     .preview-section {
       padding: 20px 30px;
       background: #f8f9fa;
     }
-    .preview-panel { margin: 0; }
+    .preview-panel { 
+      margin: 0;
+      display: flex;
+      gap: 25px;
+      align-items: flex-start;
+    }
     .video-container {
       position: relative;
       width: 100%;
-      max-width: 900px;
-      margin: 0 auto;
+      max-width: 720px;
+      margin: 0;
       padding-bottom: 56.25%;
       background: #000;
       border-radius: 15px;
       overflow: hidden;
-      margin-bottom: 20px;
+      flex-shrink: 0;
+    }
+    /* 新增：右侧按钮边栏样式 */
+    .button-sidebar {
+      flex: 1;
+      min-width: 220px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
     }
     .video-container.fullscreen {
       position: fixed;
@@ -107,11 +120,18 @@
       font-size: 14px;
       z-index: 10;
     }
+    /* 修改：核心按钮组改为垂直排列 */
     .core-btn-group {
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
-      margin-top: 20px;
+      margin-top: 0;
+      justify-content: flex-start;
+      flex-direction: column;
+    }
+    .core-btn-group .btn {
+      width: 100%;
+      margin-right: 0;
       justify-content: center;
     }
     
@@ -487,8 +507,14 @@
     .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
     [v-cloak] { display: none !important; }
     
-    /* ========== 响应式 ========== */
-    @media (max-width: 1200px) { .config-grid { grid-template-columns: 1fr 1fr; } }
+    /* ========== 响应式（修改） ========== */
+    @media (max-width: 1200px) { 
+      .config-grid { grid-template-columns: 1fr 1fr; }
+      .preview-panel { flex-direction: column; }
+      .video-container { max-width: 100%; }
+      .core-btn-group { flex-direction: row; flex-wrap: wrap; }
+      .core-btn-group .btn { width: auto; }
+    }
     @media (max-width: 768px) {
       body { padding: 10px; }
       .header h1 { font-size: 1.8em; }
@@ -512,10 +538,12 @@
         <h1>🎬 数字人播报系统</h1>
         <p>讯飞 XRtc 数字人 + 自动录制 + 视频缓存</p>
       </div>
-      <!-- 2. 核心预览区 -->
+      <!-- 2. 核心预览区（左右分栏布局） -->
       <div class="preview-section">
         <div class="panel preview-panel">
-          <h2>📺 实时预览</h2>
+          <h2 style="width: 100%; margin-bottom: 0;">📺 实时预览</h2>
+          
+          <!-- 左侧：视频容器 -->
           <div class="video-container" ref="videoContainer">
             <canvas ref="compositeCanvas" :width="canvasSize.width" :height="canvasSize.height"></canvas>
             <button class="fullscreen-btn" @click="toggleFullscreen">
@@ -529,35 +557,48 @@
               第{{ currentPptPage }}页 / 共{{ pptConfig.totalPages }}页
             </div>
           </div>
-          <div class="status-bar">
-            <div class="status-item">
-              <div class="status-dot" :class="{ active: isConnected, recording: isRecording }"></div>
-              <span>{{ isRecording ? '🔴 录制中' : (isConnected ? '🟢 已连接' : '⚪ 未连接') }}</span>
+
+          <!-- 右侧：按钮与状态边栏 -->
+          <div class="button-sidebar">
+            <!-- 状态条 -->
+            <div class="status-bar" style="margin: 0;">
+              <div class="status-item">
+                <div class="status-dot" :class="{ active: isConnected, recording: isRecording }"></div>
+                <span>{{ isRecording ? '🔴 录制中' : (isConnected ? '🟢 已连接' : '⚪ 未连接') }}</span>
+              </div>
+              <div class="status-item" v-if="isRecording || isBroadcasting">
+                <span>⏱️ {{ formatDuration(recordDuration) }}</span>
+              </div>
+              <div class="status-item" v-if="currentSentence > 0">
+                <span>📝 句 {{ currentSentence }}/{{ totalSentences }}</span>
+              </div>
             </div>
-            <div class="status-item" v-if="isRecording || isBroadcasting">
-              <span>⏱️ {{ formatDuration(recordDuration) }}</span>
+
+            <!-- 进度条 -->
+            <div class="progress-bar" v-if="isBroadcasting" style="margin-top: 0;">
+              <div class="progress-fill" :style="{ width: progressPercent + '%' }"></div>
             </div>
-            <div class="status-item" v-if="currentSentence > 0">
-              <span>📝 句 {{ currentSentence }}/{{ totalSentences }}</span>
+
+            <!-- 核心按钮组 -->
+            <div class="core-btn-group">
+              <button class="btn btn-primary" @click="startBroadcast" :disabled="isBroadcasting || step < 5 || !config.text || (usePPT && !pageTurningConfirmed)">
+                🎙️ {{ isBroadcasting ? '播报中...' : '开始播报' }}
+              </button>
+              <button class="btn btn-danger" @click="stopBroadcast" :disabled="!isBroadcasting">⏹️ 停止播报</button>
+              <button class="btn btn-success" @click="playCachedVideo" :disabled="!hasCachedVideo || isBroadcasting">📼 播放缓存</button>
+              <button class="btn btn-success" @click="downloadVideo" :disabled="!hasVideoBlob">💾 下载视频</button>
+              <button class="btn btn-primary" @click="saveToCache" :disabled="!hasVideoBlob">💾 保存到缓存</button>
+            </div>
+
+            <!-- PPT 提示 -->
+            <div v-if="usePPT && !pageTurningConfirmed" class="status-tip warn" style="margin-top: 0;">
+              请先完成 PPT 导入并确认翻页规则，以激活 PPT 背景
             </div>
           </div>
-          <div class="progress-bar" v-if="isBroadcasting">
-            <div class="progress-fill" :style="{ width: progressPercent + '%' }"></div>
-          </div>
-          <div class="core-btn-group">
-            <button class="btn btn-primary" @click="startBroadcast" :disabled="isBroadcasting || step < 5 || !config.text || (usePPT && !pageTurningConfirmed)">
-              🎙️ {{ isBroadcasting ? '播报中...' : '开始播报' }}
-            </button>
-            <button class="btn btn-danger" @click="stopBroadcast" :disabled="!isBroadcasting">⏹️ 停止播报</button>
-            <button class="btn btn-success" @click="playCachedVideo" :disabled="!hasCachedVideo || isBroadcasting">📼 播放缓存</button>
-            <button class="btn btn-success" @click="downloadVideo" :disabled="!hasVideoBlob">💾 下载视频</button>
-            <button class="btn btn-primary" @click="saveToCache" :disabled="!hasVideoBlob">💾 保存到缓存</button>
-          </div>
-          <div v-if="usePPT && !pageTurningConfirmed" class="status-tip warn" style="margin-top:15px;">
-            请先完成 PPT 导入并确认翻页规则，以激活 PPT 背景
-          </div>
-          <video ref="previewVideo" style="width:100%;margin-top:20px;border-radius:10px;" controls></video>
-          <div v-if="cachedVideos.length > 0" class="cache-info">
+        </div>
+        <!-- 预览视频（移到 preview-panel 外面，保持全宽） -->
+        <video ref="previewVideo" style="width:100%;margin-top:20px;border-radius:10px;" controls></video>
+        <div v-if="cachedVideos.length > 0" class="cache-info">
             <h3>📼 视频缓存 ({{ cachedVideos.length }}个)</h3>
             <div v-for="(cache, index) in cachedVideos" :key="index" class="cache-item">
               <div>
