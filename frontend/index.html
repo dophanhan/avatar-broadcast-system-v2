@@ -31,13 +31,21 @@
       box-shadow: 0 20px 60px rgba(0,0,0,0.3);
       overflow: hidden;
     }
+    /* 标题收窄：减小内边距、字体、行间距 */
     .header {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
-      padding: 30px;
+      padding: 15px 30px; /* 上下内边距减半，整体变窄 */
       text-align: center;
     }
-    .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+    .header h1 { 
+      font-size: 1.8em; /* 主标题缩小，更紧凑 */
+      margin-bottom: 5px; /* 标题和副标题间距收窄 */
+    }
+    .header p {
+      font-size: 1em; /* 副标题缩小 */
+      margin: 0;
+    }
     
     /* ========== 顶部预览区样式（修改为左右分栏） ========== */
     .preview-section {
@@ -50,14 +58,14 @@
       gap: 25px;
       align-items: stretch; // 关键：拉伸高度，左右完全等高
     }
-    /* 视频容器：严格 4:3 比例，和右侧按钮栏等高 */
+    /* 预览黑框高度缩小 10%（4:3 基础上再收窄） */
     .video-container {
       position: relative;
       width: 100%;
       max-width: 720px;
       margin: 0;
-      aspect-ratio: 4/3; /* 强制 4:3 */
-      height: 100%; /* 占满父容器拉伸高度 */
+      /* 原 4:3 为 75%，缩小 10% → 67.5%，高度直接降 10% */
+      padding-bottom: 67.5%;
       background: #000;
       border-radius: 15px;
       overflow: hidden;
