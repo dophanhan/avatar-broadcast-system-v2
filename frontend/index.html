@@ -56,17 +56,16 @@
       margin: 0;
       display: flex;
       gap: 25px;
-      align-items: flex-start; // 取消拉伸，防止高度还原
+      align-items: stretch; // ✅ 关键：拉伸高度，左右完全等高
     }
-    /* 核心：永久固定 4:3 缩小 10% 高度，绝不回弹 */
+    /* 视频容器：严格 3:3 比例，和右侧按钮栏等高 */
     .video-container {
       position: relative;
       width: 100%;
       max-width: 720px;
       margin: 0;
-      /* 唯一高度控制：67.5% = 4:3 缩小 10%，浏览器 100% 生效 */
-      padding-bottom: 67.5%;
-      height: 0 !important; /* 强制禁用自动高度，防止还原 */
+      aspect-ratio: 3/3; /* ✅ 强制 3:3（正方形） */
+      height: 100%; /* ✅ 占满父容器拉伸高度 */
       background: #000;
       border-radius: 15px;
       overflow: hidden;
