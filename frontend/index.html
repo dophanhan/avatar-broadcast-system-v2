@@ -24,6 +24,7 @@
       padding: 20px;
     }
     .container {
+      width: 100%; /* 统一宽度 */
       max-width: 1400px;
       margin: 0 auto;
       background: white;
@@ -65,7 +66,7 @@
       margin: 0;
       display: flex;
       gap: 25px;
-      align-items: stretch; // ✅ 关键：拉伸高度，左右完全等高
+      align-items: stretch; /* ✅ 关键：拉伸高度，左右完全等高 */
     }
     /* 视频黑框（无圆角） */
     .video-container {
@@ -592,7 +593,8 @@
       .header h1 { font-size: 1.8em; }
       .process-nav { padding: 15px 10px; overflow-x: auto; justify-content: flex-start; }
       .process-step { min-width: 120px; }
-      .preview-section, .config-section { padding: 15px 10px; }
+      /* 移动端保持统一间距，不覆盖 */
+      /* .preview-section, .config-section { padding: 15px 10px; } */
       .config-grid { grid-template-columns: 1fr; }
       .mode-selector { grid-template-columns: 1fr; }
       .dual-column-panel { flex-direction: column; height: auto; }
@@ -667,7 +669,6 @@
               请先完成 PPT 导入并确认翻页规则，以激活 PPT 背景
             </div>
           </div>
-        </div>
         </div>
       </div>
       <!-- 👇 播报模式选择（移到这里，步骤条上方） -->
