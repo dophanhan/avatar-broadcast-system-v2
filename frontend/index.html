@@ -2168,11 +2168,7 @@ ${sentencesList}
           });
           sdkInstance.on('frame_start', (data) => {
             lastFrameStartTime = Date.now();
-            if (sentenceIndex < currentSentences.value.length) {
-              currentSubtitle = currentSentences.value[sentenceIndex];
-              addLog(`📝 字幕更新 [句${sentenceIndex + 1}/${currentSentences.value.length}]: ${currentSubtitle.substring(0, 30)}...`, 'info');
-              sentenceIndex++;
-            }
+            // 【修复】移除自动递增，字幕由 speakSingleSentence 统一控制，避免重复
             if (waitingForBroadcastEnd && broadcastEndTimer) {
               clearTimeout(broadcastEndTimer);
               broadcastEndTimer = null;
