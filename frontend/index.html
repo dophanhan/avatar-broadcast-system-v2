@@ -424,7 +424,19 @@
     }
     .sentence-item:hover { background: #f8f9fa; }
     .sentence-item.bound { background: #e8f5e9; border-left: 3px solid #38ef7d; }
-    .sentence-item.highlight { background: #e3f2fd; border-left: 3px solid #2196f3; font-weight: 600; }
+    .sentence-item.highlight { background: #eff6ff; border-color: #bfdbfe; border-left: 5px solid #667eea; font-weight: 600; transform: translateX(4px); box-shadow: 0 4px 12px rgba(102,126,234,0.15); }
+    /* 新增：句子编号徽章 */
+    .sentence-item::before {
+      content: attr(data-index);
+      background: #e9ecef;
+      color: #495057;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: bold;
+      white-space: nowrap;
+      margin-right: 8px;
+    }
     .adjust-row {
       display: flex;
       gap: 10px;
@@ -1138,10 +1150,15 @@
           }
         }
         async function deleteCache(index) {
-          const cache = cachedVideos.value[index];
-          await deleteCachedVideo(cache.id);
-          cachedVideos.value.splice(index, 1);
-          addLog('已删除缓存', 'success');
+          try {
+            const cache = cachedVideos.value[index];
+            await deleteCachedVideo(cache.id);
+            cachedVideos.value.splice(index, 1);
+            addLog('已删除缓存', 'success');
+          } catch (e) {
+            addLog(`❌ 删除缓存失败:${e.message}`, 'error');
+            showToast('删除缓存失败', 'error');
+          }
         }
         async function playCache(index) {
           const cache = cachedVideos.value[index];
@@ -1922,6 +1939,10 @@ ${sentencesList}
             videoBlob.value = finalBlob;
             const fileSize = (videoBlob.value.size / 1024 / 1024).toFixed(2);
             addLog(`💾 最终视频生成成功:${fileSize} MB`, 'success');
+            // 【修复 P1】释放旧 URL，避免内存泄漏
+            if (previewVideo.value.src && previewVideo.value.src.startsWith('blob:')) {
+              URL.revokeObjectURL(previewVideo.value.src);
+            }
             const videoUrl = URL.createObjectURL(videoBlob.value);
             previewVideo.value.src = videoUrl;
           };
@@ -2066,15 +2087,7 @@ ${sentencesList}
             await stopRecording();
           }
           setTimeout(() => {
-            isBroadcasting.value = false;
-            isBroadcastingSentence = false;
-            currentSentence.value = 0;
-            totalSentences.value = 0;
-            progressPercent.value = 0;
-            waitingForBroadcastEnd = false;
-            sentenceIndex = 0;
-            currentSentences.value = [];
-            currentSubtitle = '';
+            // 【修复 P3】先销毁 SDK，避免后续事件触发
             if (sdkInstance) {
               try {
                 sdkInstance.stop();
@@ -2082,6 +2095,16 @@ ${sentencesList}
                 sdkInstance = null;
               } catch (e) {}
             }
+            // 再重置状态变量
+            isBroadcasting.value = false;
+            isBroadcastingSentence = false;
+            currentSentence.value = 0;
+            totalSentences.value = 0;
+            progressPercent.value = 0;
+            waitingForBroadcastEnd = false;
+            sentenceIndex = 0;
+            currentSubtitle = '';
+            currentSentences.value = [];
             setTimeout(() => {
               if (videoBlob.value && videoBlob.value.size > 0) {
                 addLog(`🎉 播报流程全部完成！视频已准备好下载`, 'success');
