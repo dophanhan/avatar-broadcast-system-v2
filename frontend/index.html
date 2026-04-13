@@ -648,6 +648,104 @@ input:checked + .switch-slider:before {
   from { transform: translateX(100%); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
 }
+
+/* ========== [P0_FIX] 修复：顶部步骤导航条样式 ========== */
+.process-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 30px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e0e0e0;
+  gap: 10px;
+}
+.process-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  position: relative;
+  color: #999;
+  transition: all 0.3s;
+  cursor: default;
+}
+/* 修复：横线位置 */
+.process-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 14px; /* 垂直居中对齐圆圈 */
+  left: 50%; /* 从当前步骤圆圈右侧开始 */
+  width: calc(100% - 28px); /* 画到下一步圆圈左侧 */
+  height: 2px;
+  background: #e0e0e0;
+}
+.process-step.completed:not(:last-child)::after {
+  background: #667eea;
+}
+.process-step.active {
+  color: #667eea;
+  font-weight: 600;
+}
+.process-step.completed {
+  color: #11998e;
+}
+.step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #e0e0e0;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  z-index: 10; /* 确保圆圈在横线上方 */
+}
+.process-step.active .step-num {
+  background: #667eea;
+}
+.process-step.completed .step-num {
+  background: #11998e;
+}
+.process-step.hidden {
+  display: none;
+}
+
+/* ========== [P0_FIX] 新增：模式选择样式 ========== */
+.mode-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+.mode-card {
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.mode-card:hover {
+  border-color: #667eea;
+  background: #f0f4ff;
+}
+.mode-card.active {
+  border-color: #667eea;
+  background: linear-gradient(135deg, #f0f4ff 0%, #e8eaf6 100%);
+}
+.mode-icon {
+  font-size: 32px;
+  margin-bottom: 10px;
+}
+.mode-title {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 5px;
+}
+.mode-desc {
+  font-size: 12px;
+  color: #666;
+}
 </style>
 </head>
 <body>
@@ -661,19 +759,15 @@ input:checked + .switch-slider:before {
         <h1>🎬 数字人播报系统</h1>
         <p>讯飞 XRtc 数字人 + 自动录制 + 视频缓存</p>
       </div>
-      <!-- [P0_NEW] 顶部步骤导航条 -->
+      <!-- [P0_FIX] 修复：简化顶部导航条，移除开关 ========== -->
       <div class="process-nav">
         <div class="process-step" :class="{ active: step >= 1, completed: step > 1 }">
           <span class="step-num">1</span>
           <span class="step-text">基础配置</span>
         </div>
-        <div class="process-step" :class="{ active: step >= 2, completed: step > 2, disabled: !usePPT }">
+        <div class="process-step" :class="{ active: step >= 2, completed: step > 2, hidden: !usePPT }">
           <span class="step-num">2</span>
           <span class="step-text">PPT 导入</span>
-          <label class="step-switch">
-            <input type="checkbox" v-model="usePPT" @change="onUsePPTToggle">
-            <span class="switch-slider"></span>
-          </label>
         </div>
         <div class="process-step" :class="{ active: step >= 3, completed: step > 3 }">
           <span class="step-num">3</span>
@@ -688,13 +782,40 @@ input:checked + .switch-slider:before {
           <span class="step-text">播报导出</span>
         </div>
       </div>
-      <!-- [P0_NEW] 步骤导航条结束 -->
+      <!-- [P0_FIX] 简化导航条结束 ========== -->
+
 <div class="main-content">
         <!-- 左侧控制面板 -->
         <div class="panel">
           <h2>⚙️ 配置面板</h2>
 
-          <!-- PPT 宣讲配置面板 -->
+          <!-- [P0_FIX] 新增：模式选择面板 ========== -->
+          <div class="panel">
+            <h2>🎯 播报模式选择</h2>
+            <div class="mode-selector">
+              <div 
+                class="mode-card" 
+                :class="{ active: !usePPT }" 
+                @click="switchMode(false)"
+              >
+                <div class="mode-icon">🎤</div>
+                <div class="mode-title">纯数字人播报</div>
+                <div class="mode-desc">无需 PPT，直接输入文案播报</div>
+              </div>
+              <div 
+                class="mode-card" 
+                :class="{ active: usePPT }" 
+                @click="switchMode(true)"
+              >
+                <div class="mode-icon">📑</div>
+                <div class="mode-title">PPT 宣讲播报</div>
+                <div class="mode-desc">上传 PPT，自动匹配翻页</div>
+              </div>
+            </div>
+          </div>
+          <!-- [P0_FIX] 模式选择面板结束 ========== -->
+
+<!-- PPT 宣讲配置面板 -->
           <div class="ppt-collapse">
             <div class="ppt-collapse-header" @click="pptCollapseOpen = !pptCollapseOpen">
               <span>📑 PPT 宣讲配置</span>
@@ -952,7 +1073,8 @@ input:checked + .switch-slider:before {
             </div>
           </div>
 
-          <!-- [P0_HIDDEN] <!-- 云端项目管理面板 -->
+          <!-- [P0_HIDDEN] 开始：隐藏云端项目模块 ==========
+<!-- 云端项目管理面板 -->
           <div class="ppt-collapse">
             <div class="ppt-collapse-header" @click="cloudProjectCollapseOpen = !cloudProjectCollapseOpen">
               <span>☁️ 我的云端项目</span>
@@ -992,7 +1114,9 @@ input:checked + .switch-slider:before {
               </div>
             </div>
           </div>
-          <!-- 云端项目管理面板结束 --> [P0_HIDDEN] -->
+          <!-- 云端项目管理面板结束 -->
+<!-- [P0_HIDDEN] 结束：隐藏云端项目模块 ==========
+--> [P0_HIDDEN] -->
 
           <div class="log-container" v-if="logs.length > 0">
             <div v-for="(log, index) in logs.slice(-20)" :key="index"
@@ -1376,7 +1500,28 @@ input:checked + .switch-slider:before {
             start_sentence_index: 0,
             end_sentence_index: 0
           };
-        });
+        })
+
+        // [P0_FIX] 修复：模式切换逻辑 ==========
+        function switchMode(enablePPT) {
+          console.log('切换模式，enablePPT:', enablePPT);
+
+          if (enablePPT) {
+            usePPT.value = true;
+            step.value = 2;
+            showToast('已切换到 PPT 宣讲模式', 'success', 2000);
+          } else {
+            usePPT.value = false;
+            // 清空 PPT 数据
+            reImportPpt();
+            // 直接跳到文案输入
+            step.value = 3;
+            showToast('已切换到纯播报模式', 'success', 2000);
+          }
+
+          console.log('当前步骤:', step.value);
+        }
+;
 
         // ==================== 工具函数 ====================
         function addLog(message, type = 'info') {
