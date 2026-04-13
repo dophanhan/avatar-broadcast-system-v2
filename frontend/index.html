@@ -1121,13 +1121,29 @@
           console.log('切换模式，enablePPT:', enablePPT);
           if (enablePPT) {
             usePPT.value = true;
+            // 【修复】PPT 宣讲播报模式自动切换为横屏
+            broadcastMode.value = 'horizontal';
+            canvasSize.width = 1920;
+            canvasSize.height = 1080;
+            if (compositeCanvas.value) {
+              compositeCanvas.value.width = 1920;
+              compositeCanvas.value.height = 1080;
+            }
             step.value = 2;
-            showToast('已切换到 PPT 宣讲模式', 'success', 2000);
+            showToast('已切换到 PPT 宣讲模式（横屏）', 'success', 2000);
           } else {
             usePPT.value = false;
+            // 【修复】纯播报模式切换回竖屏
+            broadcastMode.value = 'vertical';
+            canvasSize.width = 720;
+            canvasSize.height = 1280;
+            if (compositeCanvas.value) {
+              compositeCanvas.value.width = 720;
+              compositeCanvas.value.height = 1280;
+            }
             reImportPpt();
             step.value = 3;
-            showToast('已切换到纯播报模式', 'success', 2000);
+            showToast('已切换到纯播报模式（竖屏）', 'success', 2000);
           }
           console.log('当前步骤:', step.value);
         }
