@@ -39,7 +39,7 @@
     }
     .header h1 { font-size: 2.5em; margin-bottom: 10px; }
     
-    /* ========== 顶部预览区样式（修改为左右分栏） ========== */
+    /* ========== 1. 顶部预览区（左右完美等高对齐） ========== */
     .preview-section {
       padding: 20px 30px;
       background: #f8f9fa;
@@ -48,26 +48,30 @@
       margin: 0;
       display: flex;
       gap: 25px;
-      align-items: flex-start;
+      /* 核心修改：让左右两栏等高，并设定一个合适的固定高度 */
+      align-items: stretch;
+      height: 520px;
     }
-    /* 视频容器比例调整，与右侧按钮列高度对齐 */
+    /* 视频容器样式 */
     .video-container {
       position: relative;
-      width: 100%;
-      max-width: 720px;
+      flex: 0 0 55%; /* 视频区占 55% 宽度 */
+      height: 100%; /* 撑满父级高度 */
       margin: 0;
-      padding-bottom: 68.5%; /* v2 */ /* 调整：从 50% 增加到 68%，让视频底部与按钮底部对齐 */
-      background: #000;
+      padding-bottom: 0; /* 移除之前的比例 padding */
+      background: #0f172a;
       border-radius: 15px;
       overflow: hidden;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
       flex-shrink: 0;
     }
     /* 新增：右侧按钮边栏样式 */
     .button-sidebar {
       flex: 1;
-      min-width: 220px;
       display: flex;
       flex-direction: column;
+      /* 让元素在侧边栏内上下分布，按钮组自动沉底 */
+      justify-content: flex-start;
       gap: 15px;
     }
     .video-container.fullscreen {
@@ -121,19 +125,26 @@
       font-size: 14px;
       z-index: 10;
     }
-    /* 修改：核心按钮组改为垂直排列 */
+    /* ========== 2. 核心按钮组优化（矩阵布局） ========== */
     .core-btn-group {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 0;
-      justify-content: flex-start;
-      flex-direction: column;
+      display: grid;
+      grid-template-columns: 1fr 1fr; /* 两列网格 */
+      gap: 12px;
+      margin-top: auto; /* 自动推到侧边栏最底部 */
     }
     .core-btn-group .btn {
       width: 100%;
-      margin-right: 0;
+      margin: 0; /* 移除原有的 margin */
       justify-content: center;
+      padding: 12px 10px;
+    }
+    /* 突出主操作按钮 */
+    .core-btn-group .btn-primary:first-child,
+    .core-btn-group .btn-danger {
+      grid-column: span 2; /* 开始和停止播报横跨两列 */
+      padding: 16px;
+      font-size: 1.1em;
+      border-radius: 12px;
     }
     
     /* ========== 步骤导航条样式 ========== */
@@ -307,6 +318,24 @@
       transition: width 0.3s;
       width: 0%;
     }
+    /* ========== 3. 缓存视频变窄居中 ========== */
+    .cached-video-wrapper {
+      display: flex;
+      justify-content: center;
+      margin-top: 25px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 15px;
+      border: 1px dashed #ced4da;
+    }
+    .cached-video-wrapper video {
+      width: 100%;
+      max-width: 640px; /* 限制最大宽度，让视频变窄 */
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      background: #000;
+    }
+    
     .cache-info {
       background: #e8f5e9;
       border: 1px solid #c8e6c9;
@@ -373,26 +402,57 @@
       align-items: center;
       margin-bottom: 15px;
     }
+    /* ========== 4. PPT 图片 4 列网格 & 放大交互 ========== */
     .ppt-thumb-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
+      grid-template-columns: repeat(4, 1fr); /* 保持 4 列 */
+      gap: 15px;
       margin-top: 15px;
-      max-height: 200px;
+      max-height: 280px;
       overflow-y: auto;
+      padding-right: 5px;
     }
     .ppt-thumb-item {
-      border: 1px solid #e0e0e0;
+      position: relative;
+      border: 2px solid transparent;
       border-radius: 8px;
-      padding: 8px;
-      cursor: pointer;
+      padding: 5px;
+      cursor: zoom-in; /* 提示可放大 */
       transition: all 0.3s;
+      background: #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    /* 增加遮罩放大镜效果 */
+    .ppt-thumb-item::after {
+      content: '🔍 点击放大';
+      position: absolute;
+      top: 5px; left: 5px; right: 5px; bottom: 30px;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      border-radius: 4px;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+    }
+    .ppt-thumb-item:hover::after {
+      opacity: 1;
     }
     .ppt-thumb-item:hover, .ppt-thumb-item.active {
       border-color: #667eea;
-      background: #f0f4ff;
+      transform: translateY(-2px); /* 悬停微动效 */
+      box-shadow: 0 6px 15px rgba(102,126,234,0.2);
     }
-    .ppt-thumb-item img { width: 100%; border-radius: 4px; margin-bottom: 5px; }
+    .ppt-thumb-item img { 
+      width: 100%; 
+      aspect-ratio: 16/9; 
+      object-fit: cover; 
+      border-radius: 4px; 
+      display: block; 
+    }
     .ppt-thumb-title {
       font-size: 12px;
       color: #333;
@@ -401,30 +461,67 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+    /* ========== 5. 智能分段双栏展示优化 ========== */
     .dual-column-panel {
       display: flex;
-      gap: 10px;
-      height: 400px;
+      gap: 20px;
+      height: 450px; /* 稍微增加高度 */
       margin: 15px 0;
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 12px;
     }
     .column-box {
       flex: 1;
-      border: 1px solid #e0e0e0;
+      background: white;
+      border: none;
       border-radius: 10px;
-      padding: 10px;
+      padding: 15px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.04);
       overflow-y: auto;
     }
     .column-title { font-weight: 600; color: #333; margin-bottom: 10px; font-size: 14px; }
     .sentence-item {
-      padding: 8px 10px;
-      border-radius: 6px;
-      margin-bottom: 5px;
+      padding: 12px 15px;
+      background: #fdfdfd;
+      border: 1px solid #f1f3f5;
+      border-radius: 8px;
+      margin-bottom: 8px;
       font-size: 13px;
       cursor: grab;
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    /* 增加句号编号徽章 */
+    .sentence-item::before {
+      content: attr(data-index);
+      background: #e9ecef;
+      color: #495057;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: bold;
+      white-space: nowrap;
     }
     .sentence-item:hover { background: #f8f9fa; }
-    .sentence-item.bound { background: #e8f5e9; border-left: 3px solid #38ef7d; }
-    .sentence-item.highlight { background: #e3f2fd; border-left: 3px solid #2196f3; font-weight: 600; }
+    
+    /* 绑定的句子状态 */
+    .sentence-item.bound { 
+      background: #f4fdf8; 
+      border-color: #c3e6cb;
+      border-left: 4px solid #38ef7d; /* 强调左边框 */
+    }
+    /* 当前选中的 PPT 页面对应的高亮句子状态 */
+    .sentence-item.highlight { 
+      background: #eff6ff;
+      border-color: #bfdbfe;
+      border-left: 5px solid #667eea; 
+      font-weight: 600; 
+      transform: translateX(4px); /* 高亮时向右挤压出层级感 */
+      box-shadow: 0 4px 12px rgba(102,126,234,0.15);
+    }
     .adjust-row {
       display: flex;
       gap: 10px;
@@ -597,8 +694,10 @@
             </div>
           </div>
         </div>
-        <!-- 预览视频（移到 preview-panel 外面，保持全宽） -->
-        <video ref="previewVideo" style="width:100%;margin-top:20px;border-radius:10px;" controls></video>
+        <!-- 预览视频（轻量化包裹层） -->
+        <div class="cached-video-wrapper">
+          <video ref="previewVideo" controls></video>
+        </div>
         <div v-if="cachedVideos.length > 0" class="cache-info">
             <h3>📼 视频缓存 ({{ cachedVideos.length }}个)</h3>
             <div v-for="(cache, index) in cachedVideos" :key="index" class="cache-item">
