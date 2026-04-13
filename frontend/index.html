@@ -618,23 +618,37 @@
       .core-btn-group { justify-content: flex-start; }
     }
     
-    /* ========== 预览视频黑框修复 ========== */
+    /* ========== 预览视频黑框（强制显示） ========== */
     .preview-video-container {
       width: 100%;
-      margin-top: 20px;
+      position: relative;
       border-radius: 10px;
       background: #000000;
       overflow: hidden;
-      min-height: 200px;
+      min-height: 240px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
     .preview-video-container video {
       width: 100%;
       height: 100%;
-      min-height: 200px;
+      min-height: 240px;
       display: block;
       border-radius: 10px;
       object-fit: contain;
+    }
+    /* 无视频时的占位提示 */
+    .video-placeholder {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #999;
+      font-size: 14px;
+      pointer-events: none;
     }
   </style>
 </head>
@@ -2504,6 +2518,8 @@ ${sentencesList}
         });
         onMounted(async () => {
           saveProjectModalOpen.value = false;
+          // 新增：强制等待 DOM 渲染完成，确保 previewVideo ref 能拿到元素
+          await nextTick();
           await loadCachedVideos();
           addLog('页面加载完成', 'success');
           const urlParams = new URLSearchParams(window.location.search);
