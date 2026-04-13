@@ -618,20 +618,24 @@
       .core-btn-group { justify-content: flex-start; }
     }
     
-    /* ========== 预览视频黑框（强制显示） ========== */
+    /* ========== 成品预览视频区（强制显示黑框） ========== */
+    .preview-video-wrap {
+      width: 100%;
+      flex-shrink: 0;
+    }
     .preview-video-container {
       width: 100%;
       position: relative;
       border-radius: 10px;
       background: #000000;
       overflow: hidden;
-      min-height: 240px;
+      min-height: 280px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
     .preview-video-container video {
       width: 100%;
       height: 100%;
-      min-height: 240px;
+      min-height: 280px;
       display: block;
       border-radius: 10px;
       object-fit: contain;
@@ -649,6 +653,30 @@
       color: #999;
       font-size: 14px;
       pointer-events: none;
+    }
+    
+    /* ========== 响应式适配 ========== */
+    @media (max-width: 1200px) { 
+      .config-grid { grid-template-columns: 1fr 1fr; }
+      .live-preview-row { flex-direction: column; }
+      .video-container { width: 100%; flex: none; min-width: auto; }
+      .button-sidebar { width: 100%; min-width: auto; }
+      .core-btn-group { flex-direction: row; flex-wrap: wrap; }
+      .core-btn-group .btn { width: auto; }
+    }
+    @media (max-width: 768px) {
+      body { padding: 10px; }
+      .header h1 { font-size: 1.8em; }
+      .process-nav { padding: 15px 10px; overflow-x: auto; justify-content: flex-start; }
+      .process-step { min-width: 120px; }
+      .preview-section, .config-section { padding: 15px 10px; }
+      .config-grid { grid-template-columns: 1fr; }
+      .mode-selector { grid-template-columns: 1fr; }
+      .dual-column-panel { flex-direction: column; height: auto; }
+      .ppt-thumb-grid { grid-template-columns: repeat(2, 1fr); }
+      .core-btn-group { justify-content: flex-start; }
+      .preview-video-container { min-height: 200px; }
+      .preview-video-container video { min-height: 200px; }
     }
   </style>
 </head>
@@ -1248,10 +1276,27 @@
         }
         async function playCache(index) {
           const cache = cachedVideos.value[index];
-          const videoUrl = URL.createObjectURL(cache.video);
-          previewVideo.value.src = videoUrl;
-          previewVideo.value.play();
-          addLog(`播放缓存视频:${cache.text.substring(0, 20)}...`, 'success');
+          try {
+            // 释放旧 URL
+            if (previewVideo.value.src && previewVideo.value.src.startsWith('blob:')) {
+              URL.revokeObjectURL(previewVideo.value.src);
+            }
+            // 创建新 URL
+            const videoUrl = URL.createObjectURL(cache.video);
+            // 强制重载
+            previewVideo.value.src = '';
+            await nextTick();
+            previewVideo.value.src = videoUrl;
+            previewVideo.value.load();
+            // 自动播放
+            await previewVideo.value.play().catch(e => {
+              addLog(`⚠️ 自动播放失败，请手动点击播放:${e.message}`, 'warn');
+            });
+            addLog(`播放缓存视频:${cache.text.substring(0, 20)}...`, 'success');
+          } catch (e) {
+            addLog(`❌ 缓存视频播放失败:${e.message}`, 'error');
+            showToast('缓存视频播放失败', 'error');
+          }
         }
         async function playCachedVideo() {
           if (cachedVideos.value.length > 0) playCache(0);
@@ -1953,8 +1998,10 @@ ${sentencesList}
             console.log('🔍 原始视频格式:', videoMimeType);
             const rawBlob = new Blob(recordedChunks, { type: videoMimeType });
             console.log('🔍 原始视频大小:', (rawBlob.size / 1024 / 1024).toFixed(2), 'MB');
+            // 【关键修复 1】空 Blob 拦截，直接报错提示
             if (rawBlob.size <= 0) {
-              addLog('❌ 视频 Blob 为空!', 'error');
+              addLog('❌ 视频 Blob 为空，录制未采集到画面数据！', 'error');
+              showToast('视频录制失败，未采集到画面数据', 'error');
               return;
             }
             let finalBlob = rawBlob;
@@ -2003,11 +2050,30 @@ ${sentencesList}
               addLog(`⚠️ MP4 优化失败，使用原始视频:${e.message}`, 'warn');
               finalBlob = rawBlob;
             }
+            // 【关键修复 2】全局存储视频 Blob，确保响应式更新
             videoBlob.value = finalBlob;
             const fileSize = (videoBlob.value.size / 1024 / 1024).toFixed(2);
             addLog(`💾 最终视频生成成功:${fileSize} MB`, 'success');
-            const videoUrl = URL.createObjectURL(videoBlob.value);
-            previewVideo.value.src = videoUrl;
+            // 【关键修复 3】彻底解决视频不显示：释放旧 URL、创建新 URL、强制重载
+            try {
+              // 释放之前的 ObjectURL，避免内存泄漏和重复赋值失效
+              if (previewVideo.value.src && previewVideo.value.src.startsWith('blob:')) {
+                URL.revokeObjectURL(previewVideo.value.src);
+              }
+              // 创建新的 ObjectURL
+              const videoUrl = URL.createObjectURL(videoBlob.value);
+              // 强制清空再赋值，触发 DOM 更新
+              previewVideo.value.src = '';
+              await nextTick();
+              previewVideo.value.src = videoUrl;
+              // 强制重载视频
+              previewVideo.value.load();
+              addLog('✅ 视频已加载到预览窗口，可点击播放', 'success');
+              showToast('视频生成成功，已加载到预览区', 'success');
+            } catch (e) {
+              addLog(`❌ 视频预览加载失败:${e.message}`, 'error');
+              showToast('视频预览加载失败', 'error');
+            }
           };
           recordingStartTime = Date.now();
           mediaRecorder.start(100);
