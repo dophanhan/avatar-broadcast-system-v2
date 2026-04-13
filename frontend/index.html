@@ -48,16 +48,16 @@
       margin: 0;
       display: flex;
       gap: 25px;
-      align-items: flex-start;
+      align-items: stretch; // 关键：拉伸高度，左右完全等高
     }
-    /* 视频容器：4:3 比例，与右侧按钮栏等高 */
+    /* 视频容器：严格 4:3 比例，和右侧按钮栏等高 */
     .video-container {
       position: relative;
       width: 100%;
       max-width: 720px;
       margin: 0;
-      /* 4:3 计算公式：height/width = 3/4 = 75% */
-      padding-bottom: 75%;
+      aspect-ratio: 4/3; /* 强制 4:3 */
+      height: 100%; /* 占满父容器拉伸高度 */
       background: #000;
       border-radius: 15px;
       overflow: hidden;
@@ -618,6 +618,24 @@
         </div>
         </div>
       </div>
+      <!-- 👇 播报模式选择（移到这里，步骤条上方） -->
+      <div class="config-section" style="padding: 20px 30px 0;">
+        <div class="panel config-panel">
+          <h2>🎯 播报模式选择</h2>
+          <div class="mode-selector">
+            <div class="mode-card" :class="{ active: !usePPT }" @click="switchMode(false)">
+              <div class="mode-icon">🎤</div>
+              <div class="mode-title">纯数字人播报</div>
+              <div class="mode-desc">无需 PPT，直接输入文案播报</div>
+            </div>
+            <div class="mode-card" :class="{ active: usePPT }" @click="switchMode(true)">
+              <div class="mode-icon">📑</div>
+              <div class="mode-title">PPT 宣讲播报</div>
+              <div class="mode-desc">上传 PPT，自动匹配翻页</div>
+            </div>
+          </div>
+        </div>
+      </div>
       <!-- 3. 步骤导航条 -->
       <div class="process-nav">
         <div class="process-step" :class="{ active: step >= 1, completed: step > 1 }">
@@ -638,23 +656,7 @@
       </div>
       <!-- 4. 全宽配置区 -->
       <div class="config-section">
-        <!-- 4.1 模式选择 -->
-        <div class="panel config-panel">
-          <h2>🎯 播报模式选择</h2>
-          <div class="mode-selector">
-            <div class="mode-card" :class="{ active: !usePPT }" @click="switchMode(false)">
-              <div class="mode-icon">🎤</div>
-              <div class="mode-title">纯数字人播报</div>
-              <div class="mode-desc">无需 PPT，直接输入文案播报</div>
-            </div>
-            <div class="mode-card" :class="{ active: usePPT }" @click="switchMode(true)">
-              <div class="mode-icon">📑</div>
-              <div class="mode-title">PPT 宣讲播报</div>
-              <div class="mode-desc">上传 PPT，自动匹配翻页</div>
-            </div>
-          </div>
-        </div>
-        <!-- 4.2 基础配置 -->
+        <!-- 4.1 基础配置 -->
         <div class="panel config-panel">
           <h2>⚙️ 基础配置</h2>
           <div class="config-grid">
