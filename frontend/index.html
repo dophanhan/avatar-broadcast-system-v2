@@ -816,7 +816,7 @@ input:checked + .switch-slider:before {
           <!-- [P0_FIX] 模式选择面板结束 ========== -->
 
 <!-- PPT 宣讲配置面板 -->
-          <div class="ppt-collapse">
+          <div class="ppt-collapse" v-if="usePPT">
             <div class="ppt-collapse-header" @click="pptCollapseOpen = !pptCollapseOpen">
               <span>📑 PPT 宣讲配置</span>
               <span>{{ pptCollapseOpen ? '▼' : '▶' }}</span>
@@ -3183,7 +3183,14 @@ function onBroadcastFailed(reason) {
           // 💡 修复:必须导出这两个变量,上传按钮才能显示!
           localPptFile,
           uploadingLocalPpt,
-          cloudProjectCollapseOpen,
+            // [P0_FIX] 新增导出
+          step,
+          usePPT,
+          toastList,
+          switchMode,
+          showToast,
+          closeToast,
+cloudProjectCollapseOpen,
           cloudProjectList,
           saveProjectModalOpen,
           saveProjectForm,
