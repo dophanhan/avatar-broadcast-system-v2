@@ -1825,7 +1825,8 @@ input:checked + .switch-slider:before {
           addLog('📤 正在上传 PPT 文件...', 'info');
           addLog(`📊 上传前:pptConfig.imported=${pptConfig.imported}`, 'info');
 
-          try {  const loadingToast = showToast('正在解析 PPT,请稍候(10-30 秒),请勿关闭页面', 'loading');
+          let loadingToast = null;
+          try {  
 
             // 读取文件为 base64
             const fileToBase64 = (file) => {
