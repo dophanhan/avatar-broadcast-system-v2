@@ -48,9 +48,7 @@
       margin: 0;
       display: flex;
       gap: 25px;
-      /* 核心修改：让左右两栏等高，并设定一个合适的固定高度 */
-      align-items: stretch;
-      height: 520px;
+      align-items: flex-start;
     }
     /* 视频容器样式 */
     .video-container {
@@ -125,26 +123,34 @@
       font-size: 14px;
       z-index: 10;
     }
-    /* ========== 2. 核心按钮组优化（矩阵布局） ========== */
+    /* ========== 2. 右侧按钮回归正常排布 ========== */
+    .button-sidebar {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px; /* 加大间距让排版更舒展 */
+      justify-content: flex-start; /* 保持在上方，不沉底 */
+    }
+    
     .core-btn-group {
       display: grid;
-      grid-template-columns: 1fr 1fr; /* 两列网格 */
+      grid-template-columns: 1fr 1fr;
       gap: 12px;
-      margin-top: auto; /* 自动推到侧边栏最底部 */
+      margin-top: 0; /* 移除之前的 margin-top: auto */
     }
+    
     .core-btn-group .btn {
       width: 100%;
-      margin: 0; /* 移除原有的 margin */
+      margin: 0;
       justify-content: center;
       padding: 12px 10px;
     }
-    /* 突出主操作按钮 */
+    /* 开始和停止按钮横跨两列，更为醒目 */
     .core-btn-group .btn-primary:first-child,
     .core-btn-group .btn-danger {
-      grid-column: span 2; /* 开始和停止播报横跨两列 */
-      padding: 16px;
-      font-size: 1.1em;
-      border-radius: 12px;
+      grid-column: span 2;
+      padding: 15px;
+      font-size: 16px;
     }
     
     /* ========== 步骤导航条样式 ========== */
@@ -318,30 +324,84 @@
       transition: width 0.3s;
       width: 0%;
     }
-    /* ========== 3. 缓存视频变窄居中 ========== */
-    .cached-video-wrapper {
+    /* ========== 3. 缓存与导出模块（融入整体框架） ========== */
+    .cache-panel {
+      margin-top: 20px; /* 与上方预览区隔开 */
+    }
+    .cache-layout {
       display: flex;
-      justify-content: center;
-      margin-top: 25px;
-      padding: 20px;
-      background: #f8f9fa;
-      border-radius: 15px;
-      border: 1px dashed #ced4da;
+      gap: 25px;
+      align-items: flex-start;
     }
-    .cached-video-wrapper video {
-      width: 100%;
-      max-width: 640px; /* 限制最大宽度，让视频变窄 */
+    /* 播放器区域 */
+    .cache-player-box {
+      flex: 1.5; /* 播放器占比较大 */
+      background: #0f172a;
       border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-      background: #000;
+      overflow: hidden;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+      /* 维持一个较好的比例 */
+      aspect-ratio: 16/9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    
-    .cache-info {
-      background: #e8f5e9;
-      border: 1px solid #c8e6c9;
-      border-radius: 10px;
-      padding: 15px;
-      margin-top: 15px;
+    .cache-player-box video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    /* 缓存列表区域 */
+    .cache-list-box {
+      flex: 1;
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid #e0e0e0;
+      height: 100%;
+      min-height: 250px;
+    }
+    .cache-list-box h3 {
+      font-size: 1.1em;
+      color: #333;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+    .cache-scroll-area {
+      max-height: 350px;
+      overflow-y: auto;
+      padding-right: 5px;
+    }
+    /* 调整缓存条目的 UI */
+    .cache-item {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 12px;
+      background: white;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #eee;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    }
+    .cache-item-header {
+      font-weight: 600;
+      color: #333;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .cache-item-meta {
+      font-size: 12px;
+      color: #888;
+      display: flex;
+      justify-content: space-between;
+    }
+    .cache-item-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 5px;
     }
     .cache-info h3 { color: #2e7d32; font-size: 1.1em; margin-bottom: 10px; }
     .cache-item {
@@ -694,23 +754,36 @@
             </div>
           </div>
         </div>
-        <!-- 预览视频（轻量化包裹层） -->
-        <div class="cached-video-wrapper">
-          <video ref="previewVideo" controls></video>
-        </div>
-        <div v-if="cachedVideos.length > 0" class="cache-info">
-            <h3>📼 视频缓存 ({{ cachedVideos.length }}个)</h3>
-            <div v-for="(cache, index) in cachedVideos" :key="index" class="cache-item">
-              <div>
-                <strong>{{ cache.text.substring(0, 20) }}{{ cache.text.length > 20 ? '...' : '' }}</strong>
-                <div style="font-size:12px;color:#666;">{{ new Date(cache.timestamp).toLocaleString() }} | {{ formatDuration(cache.duration) }}</div>
-              </div>
-              <div class="cache-item-actions">
-                <button class="btn btn-small btn-primary" @click="playCache(index)">▶️ 播放</button>
-                <button class="btn btn-small btn-danger" @click="deleteCache(index)">🗑️ 删除</button>
+      <!-- 视频导出与缓存库（独立面板） -->
+      <div class="panel cache-panel" v-show="hasVideoBlob || cachedVideos.length > 0">
+        <h2>📼 视频导出与缓存库</h2>
+        <div class="cache-layout">
+          
+          <div class="cache-player-box">
+            <video ref="previewVideo" controls></video>
+          </div>
+
+          <div class="cache-list-box" v-if="cachedVideos.length > 0">
+            <h3>本地历史缓存 ({{ cachedVideos.length }})</h3>
+            <div class="cache-scroll-area">
+              <div v-for="(cache, index) in cachedVideos" :key="index" class="cache-item">
+                <div class="cache-item-header">
+                  {{ cache.text.substring(0, 30) }}{{ cache.text.length > 30 ? '...' : '' }}
+                </div>
+                <div class="cache-item-meta">
+                  <span>{{ new Date(cache.timestamp).toLocaleString() }}</span>
+                  <span>时长：{{ formatDuration(cache.duration) }}</span>
+                </div>
+                <div class="cache-item-actions">
+                  <button class="btn btn-small btn-primary" style="margin:0;width:100%;" @click="playCache(index)">▶️ 播放</button>
+                  <button class="btn btn-small btn-danger" style="margin:0;width:100%;" @click="deleteCache(index)">🗑️ 删除</button>
+                </div>
               </div>
             </div>
           </div>
+          
+        </div>
+      </div>
         </div>
       </div>
       <!-- 3. 步骤导航条 -->
