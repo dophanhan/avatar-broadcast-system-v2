@@ -146,36 +146,53 @@
     }
     
     /* ========== 步骤导航条样式 ========== */
+    /* 🔥 步骤导航条 彻底修复遮挡（两种模式通用） */
     .process-nav {
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
-      padding: 25px 30px 20px; /* 上间距增加，避免与上方面板遮挡 */
-      background: #ffffff;
-      border-top: 1px solid #e0e0e0;
-      border-bottom: 1px solid #e0e0e0;
+      margin: 25px 0; /* 增大上下间距，不贴靠播报模式 */
+      padding: 15px 0; /* 增加内部高度，彻底消除遮挡 */
+      background: #fff;
+      border-radius: 10px;
       gap: 10px;
+      position: relative;
+      z-index: 1;
     }
+    /* 导航项文字 + 布局 不遮挡 */
     .process-step {
       display: flex;
       align-items: center;
       gap: 8px;
-      flex: 1;
-      position: relative;
-      color: #999;
-      transition: all 0.3s;
+      font-size: 16px;
+      font-weight: 500;
+      color: #666;
+      cursor: pointer;
+      padding: 8px 12px; /* 文字周围留足空间 */
+      line-height: 1.2; /* 文字行高正常，不压线 */
     }
+    /* 激活状态样式 */
+    .process-step.active {
+      color: #667eea;
+      font-weight: 600;
+    }
+    /* 中间横线 调整高度 + 位置，绝不遮挡文字 */
     .process-step:not(:last-child)::after {
       content: '';
       position: absolute;
-      top: 14px; left: 50%;
-      width: calc(100% - 28px);
-      height: 2px;
-      background: #e0e0e0;
+      top: 50%;
+      left: 100%;
+      width: 40px;
+      height: 2px; /* 横线细一点，不挡文字 */
+      background: #ddd;
+      transform: translateY(-50%);
     }
-    .process-step.completed:not(:last-child)::after { background: #667eea; }
-    .process-step.active { color: #667eea; font-weight: 600; }
-    .process-step.completed { color: #11998e; }
+    .process-step.completed:not(:last-child)::after { 
+      background: #667eea;
+    }
+    .process-step.completed { 
+      color: #11998e; 
+    }
     .step-num {
       width: 28px; height: 28px;
       border-radius: 50%;
@@ -185,7 +202,7 @@
       align-items: center;
       justify-content: center;
       font-size: 14px;
-      z-index: 10;
+      flex-shrink: 0;
     }
     .process-step.active .step-num { background: #667eea; }
     .process-step.completed .step-num { background: #11998e; }
