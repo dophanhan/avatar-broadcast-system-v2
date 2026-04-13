@@ -31,14 +31,14 @@
       box-shadow: 0 20px 60px rgba(0,0,0,0.3);
       overflow: hidden;
     }
-    /* 标题栏：加宽上下间距，宽度对齐容器 */
     .header {
+      /* 原有背景、颜色、居中代码保留 */
+      padding: 18px 25px;
+      text-align: center;
+      border-radius: 0; /* 标题无圆角 */
+      margin-bottom: 25px; /* 标题 ↔ 实时预览 拉开距离 */
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
-      padding: 20px 30px; /* 上下留足间距，不挨紧 */
-      text-align: center;
-      border-radius: 0 !important; /* 无圆角 */
-      margin: 0 0 20px 0; /* 底部留白，不贴预览区 */
       width: 100%;
       box-sizing: border-box;
     }
@@ -53,6 +53,12 @@
     
     /* ========== 顶部预览区样式（修改为左右分栏） ========== */
     .preview-section {
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 0;
+      margin-bottom: 25px;
+      width: 100%;
+      box-sizing: border-box;
       border-radius: 0 !important; /* 无圆角 */
       margin: 0 0 20px 0; /* 底部留白，不贴播报模式 */
       width: 100%;
@@ -66,16 +72,17 @@
       gap: 25px;
       align-items: stretch; // ✅ 关键：拉伸高度，左右完全等高
     }
-    /* 视频容器：严格 16:9 比例，和右侧按钮栏等高 */
+    /* 视频黑框（无圆角） */
     .video-container {
+      /* 原有尺寸、布局代码保留 */
       position: relative;
       width: 100%;
       max-width: 720px;
       margin: 0;
-      aspect-ratio: 16/9; /* ✅ 强制 16:9（宽屏） */
-      height: 100%; /* ✅ 占满父容器拉伸高度 */
+      aspect-ratio: 16/9;
+      height: 100%;
       background: #000;
-      border-radius: 15px;
+      border-radius: 0; /* 精准去掉预览框圆角 */
       overflow: hidden;
       flex-shrink: 0;
     }
@@ -216,32 +223,34 @@
     .process-step.completed .step-num { background: #11998e; }
     .process-step.hidden { display: none; }
     
-    /* ========== 全宽配置区样式 ========== */
+    /* 播报模式外层容器 */
     .config-section {
-      padding: 20px 30px;
+      /* 原有代码保留 */
+      padding: 20px;
       background: #f8f9fa;
-      border-radius: 0 !important; /* 无圆角 */
-      margin: 0 0 20px 0; /* 底部留白，不贴步骤条 */
+      border-radius: 0; /* 去掉圆角 */
+      margin-bottom: 25px; /* 播报模式 ↔ 步骤导航 拉开距离 */
       width: 100%;
       box-sizing: border-box;
     }
-    /* 统一所有面板：无圆角、宽度 100%、内边距一致 */
     .panel {
-      border-radius: 0 !important; /* 全去圆角 */
-      width: 100%; /* 宽度统一 */
-      box-sizing: border-box;
+      /* 原有代码保留，只改这两行 */
+      border-radius: 0; /* 精准去掉圆角，无优先级覆盖 */
+      margin-bottom: 25px; /* 面板底部统一间距 */
       background: #ffffff;
       padding: 25px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
+      width: 100%;
+      box-sizing: border-box;
     }
-    /* 预览面板专属：去掉圆角、上下间距拉开 */
+    /* 预览内部面板 */
     .preview-panel {
+      /* 原有布局代码保留 */
+      border-radius: 0; /* 无圆角 */
       margin: 0;
       display: flex;
       gap: 25px;
       align-items: flex-start;
-      border-radius: 0 !important;
     }
     .panel h2 {
       color: #667eea;
