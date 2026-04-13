@@ -720,8 +720,16 @@
               </div>
               <div class="column-box">
                 <div class="column-title">📝 绑定的播报句子</div>
-                <div class="sentence-item" :class="{ bound: isSentenceBound(index), highlight: isSentenceHighlight(index) }" v-for="(sentence, index) in currentSentences" :key="index" draggable="true" @dragstart="dragSentence(index)" @drop="dropSentence" @dragover.prevent>
-                  句{{ index+1 }}: {{ sentence }}
+                <div class="sentence-item" 
+                     :class="{ bound: isSentenceBound(index), highlight: isSentenceHighlight(index) }" 
+                     v-for="(sentence, index) in currentSentences" 
+                     :key="index" 
+                     :data-index="'句' + (index+1)"
+                     draggable="true" 
+                     @dragstart="dragSentence(index)" 
+                     @drop="dropSentence" 
+                     @dragover.prevent>
+                  {{ sentence }}
                 </div>
               </div>
             </div>
@@ -1076,14 +1084,14 @@
           addLog('打开 PPT 大图预览', 'info');
         }
         // [修复 3] 句子高亮函数 - 修正查找逻辑
-        function isSentenceHighlight(sentenceIndex) {
+        function isSentenceHighlight(idx) {
           if (!pageTurningNodes.value || pageTurningNodes.value.length === 0) {
             return false;
           }
           // 【修复 3】使用 find 查找对应页码的节点，而不是数组索引
           const node = pageTurningNodes.value.find(n => n.page_num === currentEditPage.value);
           if (!node) return false;
-          return sentenceIndex >= node.start_sentence_index && sentenceIndex <= node.end_sentence_index;
+          return idx >= node.start_sentence_index && idx <= node.end_sentence_index;
         }
         // 模式切换逻辑
         function switchMode(enablePPT) {
@@ -1137,10 +1145,27 @@
         }
         async function playCache(index) {
           const cache = cachedVideos.value[index];
-          const videoUrl = URL.createObjectURL(cache.video);
-          previewVideo.value.src = videoUrl;
-          previewVideo.value.play();
-          addLog(`播放缓存视频:${cache.text.substring(0, 20)}...`, 'success');
+          try {
+            // 【修复 P1】释放旧 URL，避免内存泄漏
+            if (previewVideo.value.src && previewVideo.value.src.startsWith('blob:')) {
+              URL.revokeObjectURL(previewVideo.value.src);
+            }
+            // 创建新 URL
+            const videoUrl = URL.createObjectURL(cache.video);
+            // 强制重载
+            previewVideo.value.src = '';
+            await nextTick();
+            previewVideo.value.src = videoUrl;
+            previewVideo.value.load();
+            // 自动播放
+            await previewVideo.value.play().catch(e => {
+              addLog(`⚠️ 自动播放失败，请手动点击播放:${e.message}`, 'warn');
+            });
+            addLog(`播放缓存视频:${cache.text.substring(0, 20)}...`, 'success');
+          } catch (e) {
+            addLog(`❌ 缓存视频播放失败:${e.message}`, 'error');
+            showToast('缓存视频播放失败', 'error');
+          }
         }
         async function playCachedVideo() {
           if (cachedVideos.value.length > 0) playCache(0);
@@ -2191,6 +2216,8 @@ ${sentencesList}
             if (data?.vmr_status === 2) {
               addLog('🏁 单句播报完成', 'success');
               isBroadcastingSentence = false;
+              // 【修复 P0】递增 sentenceIndex
+              sentenceIndex++;
               if (sentenceIndex >= currentSentences.value.length && isBroadcasting.value) {
                 addLog(`✅ 所有句子已播报完成 (${sentenceIndex}/${currentSentences.value.length}),准备结束录制`, 'success');
                 setTimeout(() => {
