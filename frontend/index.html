@@ -1,20 +1,21 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>数字人播报系统 V2.0 - P0 阶段</title>
-  <meta http-equiv="20260413093948"Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv=202604112359"Pragma" content="no-cache">
-  <meta http-equiv=202604112359"Expires" content="0">
+  <title>数字人播报系统 V2.0 - 上下布局重构版</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <script src="https://unpkg.com/vue@3.4.21/dist/vue.global.prod.js"></script>
   <script src="https://unpkg.com/mp4box@0.5.2/dist/mp4box.all.min.js"></script>
   <script type="module">
-    import { PlayerEvents, default as AvatarSDK } from './sdk/avatar-sdk-web/index.js?v=202604112359';
+    import { PlayerEvents, default as AvatarSDK } from './sdk/avatar-sdk-web/index.js';
     window.AVATAR_SDK = { AvatarSDK, PlayerEvents };
     console.log('✅ SDK 模块加载成功:', AvatarSDK);
   </script>
   <style>
+    /* ========== 全局样式重置 ========== */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Microsoft Yahei', Arial, sans-serif;
@@ -37,17 +38,140 @@
       text-align: center;
     }
     .header h1 { font-size: 2.5em; margin-bottom: 10px; }
-    .main-content {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 30px;
-      padding: 30px;
+    
+    /* ========== 顶部预览区样式 ========== */
+    .preview-section {
+      padding: 20px 30px;
+      background: #f8f9fa;
+    }
+    .preview-panel { margin: 0; }
+    .video-container {
+      position: relative;
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+      padding-bottom: 56.25%;
+      background: #000;
+      border-radius: 15px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .video-container.fullscreen {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      padding-bottom: 0;
+      z-index: 9999;
+      border-radius: 0;
+      max-width: 100%;
+    }
+    .video-container.fullscreen canvas {
+      width: 100%; height: 100%;
+      object-fit: contain;
+    }
+    .fullscreen-btn {
+      position: absolute;
+      top: 10px; right: 10px;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      z-index: 10;
+    }
+    .video-container canvas {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+    .page-manual-btn {
+      position: absolute;
+      bottom: 20px; left: 20px;
+      display: flex;
+      gap: 10px;
+      z-index: 10;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .video-container:hover .page-manual-btn { opacity: 0.8; }
+    .page-num-tip {
+      position: absolute;
+      bottom: 20px; right: 20px;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 14px;
+      z-index: 10;
+    }
+    .core-btn-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+      justify-content: center;
+    }
+    
+    /* ========== 步骤导航条样式 ========== */
+    .process-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 30px;
+      background: #ffffff;
+      border-top: 1px solid #e0e0e0;
+      border-bottom: 1px solid #e0e0e0;
+      gap: 10px;
+    }
+    .process-step {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      position: relative;
+      color: #999;
+      transition: all 0.3s;
+    }
+    .process-step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 14px; left: 50%;
+      width: calc(100% - 28px);
+      height: 2px;
+      background: #e0e0e0;
+    }
+    .process-step.completed:not(:last-child)::after { background: #667eea; }
+    .process-step.active { color: #667eea; font-weight: 600; }
+    .process-step.completed { color: #11998e; }
+    .step-num {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: #e0e0e0;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      z-index: 10;
+    }
+    .process-step.active .step-num { background: #667eea; }
+    .process-step.completed .step-num { background: #11998e; }
+    .process-step.hidden { display: none; }
+    
+    /* ========== 全宽配置区样式 ========== */
+    .config-section {
+      padding: 20px 30px 30px;
+      background: #f8f9fa;
     }
     .panel {
-      background: #f8f9fa;
+      background: #ffffff;
       border-radius: 15px;
       padding: 25px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
     }
     .panel h2 {
       color: #667eea;
@@ -56,6 +180,12 @@
       display: flex;
       align-items: center;
       gap: 10px;
+    }
+    .config-panel:last-child { margin-bottom: 0; }
+    .config-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 20px;
     }
     .form-group { margin-bottom: 20px; }
     .form-group label {
@@ -70,7 +200,6 @@
       border: 2px solid #e0e0e0;
       border-radius: 10px;
       font-size: 14px;
-      transition: all 0.3s;
       font-family: inherit;
     }
     select:focus, textarea:focus, input:focus {
@@ -78,10 +207,7 @@
       border-color: #667eea;
       box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
     }
-    textarea {
-      resize: vertical;
-      min-height: 150px;
-    }
+    textarea { resize: vertical; min-height: 150px; }
     .btn {
       padding: 14px 30px;
       border: none;
@@ -96,99 +222,41 @@
       margin-right: 10px;
       margin-bottom: 10px;
     }
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    .btn-primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-    }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
     .btn-primary:hover:not(:disabled) {
       transform: translateY(-2px);
       box-shadow: 0 6px 20px rgba(102,126,234,0.4);
     }
-    .btn-success {
-      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-      color: white;
+    .btn-success { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; }
+    .btn-danger { background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%); color: white; }
+    .btn-default { background: #e0e0e0; color: #333; }
+    .btn-small { padding: 6px 12px; font-size: 12px; }
+    
+    /* ========== 模式选择样式 ========== */
+    .mode-selector {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
     }
-    .btn-success:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(17,153,142,0.4);
-    }
-    .btn-danger {
-      background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
-      color: white;
-    }
-    .btn-danger:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(235,51,73,0.4);
-    }
-    .btn-default {
-      background: #e0e0e0;
-      color: #333;
-    }
-    .btn-default:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-      background: #d0d0d0;
-    }
-    .video-container {
-      position: relative;
-      width: 100%;
-      padding-bottom: 177.78%;
-      background: #000;
-      border-radius: 15px;
-      overflow: hidden;
-      margin-bottom: 20px;
-      transition: all 0.3s ease;
-    }
-    .video-container.fullscreen {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      padding-bottom: 0;
-      z-index: 9999;
-      border-radius: 0;
-    }
-    .video-container.fullscreen canvas {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-    .fullscreen-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: rgba(0, 0, 0, 0.6);
-      color: white;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 8px;
+    .mode-card {
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
       cursor: pointer;
-      font-size: 14px;
-      z-index: 10;
       transition: all 0.3s;
     }
-    .fullscreen-btn:hover {
-      background: rgba(0, 0, 0, 0.8);
+    .mode-card:hover { border-color: #667eea; background: #f0f4ff; }
+    .mode-card.active {
+      border-color: #667eea;
+      background: linear-gradient(135deg, #f0f4ff 0%, #e8eaf6 100%);
     }
-    .video-container.fullscreen .fullscreen-btn {
-      top: 20px;
-      right: 20px;
-      padding: 12px 20px;
-      font-size: 16px;
-    }
-    .video-container canvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
+    .mode-icon { font-size: 32px; margin-bottom: 10px; }
+    .mode-title { font-weight: 600; color: #333; margin-bottom: 5px; }
+    .mode-desc { font-size: 12px; color: #666; }
+    
+    /* ========== 状态条、进度条、缓存样式 ========== */
     .status-bar {
       background: #f8f9fa;
       padding: 15px 25px;
@@ -198,35 +266,15 @@
       align-items: center;
       flex-wrap: wrap;
       gap: 15px;
+      border-radius: 10px;
     }
-    .status-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px;
-      color: #666;
-    }
-    .status-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #ccc;
-    }
-    .status-dot.active {
-      background: #38ef7d;
-      animation: pulse 2s infinite;
-    }
-    .status-dot.recording {
-      background: #eb3349;
-      animation: pulse 1s infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
+    .status-item { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #666; }
+    .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #ccc; }
+    .status-dot.active { background: #38ef7d; animation: pulse 2s infinite; }
+    .status-dot.recording { background: #eb3349; animation: pulse 1s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     .progress-bar {
-      width: 100%;
-      height: 8px;
+      width: 100%; height: 8px;
       background: #e0e0e0;
       border-radius: 4px;
       overflow: hidden;
@@ -245,11 +293,7 @@
       padding: 15px;
       margin-top: 15px;
     }
-    .cache-info h3 {
-      color: #2e7d32;
-      font-size: 1.1em;
-      margin-bottom: 10px;
-    }
+    .cache-info h3 { color: #2e7d32; font-size: 1.1em; margin-bottom: 10px; }
     .cache-item {
       display: flex;
       justify-content: space-between;
@@ -259,24 +303,18 @@
       border-radius: 8px;
       margin-bottom: 8px;
     }
-    .cache-item-actions {
-      display: flex;
-      gap: 8px;
-    }
-    .btn-small {
-      padding: 6px 12px;
-      font-size: 12px;
-    }
+    .cache-item-actions { display: flex; gap: 8px; }
+    
+    /* ========== 日志样式 ========== */
     .log-container {
       background: #1e1e1e;
       color: #d4d4d4;
       padding: 15px;
       border-radius: 10px;
-      font-family: 'Consolas', 'Monaco', monospace;
+      font-family: 'Consolas', monospace;
       font-size: 12px;
       max-height: 200px;
       overflow-y: auto;
-      margin-top: 15px;
     }
     .log-entry {
       margin-bottom: 5px;
@@ -287,13 +325,17 @@
     .log-entry.error { border-left-color: #eb3349; color: #f48771; }
     .log-entry.success { border-left-color: #38ef7d; color: #89d185; }
     .log-entry.warn { border-left-color: #cca700; color: #dcdcaa; }
-    /* ========== PPT 宣讲功能样式 ========== */
-    .ppt-collapse {
-      border: 1px solid #e0e0e0;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      overflow: hidden;
+    .status-tip {
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin-top: 8px;
+      font-size: 13px;
     }
+    .status-tip.success { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+    .status-tip.error { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+    .status-tip.warn { background: #fff3e0; color: #e65100; border: 1px solid #ffe0b2; }
+    
+    /* ========== PPT 相关样式 ========== */
     .ppt-collapse-header {
       padding: 15px 20px;
       background: #f8f9fa;
@@ -304,23 +346,15 @@
       font-weight: 600;
       color: #667eea;
     }
-    .ppt-collapse-content {
-      padding: 20px;
-      border-top: 1px solid #e0e0e0;
-    }
     .ppt-input-row {
       display: flex;
       gap: 10px;
       align-items: center;
       margin-bottom: 15px;
     }
-    .ppt-input-row input {
-      flex: 1;
-      margin: 0;
-    }
     .ppt-thumb-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(4, 1fr);
       gap: 10px;
       margin-top: 15px;
       max-height: 200px;
@@ -337,11 +371,7 @@
       border-color: #667eea;
       background: #f0f4ff;
     }
-    .ppt-thumb-item img {
-      width: 100%;
-      border-radius: 4px;
-      margin-bottom: 5px;
-    }
+    .ppt-thumb-item img { width: 100%; border-radius: 4px; margin-bottom: 5px; }
     .ppt-thumb-title {
       font-size: 12px;
       color: #333;
@@ -363,27 +393,17 @@
       padding: 10px;
       overflow-y: auto;
     }
-    .column-title {
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 10px;
-      font-size: 14px;
-    }
+    .column-title { font-weight: 600; color: #333; margin-bottom: 10px; font-size: 14px; }
     .sentence-item {
       padding: 8px 10px;
       border-radius: 6px;
       margin-bottom: 5px;
       font-size: 13px;
       cursor: grab;
-      transition: all 0.3s;
     }
-    .sentence-item:hover {
-      background: #f8f9fa;
-    }
-    .sentence-item.bound {
-      background: #e8f5e9;
-      border-left: 3px solid #38ef7d;
-    }
+    .sentence-item:hover { background: #f8f9fa; }
+    .sentence-item.bound { background: #e8f5e9; border-left: 3px solid #38ef7d; }
+    .sentence-item.highlight { background: #e3f2fd; border-left: 3px solid #2196f3; font-weight: 600; }
     .adjust-row {
       display: flex;
       gap: 10px;
@@ -391,49 +411,71 @@
       margin-bottom: 10px;
       flex-wrap: wrap;
     }
-    .adjust-row select {
-      flex: 1;
-      min-width: 120px;
-    }
-    .page-manual-btn {
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
+    .adjust-row select { flex: 1; min-width: 120px; }
+    
+    /* ========== Toast 样式 ========== */
+    .toast-container {
+      position: fixed;
+      top: 20px; right: 20px;
+      z-index: 99999;
       display: flex;
+      flex-direction: column;
       gap: 10px;
-      z-index: 10;
-      opacity: 0;
-      transition: opacity 0.3s;
     }
-    .video-container:hover .page-manual-btn {
-      opacity: 0.8;
-    }
-    .page-num-tip {
-      position: absolute;
-      bottom: 20px;
-      right: 20px;
-      background: rgba(0,0,0,0.6);
-      color: white;
-      padding: 5px 10px;
-      border-radius: 6px;
+    .toast-item {
+      padding: 12px 20px;
+      border-radius: 8px;
+      background: white;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
       font-size: 14px;
-      z-index: 10;
+      min-width: 280px;
+      animation: toastSlideIn 0.3s ease;
     }
+    .toast-item.success { border-left: 4px solid #38ef7d; color: #2e7d32; }
+    .toast-item.error { border-left: 4px solid #eb3349; color: #c62828; }
+    .toast-item.warn { border-left: 4px solid #ff9800; color: #e65100; }
+    @keyframes toastSlideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    
+    /* ========== PPT 预览弹窗 ========== */
+    .ppt-preview-modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.85);
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .preview-img { max-width: 90vw; max-height: 90vh; border-radius: 8px; }
+    .preview-close {
+      position: absolute;
+      top: 20px; right: 20px;
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+    }
+    .preview-close:hover { background: rgba(255,255,255,0.4); }
+    
+    /* ========== 弹窗样式 ========== */
     .modal-mask {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
       background: rgba(0,0,0,0.5);
-      display: none !important;  // 默认强制隐藏,Vue 控制显示
+      display: none !important;
       justify-content: center;
       align-items: center;
       z-index: 99999;
     }
-    .modal-mask.vue-mounted {
-      display: flex !important;  // Vue 挂载后才允许显示
-    }
+    .modal-mask.vue-mounted { display: flex !important; }
     .modal-box {
       background: white;
       border-radius: 15px;
@@ -441,713 +483,53 @@
       max-width: 90vw;
       padding: 30px;
     }
-    .modal-title {
-      font-size: 1.5em;
-      color: #333;
-      margin-bottom: 20px;
-      font-weight: 600;
+    .modal-title { font-size: 1.5em; color: #333; margin-bottom: 20px; font-weight: 600; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+    [v-cloak] { display: none !important; }
+    
+    /* ========== 响应式 ========== */
+    @media (max-width: 1200px) { .config-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 768px) {
+      body { padding: 10px; }
+      .header h1 { font-size: 1.8em; }
+      .process-nav { padding: 15px 10px; overflow-x: auto; justify-content: flex-start; }
+      .process-step { min-width: 120px; }
+      .preview-section, .config-section { padding: 15px 10px; }
+      .config-grid { grid-template-columns: 1fr; }
+      .mode-selector { grid-template-columns: 1fr; }
+      .dual-column-panel { flex-direction: column; height: auto; }
+      .ppt-thumb-grid { grid-template-columns: repeat(2, 1fr); }
+      .core-btn-group { justify-content: flex-start; }
     }
-    .modal-footer {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      margin-top: 20px;
-    }
-    .project-card {
-      border: 1px solid #e0e0e0;
-      border-radius: 10px;
-      padding: 15px;
-      margin-bottom: 10px;
-    }
-    .project-card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 10px;
-    }
-    .project-card-title {
-      font-weight: 600;
-      color: #333;
-    }
-    .project-card-meta {
-      font-size: 12px;
-      color: #666;
-      margin-bottom: 10px;
-    }
-    .project-card-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .status-tip {
-      padding: 8px 12px;
-      border-radius: 6px;
-      margin-top: 8px;
-      font-size: 13px;
-    }
-    .status-tip.success {
-      background: #e8f5e9;
-      color: #2e7d32;
-      border: 1px solid #c8e6c9;
-    }
-    .status-tip.error {
-      background: #ffebee;
-      color: #c62828;
-      border: 1px solid #ffcdd2;
-    }
-    .status-tip.warn {
-      background: #fff3e0;
-      color: #e65100;
-      border: 1px solid #ffe0b2;
-    }
-    /* 防止 Vue 初始化时闪现 */
-    [v-cloak] {
-      display: none !important;
-    }
-
-/* ========== [P0_NEW] 顶部步骤导航条样式 ========== */
-.process-nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 30px;
-  background: #f8f9fa;
-  border-bottom: 1px solid #e0e0e0;
-  gap: 10px;
-}
-.process-step {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-  position: relative;
-  color: #999;
-  transition: all 0.3s;
-  cursor: default;
-}
-.process-step:not(:last-child)::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 100%;
-  width: calc(100% - 40px);
-  height: 2px;
-  background: #e0e0e0;
-  transform: translateY(-50%);
-}
-.process-step.completed:not(:last-child)::after {
-  background: #667eea;
-}
-.process-step.active {
-  color: #667eea;
-  font-weight: 600;
-}
-.process-step.completed {
-  color: #11998e;
-}
-.step-num {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #e0e0e0;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-}
-.process-step.active .step-num {
-  background: #667eea;
-}
-.process-step.completed .step-num {
-  background: #11998e;
-}
-.step-switch {
-  position: relative;
-  display: inline-block;
-  width: 40px;
-  height: 20px;
-  margin-left: 8px;
-}
-.step-switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-.switch-slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  transition: .4s;
-  border-radius: 20px;
-}
-.switch-slider:before {
-  position: absolute;
-  content: "";
-  height: 16px;
-  width: 16px;
-  left: 2px;
-  bottom: 2px;
-  background-color: white;
-  transition: .4s;
-  border-radius: 50%;
-}
-input:checked + .switch-slider {
-  background-color: #667eea;
-}
-input:checked + .switch-slider:before {
-  transform: translateX(20px);
-}
-.process-step.hidden {
-  display: none;
-}
-.process-step.disabled {
-  opacity: 0.5;
-}
-
-/* ========== [P0_NEW] 全局 Toast 样式 ========== */
-.toast-container {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 99999;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.toast-item {
-  padding: 12px 20px;
-  border-radius: 8px;
-  background: white;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  font-size: 14px;
-  min-width: 280px;
-  animation: toastSlideIn 0.3s ease;
-}
-.toast-item.success {
-  border-left: 4px solid #38ef7d;
-  color: #2e7d32;
-}
-.toast-item.error {
-  border-left: 4px solid #eb3349;
-  color: #c62828;
-}
-.toast-item.warn {
-  border-left: 4px solid #ff9800;
-  color: #e65100;
-}
-.toast-item.loading {
-  border-left: 4px solid #667eea;
-  color: #667eea;
-}
-@keyframes toastSlideIn {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
-
-/* ========== [P0_FIX] 修复:顶部步骤导航条样式 ========== */
-.process-nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 30px;
-  background: #f8f9fa;
-  border-bottom: 1px solid #e0e0e0;
-  gap: 10px;
-}
-.process-step {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-  position: relative;
-  color: #999;
-  transition: all 0.3s;
-  cursor: default;
-}
-/* 修复:横线位置 */
-.process-step:not(:last-child)::after {
-  content: '';
-  position: absolute;
-  top: 14px; /* 垂直居中对齐圆圈 */
-  left: 50%; /* 从当前步骤圆圈右侧开始 */
-  width: calc(100% - 28px); /* 画到下一步圆圈左侧 */
-  height: 2px;
-  background: #e0e0e0;
-}
-.process-step.completed:not(:last-child)::after {
-  background: #667eea;
-}
-.process-step.active {
-  color: #667eea;
-  font-weight: 600;
-}
-.process-step.completed {
-  color: #11998e;
-}
-.step-num {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #e0e0e0;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  z-index: 10; /* 确保圆圈在横线上方 */
-}
-.process-step.active .step-num {
-  background: #667eea;
-}
-.process-step.completed .step-num {
-  background: #11998e;
-}
-.process-step.hidden {
-  display: none;
-}
-
-/* ========== [P0_FIX] 新增:模式选择样式 ========== */
-.mode-selector {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
-}
-.mode-card {
-  border: 2px solid #e0e0e0;
-  border-radius: 12px;
-  padding: 20px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-.mode-card:hover {
-  border-color: #667eea;
-  background: #f0f4ff;
-}
-.mode-card.active {
-  border-color: #667eea;
-  background: linear-gradient(135deg, #f0f4ff 0%, #e8eaf6 100%);
-}
-.mode-icon {
-  font-size: 32px;
-  margin-bottom: 10px;
-}
-.mode-title {
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 5px;
-}
-.mode-desc {
-  font-size: 12px;
-  color: #666;
-}
-</style>
+  </style>
 </head>
 <body>
-  <!-- 讯飞 SDK 渲染容器(移出Vue根节点,避免渲染错乱) -->
-  <div id="digital-human-container" style="width: 1px; height: 1px; opacity: 0; position: fixed; top: -9999px; left: -9999px; z-index: -999;"></div>
-
-  <!-- Vue 根节点 -->
+  <div id="digital-human-container" style="width:1px;height:1px;opacity:0;position:fixed;top:-9999px;left:-9999px;z-index:-999;"></div>
   <div id="app">
     <div class="container">
+      <!-- 1. 顶部标题栏 -->
       <div class="header">
         <h1>🎬 数字人播报系统</h1>
         <p>讯飞 XRtc 数字人 + 自动录制 + 视频缓存</p>
       </div>
-      <!-- [P0_FIX] 修复:简化顶部导航条,移除开关 ========== -->
-      <div class="process-nav">
-        <div class="process-step" :class="{ active: step >= 1, completed: step > 1 }">
-          <span class="step-num">1</span>
-          <span class="step-text">基础配置</span>
-        </div>
-        <div class="process-step" :class="{ active: step >= 2, completed: step > 2, hidden: !usePPT }">
-          <span class="step-num">2</span>
-          <span class="step-text">PPT 导入</span>
-        </div>
-        <div class="process-step" :class="{ active: step >= 3, completed: step > 3 }">
-          <span class="step-num">3</span>
-          <span class="step-text">文案输入</span>
-        </div>
-        <div class="process-step" :class="{ active: step >= 4, completed: step > 4, hidden: !usePPT }">
-          <span class="step-num">4</span>
-          <span class="step-text">翻页节点</span>
-        </div>
-        <div class="process-step" :class="{ active: step >= 5, completed: step > 5 }">
-          <span class="step-num">5</span>
-          <span class="step-text">播报导出</span>
-        </div>
-      </div>
-      <!-- [P0_FIX] 简化导航条结束 ========== -->
 
-<div class="main-content">
-        <!-- 左侧控制面板 -->
-        <div class="panel">
-          <h2>⚙️ 配置面板</h2>
-
-          <!-- [P0_FIX] 新增:模式选择面板 ========== -->
-          <div class="panel">
-            <h2>🎯 播报模式选择</h2>
-            <div class="mode-selector">
-              <div
-                class="mode-card"
-                :class="{ active: !usePPT }"
-                @click="switchMode(false)"
-              >
-                <div class="mode-icon">🎤</div>
-                <div class="mode-title">纯数字人播报</div>
-                <div class="mode-desc">无需 PPT,直接输入文案播报</div>
-              </div>
-              <div
-                class="mode-card"
-                :class="{ active: usePPT }"
-                @click="switchMode(true)"
-              >
-                <div class="mode-icon">📑</div>
-                <div class="mode-title">PPT 宣讲播报</div>
-                <div class="mode-desc">上传 PPT,自动匹配翻页</div>
-              </div>
-            </div>
-          </div>
-          <!-- [P0_FIX] 模式选择面板结束 ========== -->
-
-<!-- PPT 宣讲配置面板 -->
-          <div class="ppt-collapse" v-if="usePPT">
-            <div class="ppt-collapse-header" @click="pptCollapseOpen = !pptCollapseOpen">
-              <span>📑 PPT 宣讲配置</span>
-              <span>{{ pptCollapseOpen ? '▼' : '▶' }}</span>
-            </div>
-            <div class="ppt-collapse-content" v-if="pptCollapseOpen">
-              <!-- 本地 PPT 文件上传 -->
-              <div class="form-group">
-                <label>📤 本地 PPT 文件上传</label>
-                <div class="ppt-input-row" style="flex-direction: column; align-items: stretch;">
-                  <input
-                    type="file"
-                    ref="pptFileInput"
-                    accept=".ppt,.pptx"
-                    @change="handleLocalPptUpload"
-                    style="padding: 10px; border: 2px dashed #e0e0e0; border-radius: 8px; margin-bottom: 10px;"
-                  >
-                  <!-- ✅ 修复:始终显示上传按钮,用 disabled 控制状态 -->
-                  <button
-                    class="btn btn-primary"
-                    @click="uploadLocalPpt"
-                    :disabled="!localPptFile || uploadingLocalPpt"
-                    style="margin-top: 10px; width: 100%;"
-                  >
-                    <span v-if="!localPptFile">📤 请先选择 PPT 文件</span>
-                    <span v-else-if="uploadingLocalPpt">⏳ 上传中...</span>
-                    <span v-else>🚀 上传并解析</span>
-                  </button>
-                  <!-- 文件信息显示 -->
-                  <div v-if="localPptFile" class="status-tip success" style="margin-top: 8px;">
-                    ✅ 已选择:{{ localPptFile.name }} ({{ (localPptFile.size / 1024 / 1024).toFixed(2) }} MB)
-                  </div>
-                </div>
-                <div class="status-tip warn" style="margin-top: 8px; font-size: 12px;">
-                  i️ 支持格式:.ppt, .pptx | 最大 50MB | 自动解析为图片并生成翻页节点
-                </div>
-                <!-- ✅ 修复:添加错误信息显示 -->
-                <div v-if="pptImportStatus" :class="['status-tip', pptImportStatus.type]" style="margin-top: 8px;">
-                  {{ pptImportStatus.text }}
-                </div>
-                <!-- 飞书在线导入功能暂时隐藏 -->
-              </div>
-
-              <!-- ✅ 优化:生成翻页节点按钮前置,始终可见,仅控制禁用状态 -->
-              <div class="form-group">
-                <button
-                  class="btn btn-primary"
-                  style="width: 100%;"
-                  @click="generateTurningNodes"
-                  :disabled="!config.text || !pptConfig.imported"
-                >
-                  🤖 生成智能翻页节点
-                </button>
-                <!-- 新增:按钮禁用提示 -->
-                <div v-if="!config.text && !pptConfig.imported" class="status-tip warn" style="margin-top: 8px;">
-                  ⚠️ 请先完成 PPT 导入,并填写播报文本后,即可生成翻页节点
-                </div>
-                <div v-else-if="!pptConfig.imported" class="status-tip warn" style="margin-top: 8px;">
-                  ⚠️ 请先完成 PPT 授权导入,再生成翻页节点
-                </div>
-                <div v-else-if="!config.text" class="status-tip warn" style="margin-top: 8px;">
-                  ⚠️ 请先填写播报文本,再生成翻页节点
-                </div>
-              </div>
-
-              <!-- PPT 导入结果预览 -->
-              <div v-if="pptConfig.imported" class="form-group">
-                <label>PPT 导入结果 ({{ pptConfig.totalPages }}页)</label>
-                <div class="ppt-thumb-grid">
-                  <div
-                    class="ppt-thumb-item"
-                    :class="{ active: currentEditPage === item.page_num }"
-                    v-for="item in pptConfig.pages"
-                    :key="item.page_num"
-                    @click="currentEditPage = item.page_num"
-                  >
-                    <img :src="item.page_image_url" :alt="item.page_title">
-                    <div class="ppt-thumb-title">第{{ item.page_num }}页 | {{ item.page_title }}</div>
-                  </div>
-                </div>
-                <button class="btn btn-small btn-primary" @click="reImportPpt" style="margin-top: 10px;">
-                  重新导入
-                </button>
-              </div>
-
-              <!-- 翻页节点生成 -->
-              <div v-if="pptConfig.imported" class="form-group">
-                <button
-                  class="btn btn-primary"
-                  style="width: 100%;"
-                  @click="generateTurningNodes"
-                  :disabled="!config.text || !pptConfig.imported"
-                >
-                  🤖 生成智能翻页节点
-                </button>
-              </div>
-
-              <!-- 双列联动调整面板 -->
-              <div v-if="pageTurningNodes.length > 0" class="form-group">
-                <div class="dual-column-panel">
-                  <div class="column-box">
-                    <div class="column-title">📑 PPT 页面列表</div>
-                    <div
-                      class="ppt-thumb-item"
-                      :class="{ active: currentEditPage === item.page_num }"
-                      v-for="item in pptConfig.pages"
-                      :key="item.page_num"
-                      @click="currentEditPage = item.page_num"
-                    >
-                      <div class="ppt-thumb-title">第{{ item.page_num }}页 | {{ item.page_title }}</div>
-                    </div>
-                  </div>
-                  <div class="column-box">
-                    <div class="column-title">📝 绑定的播报句子</div>
-                    <div
-                      class="sentence-item"
-                      :class="{ bound: isSentenceBound(index) }"
-                      v-for="(sentence, index) in currentSentences"
-                      :key="index"
-                      draggable="true"
-                      @dragstart="dragSentence(index)"
-                      @drop="dropSentence"
-                      @dragover.prevent
-                    >
-                      句{{ index+1 }}: {{ sentence }}
-                    </div>
-                  </div>
-                </div>
-
-                <!-- 人工调整操作区 -->
-                <div class="adjust-row">
-                  <label>起始句:</label>
-                  <select v-model="currentNode.start_sentence_index">
-                    <option v-for="(sentence, index) in currentSentences" :key="index" :value="index">
-                      句{{ index+1 }}
-                    </option>
-                  </select>
-                  <label>结束句:</label>
-                  <select v-model="currentNode.end_sentence_index">
-                    <option v-for="(sentence, index) in currentSentences" :key="index" :value="index">
-                      句{{ index+1 }}
-                    </option>
-                  </select>
-                </div>
-                <div class="adjust-row">
-                  <button class="btn btn-small btn-primary" @click="adjustPageTurn(-1)">提前 1 句翻页</button>
-                  <button class="btn btn-small btn-primary" @click="adjustPageTurn(1)">延后 1 句翻页</button>
-                  <button class="btn btn-small btn-warning" @click="resetTurningNodes">一键重置</button>
-                </div>
-
-                <!-- 操作按钮区 -->
-                <div class="adjust-row" style="justify-content: flex-end; margin-top: 20px;">
-                  <button class="btn btn-default" @click="cancelTurningEdit">取消</button>
-                  <button class="btn btn-success" @click="confirmTurningRules">✅ 确认翻页规则</button>
-                </div>
-              </div>
-
-              <!-- 横竖屏模式切换 -->
-              <div class="form-group" style="margin-top: 20px;">
-                <label>播报模式</label>
-                <select v-model="broadcastMode" @change="onModeChange">
-                  <option value="vertical">竖屏模式(默认)</option>
-                  <option value="horizontal">横屏 PPT 宣讲模式</option>
-                </select>
-              </div>
-            </div>
-          </div>
-          <!-- PPT 宣讲配置面板结束 -->
-
-          <!-- [P0_FIX] 播报文本输入区（仅 PPT 模式显示） ========== -->
-          <div class="form-group" v-if="usePPT">
-            <label>📝 播报文本</label>
-            <textarea
-              v-model="config.text"
-              placeholder="请输入要播报的文本内容..."
-              @input="clearCache"
-            ></textarea>
-          </div>
-          <!-- [P0_FIX] 播报文本输入区结束 ========== -->
-
-          <div class="form-group">
-            <label>数字人形象</label>
-            <select v-model="config.roleId" @change="clearCache">
-              <option v-for="role in roles" :key="role.role_id" :value="role.role_id">
-                {{ role.role_name }}
-              </option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>发音人</label>
-            <select v-model="config.rdn" @change="clearCache">
-              <option v-for="voice in voices" :key="voice.rdn" :value="voice.rdn">
-                {{ voice.name }} ({{ voice.rdn }})
-              </option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>语速</label>
-            <input
-              type="range"
-              min="0.5"
-              max="2"
-              step="0.1"
-              v-model.number="config.speed"
-              @change="clearCache"
-            >
-            <div style="text-align: center; margin-top: 5px; color: #666;">
-              {{ config.speed }}x
-            </div>
-          </div>
-
-          <div style="margin-top: 20px;">
-            <button
-              class="btn btn-primary"
-              @click="startBroadcast"
-              :disabled="isBroadcasting || !config.text || (pptConfig.imported && !pageTurningConfirmed)"
-            >
-              🎙️ {{ isBroadcasting ? '播报中...' : '开始播报' }}
-            </button>
-
-            <!-- 新增:未确认规则时的警告提示 -->
-            <div v-if="pptConfig.imported && !pageTurningConfirmed" class="status-tip warn" style="margin-top: 8px;">
-              请先点击上方的确认翻页规则以激活 PPT 背景
-            </div>
-
-            <button
-              class="btn btn-danger"
-              @click="stopBroadcast"
-              :disabled="!isBroadcasting"
-            >
-              ⏹️ 停止播报
-            </button>
-            <button
-              class="btn btn-success"
-              @click="playCachedVideo"
-              :disabled="!hasCachedVideo || isBroadcasting"
-            >
-              📼 播放缓存
-            </button>
-          </div>
-
-          <div v-if="cachedVideos.length > 0" class="cache-info">
-            <h3>📼 视频缓存 ({{ cachedVideos.length }}个)</h3>
-            <div v-for="(cache, index) in cachedVideos" :key="index" class="cache-item">
-              <div>
-                <strong>{{ cache.text.substring(0, 20) }}{{ cache.text.length > 20 ? '...' : '' }}</strong>
-                <div style="font-size: 12px; color: #666;">
-                  {{ new Date(cache.timestamp).toLocaleString() }} | {{ formatDuration(cache.duration) }}
-                </div>
-              </div>
-              <div class="cache-item-actions">
-                <button class="btn btn-small btn-primary" @click="playCache(index)">▶️ 播放</button>
-                <button class="btn btn-small btn-danger" @click="deleteCache(index)">🗑️ 删除</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- [P0_HIDDEN] 开始：隐藏云端项目模块 ==========
-  <!-- 云端项目管理面板 -->
-          <div class="ppt-collapse" style="display:none;">
-            <div class="ppt-collapse-header" @click="cloudProjectCollapseOpen = !cloudProjectCollapseOpen">
-              <span>☁️ 我的云端项目</span>
-              <span>{{ cloudProjectCollapseOpen ? '▼' : '▶' }}</span>
-            </div>
-            <div class="ppt-collapse-content" v-if="cloudProjectCollapseOpen">
-              <button
-                class="btn btn-primary"
-                style="width: 100%; margin-bottom: 15px;"
-                @click="openSaveProjectModal"
-                :disabled="!config.text || (!pageTurningConfirmed && !hasVideoBlob)"
-              >
-                💾 保存项目到云端
-              </button>
-              <div v-if="cloudProjectList.length > 0">
-                <div
-                  class="project-card"
-                  v-for="project in cloudProjectList"
-                  :key="project.project_id"
-                >
-                  <div class="project-card-header">
-                    <div class="project-card-title">{{ project.project_name }}</div>
-                  </div>
-                  <div class="project-card-meta">
-                    {{ project.create_time }} | {{ project.video_duration ? '时长:' + project.video_duration : '未录制' }}
-                  </div>
-                  <div class="project-card-actions">
-                    <button class="btn btn-small btn-primary" @click="reuseProject(project)">一键复用</button>
-                    <button class="btn btn-small btn-primary" @click="editProject(project)">编辑</button>
-                    <button class="btn btn-small btn-success" @click="downloadCloudVideo(project)" :disabled="!project.video_duration">下载视频</button>
-                    <button class="btn btn-small btn-danger" @click="deleteCloudProject(project)">删除</button>
-                  </div>
-                </div>
-              </div>
-              <div v-else class="empty-tip" style="text-align: center; color: #999; padding: 20px 0;">
-                暂无云端项目
-              </div>
-            </div>
-          </div>
-          <!-- 云端项目管理面板结束 -->
-<!-- [P0_HIDDEN] 结束:隐藏云端项目模块 ==========
---> [P0_HIDDEN] -->
-
-          <div class="log-container" v-if="logs.length > 0">
-            <div v-for="(log, index) in logs.slice(-20)" :key="index"
-                 :class="['log-entry', log.type]">
-              [{{ log.time }}] {{ log.message }}
-            </div>
-          </div>
-        </div>
-
-        <!-- 右侧视频显示 -->
-        <div class="panel">
-          <h2>📺 视频预览</h2>
+      <!-- 2. 核心预览区 -->
+      <div class="preview-section">
+        <div class="panel preview-panel">
+          <h2>📺 实时预览</h2>
           <div class="video-container" ref="videoContainer">
             <canvas ref="compositeCanvas" :width="canvasSize.width" :height="canvasSize.height"></canvas>
-            <button class="fullscreen-btn" @click="toggleFullscreen" title="全屏播放">
-              <span v-if="!isFullscreen">⛶ 全屏</span>
-              <span v-else>⛶ 退出</span>
+            <button class="fullscreen-btn" @click="toggleFullscreen">
+              <span v-if="!isFullscreen">⛶ 全屏</span><span v-else>⛶ 退出</span>
             </button>
-            <!-- 手动翻页按钮 -->
             <div class="page-manual-btn" v-if="broadcastMode === 'horizontal' && pageTurningConfirmed">
               <button class="btn btn-small btn-primary" @click="manualTurnPage(-1)" :disabled="currentPptPage <= 1">上一页</button>
               <button class="btn btn-small btn-primary" @click="manualTurnPage(1)" :disabled="currentPptPage >= pptConfig.totalPages">下一页</button>
             </div>
-            <!-- 页码提示 -->
             <div class="page-num-tip" v-if="broadcastMode === 'horizontal' && pageTurningConfirmed && showPageTip">
               第{{ currentPptPage }}页 / 共{{ pptConfig.totalPages }}页
             </div>
           </div>
-
           <div class="status-bar">
             <div class="status-item">
               <div class="status-dot" :class="{ active: isConnected, recording: isRecording }"></div>
@@ -1160,39 +542,231 @@ input:checked + .switch-slider:before {
               <span>📝 句 {{ currentSentence }}/{{ totalSentences }}</span>
             </div>
           </div>
-
           <div class="progress-bar" v-if="isBroadcasting">
             <div class="progress-fill" :style="{ width: progressPercent + '%' }"></div>
           </div>
-
-          <!-- 下载和缓存按钮 -->
-          <div style="margin-top: 20px;">
-            <button
-              class="btn btn-success"
-              @click="downloadVideo"
-              :disabled="!hasVideoBlob"
-            >
-              💾 下载视频
+          <div class="core-btn-group">
+            <button class="btn btn-primary" @click="startBroadcast" :disabled="isBroadcasting || step < 5 || !config.text || (usePPT && !pageTurningConfirmed)">
+              🎙️ {{ isBroadcasting ? '播报中...' : '开始播报' }}
             </button>
-            <button
-              class="btn btn-primary"
-              @click="saveToCache"
-              :disabled="!hasVideoBlob"
-            >
-              💾 保存到缓存
-            </button>
+            <button class="btn btn-danger" @click="stopBroadcast" :disabled="!isBroadcasting">⏹️ 停止播报</button>
+            <button class="btn btn-success" @click="playCachedVideo" :disabled="!hasCachedVideo || isBroadcasting">📼 播放缓存</button>
+            <button class="btn btn-success" @click="downloadVideo" :disabled="!hasVideoBlob">💾 下载视频</button>
+            <button class="btn btn-primary" @click="saveToCache" :disabled="!hasVideoBlob">💾 保存到缓存</button>
           </div>
-
-          <!-- 视频预览 -->
-          <video
-            ref="previewVideo"
-            style="width: 100%; margin-top: 20px; border-radius: 10px;"
-            controls
-          ></video>
+          <div v-if="usePPT && !pageTurningConfirmed" class="status-tip warn" style="margin-top:15px;">
+            请先完成 PPT 导入并确认翻页规则，以激活 PPT 背景
+          </div>
+          <video ref="previewVideo" style="width:100%;margin-top:20px;border-radius:10px;" controls></video>
+          <div v-if="cachedVideos.length > 0" class="cache-info">
+            <h3>📼 视频缓存 ({{ cachedVideos.length }}个)</h3>
+            <div v-for="(cache, index) in cachedVideos" :key="index" class="cache-item">
+              <div>
+                <strong>{{ cache.text.substring(0, 20) }}{{ cache.text.length > 20 ? '...' : '' }}</strong>
+                <div style="font-size:12px;color:#666;">{{ new Date(cache.timestamp).toLocaleString() }} | {{ formatDuration(cache.duration) }}</div>
+              </div>
+              <div class="cache-item-actions">
+                <button class="btn btn-small btn-primary" @click="playCache(index)">▶️ 播放</button>
+                <button class="btn btn-small btn-danger" @click="deleteCache(index)">🗑️ 删除</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- 保存项目弹窗(Vue渲染范围内,响应式完全生效) -->
+      <!-- 3. 步骤导航条 -->
+      <div class="process-nav">
+        <div class="process-step" :class="{ active: step >= 1, completed: step > 1 }">
+          <span class="step-num">1</span><span class="step-text">基础配置</span>
+        </div>
+        <div class="process-step" :class="{ active: step >= 2, completed: step > 2, hidden: !usePPT }">
+          <span class="step-num">2</span><span class="step-text">PPT 导入</span>
+        </div>
+        <div class="process-step" :class="{ active: step >= 3, completed: step > 3 }">
+          <span class="step-num">3</span><span class="step-text">文案输入</span>
+        </div>
+        <div class="process-step" :class="{ active: step >= 4, completed: step > 4, hidden: !usePPT }">
+          <span class="step-num">4</span><span class="step-text">翻页节点</span>
+        </div>
+        <div class="process-step" :class="{ active: step >= 5, completed: step > 5 }">
+          <span class="step-num">5</span><span class="step-text">播报导出</span>
+        </div>
+      </div>
+
+      <!-- 4. 全宽配置区 -->
+      <div class="config-section">
+        <!-- 4.1 模式选择 -->
+        <div class="panel config-panel">
+          <h2>🎯 播报模式选择</h2>
+          <div class="mode-selector">
+            <div class="mode-card" :class="{ active: !usePPT }" @click="switchMode(false)">
+              <div class="mode-icon">🎤</div>
+              <div class="mode-title">纯数字人播报</div>
+              <div class="mode-desc">无需 PPT，直接输入文案播报</div>
+            </div>
+            <div class="mode-card" :class="{ active: usePPT }" @click="switchMode(true)">
+              <div class="mode-icon">📑</div>
+              <div class="mode-title">PPT 宣讲播报</div>
+              <div class="mode-desc">上传 PPT，自动匹配翻页</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4.2 基础配置 -->
+        <div class="panel config-panel">
+          <h2>⚙️ 基础配置</h2>
+          <div class="config-grid">
+            <div class="form-group">
+              <label>数字人形象</label>
+              <select v-model="config.roleId" @change="clearCache">
+                <option v-for="role in roles" :key="role.role_id" :value="role.role_id">{{ role.role_name }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>发音人</label>
+              <select v-model="config.rdn" @change="clearCache">
+                <option v-for="voice in voices" :key="voice.rdn" :value="voice.rdn">{{ voice.name }} ({{ voice.rdn }})</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>语速 ({{ config.speed }}x)</label>
+              <input type="range" min="0.5" max="2" step="0.1" v-model.number="config.speed" @change="clearCache">
+            </div>
+            <div class="form-group">
+              <label>字幕字体大小 ({{ config.subtitleFontSize }}px)</label>
+              <input type="range" min="12" max="48" step="2" v-model.number="config.subtitleFontSize">
+            </div>
+          </div>
+        </div>
+
+        <!-- 4.3 PPT 导入配置（仅 PPT 模式） -->
+        <div class="panel config-panel" v-if="usePPT">
+          <h2>📑 PPT 导入配置</h2>
+          <div class="form-group">
+            <label>📤 本地 PPT 文件上传</label>
+            <div style="flex-direction:column;align-items:stretch;">
+              <input type="file" ref="pptFileInput" accept=".ppt,.pptx" @change="handleLocalPptUpload" style="padding:10px;border:2px dashed #e0e0e0;border-radius:8px;margin-bottom:10px;">
+              <button class="btn btn-primary" @click="uploadLocalPpt" :disabled="!localPptFile || uploadingLocalPpt" style="margin-top:10px;width:100%;">
+                <span v-if="!localPptFile">📤 请先选择 PPT 文件</span>
+                <span v-else-if="uploadingLocalPpt">⏳ 上传中...</span>
+                <span v-else>🚀 上传并解析</span>
+              </button>
+              <div v-if="localPptFile" class="status-tip success" style="margin-top:8px;">
+                ✅ 已选择:{{ localPptFile.name }} ({{ (localPptFile.size / 1024 / 1024).toFixed(2) }} MB)
+              </div>
+            </div>
+            <div class="status-tip warn" style="margin-top:8px;font-size:12px;">
+              支持格式:.ppt, .pptx | 最大 50MB | 自动解析为图片并生成翻页节点
+            </div>
+            <div v-if="pptImportStatus" :class="['status-tip', pptImportStatus.type]" style="margin-top:8px;">
+              {{ pptImportStatus.text }}
+            </div>
+          </div>
+          <div class="form-group">
+            <button class="btn btn-primary" style="width:100%;" @click="generateTurningNodes" :disabled="!config.text || !pptConfig.imported">
+              🤖 生成智能翻页节点
+            </button>
+            <div v-if="!config.text && !pptConfig.imported" class="status-tip warn" style="margin-top:8px;">
+              ⚠️ 请先完成 PPT 导入，并填写播报文本后，即可生成翻页节点
+            </div>
+            <div v-else-if="!pptConfig.imported" class="status-tip warn" style="margin-top:8px;">
+              ⚠️ 请先完成 PPT 导入，再生成翻页节点
+            </div>
+            <div v-else-if="!config.text" class="status-tip warn" style="margin-top:8px;">
+              ⚠️ 请先填写播报文本，再生成翻页节点
+            </div>
+          </div>
+          <div v-if="pptConfig.imported" class="form-group">
+            <label>PPT 导入结果 ({{ pptConfig.totalPages }}页)</label>
+            <div class="ppt-thumb-grid">
+              <div class="ppt-thumb-item" :class="{ active: currentEditPage === item.page_num }" v-for="item in pptConfig.pages" :key="item.page_num" @click="currentEditPage = item.page_num; openPptPreview(item.page_image_url);">
+                <img :src="item.page_image_url" :alt="item.page_title" style="cursor:zoom-in;">
+                <div class="ppt-thumb-title">第{{ item.page_num }}页 | {{ item.page_title }}</div>
+              </div>
+            </div>
+            <button class="btn btn-small btn-primary" @click="reImportPpt" style="margin-top:10px;">重新导入</button>
+          </div>
+          <div v-if="pageTurningNodes.length > 0" class="form-group">
+            <div class="dual-column-panel">
+              <div class="column-box">
+                <div class="column-title">📑 PPT 页面列表</div>
+                <div class="ppt-thumb-item" :class="{ active: currentEditPage === item.page_num }" v-for="item in pptConfig.pages" :key="item.page_num" @click="currentEditPage = item.page_num">
+                  <div class="ppt-thumb-title">第{{ item.page_num }}页 | {{ item.page_title }}</div>
+                </div>
+              </div>
+              <div class="column-box">
+                <div class="column-title">📝 绑定的播报句子</div>
+                <div class="sentence-item" :class="{ bound: isSentenceBound(index), highlight: isSentenceHighlight(index) }" v-for="(sentence, index) in currentSentences" :key="index" draggable="true" @dragstart="dragSentence(index)" @drop="dropSentence" @dragover.prevent>
+                  句{{ index+1 }}: {{ sentence }}
+                </div>
+              </div>
+            </div>
+            <div class="adjust-row">
+              <label>起始句:</label>
+              <select v-model="currentNode.start_sentence_index">
+                <option v-for="(sentence, index) in currentSentences" :key="index" :value="index">句{{ index+1 }}</option>
+              </select>
+              <label>结束句:</label>
+              <select v-model="currentNode.end_sentence_index">
+                <option v-for="(sentence, index) in currentSentences" :key="index" :value="index">句{{ index+1 }}</option>
+              </select>
+            </div>
+            <div class="adjust-row">
+              <button class="btn btn-small btn-primary" @click="adjustPageTurn(-1)">提前 1 句翻页</button>
+              <button class="btn btn-small btn-primary" @click="adjustPageTurn(1)">延后 1 句翻页</button>
+              <button class="btn btn-small btn-warning" @click="resetTurningNodes">一键重置</button>
+            </div>
+            <div class="adjust-row" style="justify-content:flex-end;margin-top:20px;">
+              <button class="btn btn-default" @click="cancelTurningEdit">取消</button>
+              <button class="btn btn-success" @click="confirmTurningRules">✅ 确认翻页规则</button>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:20px;">
+            <label>播报模式</label>
+            <select v-model="broadcastMode" @change="onModeChange">
+              <option value="vertical">竖屏模式 (默认)</option>
+              <option value="horizontal">横屏 PPT 宣讲模式</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 4.4 播报文本 -->
+        <div class="panel config-panel">
+          <h2>📝 播报文本</h2>
+          <div class="form-group">
+            <textarea v-model="config.text" placeholder="请输入要播报的文本内容..." @input="clearCache" style="height:200px;"></textarea>
+            <div style="text-align:right;margin-top:5px;color:#666;font-size:12px;">共 {{ currentSentences.length }} 句</div>
+          </div>
+        </div>
+
+        <!-- 4.5 系统日志 -->
+        <div class="panel config-panel">
+          <div class="ppt-collapse-header" @click="logCollapseOpen = !logCollapseOpen" style="padding:0;margin-bottom:15px;cursor:pointer;">
+            <h2 style="margin:0;">📋 系统日志</h2>
+            <span>{{ logCollapseOpen ? '▼' : '▶' }}</span>
+          </div>
+          <div class="log-container" v-if="logCollapseOpen && logs.length > 0">
+            <div v-for="(log, index) in logs.slice(-20)" :key="index" :class="['log-entry', log.type]">
+              [{{ log.time }}] {{ log.message }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toast 容器 -->
+      <div class="toast-container">
+        <div v-for="(toast, index) in toastList" :key="index" :class="['toast-item', toast.type]">{{ toast.message }}</div>
+      </div>
+
+      <!-- PPT 大图预览弹窗 -->
+      <div class="ppt-preview-modal" v-if="showPptPreview" @click.self="showPptPreview=false">
+        <img :src="currentPreviewPptImg" alt="PPT 大图预览" class="preview-img">
+        <button class="preview-close" @click="showPptPreview=false">×</button>
+      </div>
+
+      <!-- [P0_HIDDEN] 云端项目模块已隐藏 -->
+
+      <!-- 保存项目弹窗 -->
       <div class="modal-mask" :class="{ 'vue-mounted': isVueMounted }" v-if="saveProjectModalOpen" v-cloak @click.self="closeSaveModal">
         <div class="modal-box" @click.stop>
           <div class="modal-title">保存项目到云端</div>
@@ -1202,10 +776,10 @@ input:checked + .switch-slider:before {
           </div>
           <div class="form-group">
             <label>项目备注</label>
-            <textarea v-model="saveProjectForm.desc" placeholder="请输入项目备注(选填)" style="min-height: 80px;"></textarea>
+            <textarea v-model="saveProjectForm.desc" placeholder="请输入项目备注 (选填)" style="min-height:80px;"></textarea>
           </div>
           <div class="form-group">
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
               <input type="checkbox" v-model="saveProjectForm.saveVideo">
               同时保存成品视频到云端
             </label>
@@ -1217,21 +791,8 @@ input:checked + .switch-slider:before {
         </div>
       </div>
     </div>
-
-    <!-- [P0_NEW] 全局 Toast 容器 -->
-    <div class="toast-container">
-      <div
-        v-for="(toast, index) in toastList"
-        :key="index"
-        :class="['toast-item', toast.type]"
-      >
-        {{ toast.message }}
-      </div>
-    </div>
-    <!-- [P0_NEW] Toast 容器结束 -->
-</div>
-
-  <script>
+  </div>
+<script>
     // IndexedDB 配置
     const DB_NAME = 'AvatarBroadcastDB';
     const DB_VERSION = 1;
@@ -2469,6 +2030,24 @@ ${sentencesList}
             }
           };
 
+        // PPT 大图预览
+        function openPptPreview(imageUrl) {
+          currentPreviewPptImg.value = imageUrl;
+          showPptPreview.value = true;
+          addLog('打开 PPT 大图预览', 'info');
+        }
+
+        // 判断句子是否高亮（当前 PPT 页面对应的句子）
+        function isSentenceHighlight(sentenceIndex) {
+          if (!currentNode.value || !pageTurningNodes.value || pageTurningNodes.value.length === 0) {
+            return false;
+          }
+          const node = pageTurningNodes.value[currentEditPage.value - 1];
+          if (!node) return false;
+          return sentenceIndex >= node.start_sentence_index && sentenceIndex <= node.end_sentence_index;
+        }
+
+
           // 创建录制器并启动
           const createRecorderAndStart = (audioStream) => {
             // 合并视频轨+音频轨
@@ -3211,6 +2790,8 @@ cloudProjectCollapseOpen,
           startFeishuAuth,
           generateTurningNodes,
           isSentenceBound,
+          openPptPreview,
+          isSentenceHighlight,
           dragSentence,
           dropSentence,
           adjustPageTurn,
@@ -3235,4 +2816,4 @@ cloudProjectCollapseOpen,
   </script>
 </body>
 </html>
-
+<!-- v2-restructure-1776055462 -->
