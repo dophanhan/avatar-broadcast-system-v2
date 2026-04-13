@@ -27,34 +27,67 @@
       max-width: 1400px;
       margin: 0 auto;
       background: white;
-      border-radius: 20px;
+      border-radius: 0; /* 统一去圆角 */
       box-shadow: 0 20px 60px rgba(0,0,0,0.3);
       overflow: hidden;
     }
     .header {
+      /* 统一间距 */
+      padding: 20px 30px;
+      text-align: center;
+      border-radius: 0; /* 标题无圆角 */
+      margin-bottom: 25px; /* 标题 ↔ 实时预览 拉开距离 */
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
-      padding: 30px;
-      text-align: center;
+      width: 100%;
+      box-sizing: border-box;
     }
-    .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+    .header h1 { 
+      font-size: 1.6em;
+      margin: 0;
+    }
+    .header p {
+      font-size: 0.9em;
+      margin: 3px 0 0;
+    }
     
-    /* ========== 顶部预览区样式 ========== */
+    /* ========== 顶部预览区样式（修改为左右分栏） ========== */
+    /* 实时预览外层容器：统一间距 */
     .preview-section {
       padding: 20px 30px;
       background: #f8f9fa;
+      border-radius: 0; /* 统一去圆角 */
+      margin-bottom: 25px; /* 预览 ↔ 播报模式 拉开距离 */
+      width: 100%;
+      box-sizing: border-box;
     }
-    .preview-panel { margin: 0; }
+    .preview-panel { 
+      margin: 0;
+      display: flex;
+      gap: 25px;
+      align-items: stretch; // ✅ 关键：拉伸高度，左右完全等高
+    }
+    /* 视频黑框（无圆角） */
     .video-container {
+      /* 原有尺寸、布局代码保留 */
       position: relative;
       width: 100%;
-      max-width: 900px;
-      margin: 0 auto;
-      padding-bottom: 56.25%;
+      max-width: 720px;
+      margin: 0;
+      aspect-ratio: 16/9;
+      height: 100%;
       background: #000;
-      border-radius: 15px;
+      border-radius: 0; /* 精准去掉预览框圆角 */
       overflow: hidden;
-      margin-bottom: 20px;
+      flex-shrink: 0;
+    }
+    /* 新增：右侧按钮边栏样式 */
+    .button-sidebar {
+      flex: 1;
+      min-width: 220px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
     }
     .video-container.fullscreen {
       position: fixed;
@@ -107,45 +140,69 @@
       font-size: 14px;
       z-index: 10;
     }
+    /* 修改：核心按钮组改为垂直排列 */
     .core-btn-group {
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
-      margin-top: 20px;
+      margin-top: 0;
+      justify-content: flex-start;
+      flex-direction: column;
+    }
+    .core-btn-group .btn {
+      width: 100%;
+      margin-right: 0;
       justify-content: center;
     }
     
     /* ========== 步骤导航条样式 ========== */
+    /* 🔥 步骤导航条 彻底修复遮挡（两种模式通用） */
     .process-nav {
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
-      padding: 20px 30px;
-      background: #ffffff;
-      border-top: 1px solid #e0e0e0;
-      border-bottom: 1px solid #e0e0e0;
+      margin: 25px 0; /* 增大上下间距，不贴靠播报模式 */
+      padding: 15px 0; /* 增加内部高度，彻底消除遮挡 */
+      background: #fff;
+      border-radius: 10px;
       gap: 10px;
+      position: relative;
+      z-index: 1;
     }
+    /* 导航项文字 + 布局 不遮挡 */
     .process-step {
       display: flex;
       align-items: center;
       gap: 8px;
-      flex: 1;
-      position: relative;
-      color: #999;
-      transition: all 0.3s;
+      font-size: 16px;
+      font-weight: 500;
+      color: #666;
+      cursor: pointer;
+      padding: 8px 12px; /* 文字周围留足空间 */
+      line-height: 1.2; /* 文字行高正常，不压线 */
     }
+    /* 激活状态样式 */
+    .process-step.active {
+      color: #667eea;
+      font-weight: 600;
+    }
+    /* 中间横线 调整高度 + 位置，绝不遮挡文字 */
     .process-step:not(:last-child)::after {
       content: '';
       position: absolute;
-      top: 14px; left: 50%;
-      width: calc(100% - 28px);
-      height: 2px;
-      background: #e0e0e0;
+      top: 50%;
+      left: 100%;
+      width: 40px;
+      height: 2px; /* 横线细一点，不挡文字 */
+      background: #ddd;
+      transform: translateY(-50%);
     }
-    .process-step.completed:not(:last-child)::after { background: #667eea; }
-    .process-step.active { color: #667eea; font-weight: 600; }
-    .process-step.completed { color: #11998e; }
+    .process-step.completed:not(:last-child)::after { 
+      background: #667eea;
+    }
+    .process-step.completed { 
+      color: #11998e; 
+    }
     .step-num {
       width: 28px; height: 28px;
       border-radius: 50%;
@@ -155,23 +212,40 @@
       align-items: center;
       justify-content: center;
       font-size: 14px;
-      z-index: 10;
+      flex-shrink: 0;
     }
     .process-step.active .step-num { background: #667eea; }
     .process-step.completed .step-num { background: #11998e; }
     .process-step.hidden { display: none; }
     
-    /* ========== 全宽配置区样式 ========== */
+    /* 播报模式外层容器 */
     .config-section {
-      padding: 20px 30px 30px;
+      /* 原有代码保留 */
+      padding: 20px;
       background: #f8f9fa;
+      border-radius: 0; /* 去掉圆角 */
+      margin-bottom: 25px; /* 播报模式 ↔ 步骤导航 拉开距离 */
+      width: 100%;
+      box-sizing: border-box;
     }
     .panel {
+      /* 原有代码保留，只改这两行 */
+      border-radius: 0; /* 精准去掉圆角，无优先级覆盖 */
+      margin-bottom: 25px; /* 面板底部统一间距 */
       background: #ffffff;
-      border-radius: 15px;
       padding: 25px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    /* 预览内部面板 */
+    .preview-panel {
+      /* 原有布局代码保留 */
+      border-radius: 0; /* 无圆角 */
+      margin: 0;
+      display: flex;
+      gap: 25px;
+      align-items: flex-start;
     }
     .panel h2 {
       color: #667eea;
@@ -403,7 +477,19 @@
     }
     .sentence-item:hover { background: #f8f9fa; }
     .sentence-item.bound { background: #e8f5e9; border-left: 3px solid #38ef7d; }
-    .sentence-item.highlight { background: #e3f2fd; border-left: 3px solid #2196f3; font-weight: 600; }
+    .sentence-item.highlight { background: #eff6ff; border-color: #bfdbfe; border-left: 5px solid #667eea; font-weight: 600; transform: translateX(4px); box-shadow: 0 4px 12px rgba(102,126,234,0.15); }
+    /* 新增：句子编号徽章 */
+    .sentence-item::before {
+      content: attr(data-index);
+      background: #e9ecef;
+      color: #495057;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: bold;
+      white-space: nowrap;
+      margin-right: 8px;
+    }
     .adjust-row {
       display: flex;
       gap: 10px;
@@ -446,9 +532,12 @@
       width: 100vw; height: 100vh;
       background: rgba(0,0,0,0.85);
       z-index: 99999;
-      display: flex;
+      display: none !important;
       align-items: center;
       justify-content: center;
+    }
+    .ppt-preview-modal[v-show="true"] {
+      display: flex !important;
     }
     .preview-img { max-width: 90vw; max-height: 90vh; border-radius: 8px; }
     .preview-close {
@@ -485,10 +574,19 @@
     }
     .modal-title { font-size: 1.5em; color: #333; margin-bottom: 20px; font-weight: 600; }
     .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
-    [v-cloak] { display: none !important; }
+    /* 全局加强 v-cloak，彻底隐藏未挂载元素 */
+    [v-cloak] {
+      display: none !important;
+    }
     
-    /* ========== 响应式 ========== */
-    @media (max-width: 1200px) { .config-grid { grid-template-columns: 1fr 1fr; } }
+    /* ========== 响应式（修改） ========== */
+    @media (max-width: 1200px) { 
+      .config-grid { grid-template-columns: 1fr 1fr; }
+      .preview-panel { flex-direction: column; }
+      .video-container { max-width: 100%; }
+      .core-btn-group { flex-direction: row; flex-wrap: wrap; }
+      .core-btn-group .btn { width: auto; }
+    }
     @media (max-width: 768px) {
       body { padding: 10px; }
       .header h1 { font-size: 1.8em; }
@@ -512,11 +610,12 @@
         <h1>🎬 数字人播报系统</h1>
         <p>讯飞 XRtc 数字人 + 自动录制 + 视频缓存</p>
       </div>
-
-      <!-- 2. 核心预览区 -->
+      <!-- 2. 核心预览区（左右分栏布局） -->
       <div class="preview-section">
         <div class="panel preview-panel">
-          <h2>📺 实时预览</h2>
+          <h2 style="width: 100%; margin-bottom: 0;">📺 实时预览</h2>
+          
+          <!-- 左侧：视频容器 -->
           <div class="video-container" ref="videoContainer">
             <canvas ref="compositeCanvas" :width="canvasSize.width" :height="canvasSize.height"></canvas>
             <button class="fullscreen-btn" @click="toggleFullscreen">
@@ -530,50 +629,65 @@
               第{{ currentPptPage }}页 / 共{{ pptConfig.totalPages }}页
             </div>
           </div>
-          <div class="status-bar">
-            <div class="status-item">
-              <div class="status-dot" :class="{ active: isConnected, recording: isRecording }"></div>
-              <span>{{ isRecording ? '🔴 录制中' : (isConnected ? '🟢 已连接' : '⚪ 未连接') }}</span>
-            </div>
-            <div class="status-item" v-if="isRecording || isBroadcasting">
-              <span>⏱️ {{ formatDuration(recordDuration) }}</span>
-            </div>
-            <div class="status-item" v-if="currentSentence > 0">
-              <span>📝 句 {{ currentSentence }}/{{ totalSentences }}</span>
-            </div>
-          </div>
-          <div class="progress-bar" v-if="isBroadcasting">
-            <div class="progress-fill" :style="{ width: progressPercent + '%' }"></div>
-          </div>
-          <div class="core-btn-group">
-            <button class="btn btn-primary" @click="startBroadcast" :disabled="isBroadcasting || step < 5 || !config.text || (usePPT && !pageTurningConfirmed)">
-              🎙️ {{ isBroadcasting ? '播报中...' : '开始播报' }}
-            </button>
-            <button class="btn btn-danger" @click="stopBroadcast" :disabled="!isBroadcasting">⏹️ 停止播报</button>
-            <button class="btn btn-success" @click="playCachedVideo" :disabled="!hasCachedVideo || isBroadcasting">📼 播放缓存</button>
-            <button class="btn btn-success" @click="downloadVideo" :disabled="!hasVideoBlob">💾 下载视频</button>
-            <button class="btn btn-primary" @click="saveToCache" :disabled="!hasVideoBlob">💾 保存到缓存</button>
-          </div>
-          <div v-if="usePPT && !pageTurningConfirmed" class="status-tip warn" style="margin-top:15px;">
-            请先完成 PPT 导入并确认翻页规则，以激活 PPT 背景
-          </div>
-          <video ref="previewVideo" style="width:100%;margin-top:20px;border-radius:10px;" controls></video>
-          <div v-if="cachedVideos.length > 0" class="cache-info">
-            <h3>📼 视频缓存 ({{ cachedVideos.length }}个)</h3>
-            <div v-for="(cache, index) in cachedVideos" :key="index" class="cache-item">
-              <div>
-                <strong>{{ cache.text.substring(0, 20) }}{{ cache.text.length > 20 ? '...' : '' }}</strong>
-                <div style="font-size:12px;color:#666;">{{ new Date(cache.timestamp).toLocaleString() }} | {{ formatDuration(cache.duration) }}</div>
+
+          <!-- 右侧：按钮与状态边栏 -->
+          <div class="button-sidebar">
+            <!-- 状态条 -->
+            <div class="status-bar" style="margin: 0;">
+              <div class="status-item">
+                <div class="status-dot" :class="{ active: isConnected, recording: isRecording }"></div>
+                <span>{{ isRecording ? '🔴 录制中' : (isConnected ? '🟢 已连接' : '⚪ 未连接') }}</span>
               </div>
-              <div class="cache-item-actions">
-                <button class="btn btn-small btn-primary" @click="playCache(index)">▶️ 播放</button>
-                <button class="btn btn-small btn-danger" @click="deleteCache(index)">🗑️ 删除</button>
+              <div class="status-item" v-if="isRecording || isBroadcasting">
+                <span>⏱️ {{ formatDuration(recordDuration) }}</span>
               </div>
+              <div class="status-item" v-if="currentSentence > 0">
+                <span>📝 句 {{ currentSentence }}/{{ totalSentences }}</span>
+              </div>
+            </div>
+
+            <!-- 进度条 -->
+            <div class="progress-bar" v-if="isBroadcasting" style="margin-top: 0;">
+              <div class="progress-fill" :style="{ width: progressPercent + '%' }"></div>
+            </div>
+
+            <!-- 核心按钮组 -->
+            <div class="core-btn-group">
+              <button class="btn btn-primary" @click="startBroadcast" :disabled="isBroadcasting || step < 5 || !config.text || (usePPT && !pageTurningConfirmed)">
+                🎙️ {{ isBroadcasting ? '播报中...' : '开始播报' }}
+              </button>
+              <button class="btn btn-danger" @click="stopBroadcast" :disabled="!isBroadcasting">⏹️ 停止播报</button>
+              <button class="btn btn-success" @click="playCachedVideo" :disabled="!hasCachedVideo || isBroadcasting">📼 播放缓存</button>
+              <button class="btn btn-success" @click="downloadVideo" :disabled="!hasVideoBlob">💾 下载视频</button>
+              <button class="btn btn-primary" @click="saveToCache" :disabled="!hasVideoBlob">💾 保存到缓存</button>
+            </div>
+
+            <!-- PPT 提示 -->
+            <div v-if="usePPT && !pageTurningConfirmed" class="status-tip warn" style="margin-top: 0;">
+              请先完成 PPT 导入并确认翻页规则，以激活 PPT 背景
+            </div>
+          </div>
+        </div>
+        </div>
+      </div>
+      <!-- 👇 播报模式选择（移到这里，步骤条上方） -->
+      <div class="config-section">
+        <div class="panel config-panel">
+          <h2>🎯 播报模式选择</h2>
+          <div class="mode-selector">
+            <div class="mode-card" :class="{ active: !usePPT }" @click="switchMode(false)">
+              <div class="mode-icon">🎤</div>
+              <div class="mode-title">纯数字人播报</div>
+              <div class="mode-desc">无需 PPT，直接输入文案播报</div>
+            </div>
+            <div class="mode-card" :class="{ active: usePPT }" @click="switchMode(true)">
+              <div class="mode-icon">📑</div>
+              <div class="mode-title">PPT 宣讲播报</div>
+              <div class="mode-desc">上传 PPT，自动匹配翻页</div>
             </div>
           </div>
         </div>
       </div>
-
       <!-- 3. 步骤导航条 -->
       <div class="process-nav">
         <div class="process-step" :class="{ active: step >= 1, completed: step > 1 }">
@@ -592,27 +706,9 @@
           <span class="step-num">5</span><span class="step-text">播报导出</span>
         </div>
       </div>
-
       <!-- 4. 全宽配置区 -->
       <div class="config-section">
-        <!-- 4.1 模式选择 -->
-        <div class="panel config-panel">
-          <h2>🎯 播报模式选择</h2>
-          <div class="mode-selector">
-            <div class="mode-card" :class="{ active: !usePPT }" @click="switchMode(false)">
-              <div class="mode-icon">🎤</div>
-              <div class="mode-title">纯数字人播报</div>
-              <div class="mode-desc">无需 PPT，直接输入文案播报</div>
-            </div>
-            <div class="mode-card" :class="{ active: usePPT }" @click="switchMode(true)">
-              <div class="mode-icon">📑</div>
-              <div class="mode-title">PPT 宣讲播报</div>
-              <div class="mode-desc">上传 PPT，自动匹配翻页</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 4.2 基础配置 -->
+        <!-- 4.1 基础配置 -->
         <div class="panel config-panel">
           <h2>⚙️ 基础配置</h2>
           <div class="config-grid">
@@ -638,7 +734,6 @@
             </div>
           </div>
         </div>
-
         <!-- 4.3 PPT 导入配置（仅 PPT 模式） -->
         <div class="panel config-panel" v-if="usePPT">
           <h2>📑 PPT 导入配置</h2>
@@ -696,8 +791,16 @@
               </div>
               <div class="column-box">
                 <div class="column-title">📝 绑定的播报句子</div>
-                <div class="sentence-item" :class="{ bound: isSentenceBound(index), highlight: isSentenceHighlight(index) }" v-for="(sentence, index) in currentSentences" :key="index" draggable="true" @dragstart="dragSentence(index)" @drop="dropSentence" @dragover.prevent>
-                  句{{ index+1 }}: {{ sentence }}
+                <div class="sentence-item" 
+                     :class="{ bound: isSentenceBound(index), highlight: isSentenceHighlight(index) }" 
+                     v-for="(sentence, index) in currentSentences" 
+                     :key="index" 
+                     :data-index="'句' + (index+1)"
+                     draggable="true" 
+                     @dragstart="dragSentence(index)" 
+                     @drop="dropSentence" 
+                     @dragover.prevent>
+                  {{ sentence }}
                 </div>
               </div>
             </div>
@@ -729,7 +832,6 @@
             </select>
           </div>
         </div>
-
         <!-- 4.4 播报文本 -->
         <div class="panel config-panel">
           <h2>📝 播报文本</h2>
@@ -738,7 +840,6 @@
             <div style="text-align:right;margin-top:5px;color:#666;font-size:12px;">共 {{ currentSentences.length }} 句</div>
           </div>
         </div>
-
         <!-- 4.5 系统日志 -->
         <div class="panel config-panel">
           <div class="ppt-collapse-header" @click="logCollapseOpen = !logCollapseOpen" style="padding:0;margin-bottom:15px;cursor:pointer;">
@@ -751,21 +852,38 @@
             </div>
           </div>
         </div>
+        
+        <!-- 4.6 视频缓存库（页面最底部） -->
+        <div class="panel config-panel" v-if="cachedVideos.length > 0">
+          <h2>📼 视频缓存库 ({{ cachedVideos.length }}个)</h2>
+          <div v-for="(cache, index) in cachedVideos" :key="index" class="cache-item" style="margin-bottom:15px;">
+            <div>
+              <strong>{{ cache.text.substring(0, 30) }}{{ cache.text.length > 30 ? '...' : '' }}</strong>
+              <div style="font-size:12px;color:#666;margin-top:5px;">
+                {{ new Date(cache.timestamp).toLocaleString() }} | 时长：{{ formatDuration(cache.duration) }}
+              </div>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:10px;">
+              <button class="btn btn-small btn-primary" @click="playCache(index)">▶️ 播放</button>
+              <button class="btn btn-small btn-danger" @click="deleteCache(index)">🗑️ 删除</button>
+            </div>
+          </div>
+        </div>
       </div>
-
+      <!-- 缓存播放视频（移到最下方） -->
+      <div class="container" style="max-width: 800px; margin: 20px auto;">
+        <video ref="previewVideo" style="width:100%;border-radius:10px;" controls></video>
+      </div>
       <!-- Toast 容器 -->
       <div class="toast-container">
         <div v-for="(toast, index) in toastList" :key="index" :class="['toast-item', toast.type]">{{ toast.message }}</div>
       </div>
-
       <!-- PPT 大图预览弹窗 -->
       <div class="ppt-preview-modal" v-if="showPptPreview" @click.self="showPptPreview=false">
         <img :src="currentPreviewPptImg" alt="PPT 大图预览" class="preview-img">
         <button class="preview-close" @click="showPptPreview=false">×</button>
       </div>
-
       <!-- [P0_HIDDEN] 云端项目模块已隐藏 -->
-
       <!-- 保存项目弹窗 -->
       <div class="modal-mask" :class="{ 'vue-mounted': isVueMounted }" v-if="saveProjectModalOpen" v-cloak @click.self="closeSaveModal">
         <div class="modal-box" @click.stop>
@@ -797,7 +915,6 @@
     const DB_NAME = 'AvatarBroadcastDB';
     const DB_VERSION = 1;
     const STORE_NAME = 'videos';
-
     // 打开数据库
     function openDB() {
       return new Promise((resolve, reject) => {
@@ -812,7 +929,6 @@
         request.onerror = () => reject(request.error);
       });
     }
-
     // 保存视频到缓存
     async function saveVideoToCache(videoBlob, text, duration) {
       const db = await openDB();
@@ -830,7 +946,6 @@
         request.onerror = () => reject(request.error);
       });
     }
-
     // 获取所有缓存视频
     async function getAllCachedVideos() {
       const db = await openDB();
@@ -842,7 +957,6 @@
         request.onerror = () => reject(request.error);
       });
     }
-
     // 删除缓存视频
     async function deleteCachedVideo(id) {
       const db = await openDB();
@@ -854,22 +968,29 @@
         request.onerror = () => reject(request.error);
       });
     }
-
+    // ========== 全局工具函数：统一句子拆分逻辑 ==========
+    function splitSentences(text) {
+      return text
+        .replace(/([。！？.!?]+)/g, '$1|SPLIT|')
+        .split('|SPLIT|')
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+    }
+    
     // Vue 应用初始化
     const { createApp } = Vue;
     createApp({
       setup() {
-        // Vue 核心API解构
+        // Vue 核心 API 解构
         const { onMounted, onBeforeMount, ref, reactive, computed, onUnmounted, nextTick } = Vue;
-
         // 核心配置响应式数据
         const config = reactive({
           roleId: '111204004',  // 默认知夏形象
           rdn: 'x4_yezi',
           text: '',
-          speed: 1.0
+          speed: 1.0,
+          subtitleFontSize: 28
         });
-
         // 数字人形象列表
         const roles = ref([
           { role_id: 'cnrfb86h2000000004', role_name: '【免费】超拟人 - 晓雅' },
@@ -894,7 +1015,6 @@
           { role_id: '111192001', role_name: '诸葛亮' },
           { role_id: '111227001', role_name: '西施' }
         ]);
-
         // 发音人列表
         const voices = ref([
           { rdn: 'x4_yezi', name: '小露' },
@@ -917,7 +1037,6 @@
           { rdn: 'x4_yifei', name: '一菲' },
           { rdn: 'x4_lingbosong', name: '聆伯松' }
         ]);
-
         // 核心状态变量
         const isBroadcasting = ref(false);
         const isConnected = ref(false);
@@ -929,15 +1048,13 @@
         const cachedVideos = ref([]);
         const logs = ref([]);
         const videoBlob = ref(null);
-
-        // DOM引用
+        // DOM 引用
         const compositeCanvas = ref(null);
         const previewVideo = ref(null);
         const videoContainer = ref(null);
-
+        const pptFileInput = ref(null);
         // 全屏状态
         const isFullscreen = ref(false);
-
         // 全局实例变量
         let sdkInstance = null;
         let compositeInterval = null;
@@ -946,23 +1063,21 @@
         let recordTimer = null;
         let animationFrame = null;
         let currentSubtitle = '';
-        let recordingStartTime = 0;  // ✅ 修复:全局录制开始时间
-        let avatarSourceDom = null;  // ✅ 修复:缓存数字人渲染 DOM,避免高频查询
+        let recordingStartTime = 0;
+        let avatarSourceDom = null;
         let broadcastEndTimer = null;
         let lastFrameStartTime = 0;
         let waitingForBroadcastEnd = false;
-
         // 字幕相关变量
         let sentenceIndex = 0;
-        const currentSentences = ref([]);  // ✅ 改为响应式
+        const currentSentences = ref([]);
         let isBroadcastingSentence = false;
         let isStopping = false;
-
-        // ==================== PPT宣讲功能相关变量 ====================
+        let videoMimeType = '';
+        // ==================== PPT 宣讲功能相关变量 ====================
         const FEISHU_APP_ID = 'cli_a914c5cbe1385cb5';
         const API_BASE_URL = 'https://avatar-adcast-v-uzttmfxmdi.cn-hangzhou.fcapp.run';
-
-        // PPT配置核心状态
+        // PPT 配置核心状态
         const pptCollapseOpen = ref(true);
         const pptConfig = reactive({
           pptUrl: '',
@@ -971,7 +1086,8 @@
           pptId: '',
           pptTitle: '',
           totalPages: 0,
-          pages: []
+          pages: [],
+          isLocal: false
         });
         // 本地 PPT 上传相关
         const localPptFile = ref(null);
@@ -979,12 +1095,13 @@
         const pptImportStatus = ref(null);
         const currentPptPage = ref(1);
         const currentEditPage = ref(1);
-
+        // PPT 预览相关（修复：补充模板依赖的响应式变量）
+        const showPptPreview = ref(false);
+        const currentPreviewPptImg = ref('');
         // 翻页节点状态
         const pageTurningNodes = ref([]);
         const pageTurningConfirmed = ref(false);
         const draggedSentenceIndex = ref(null);
-
         // 播报模式
         const broadcastMode = ref('vertical');
         const canvasSize = reactive({
@@ -992,26 +1109,22 @@
           height: 1280
         });
         const showPageTip = ref(false);
-
         // 云端项目状态
         const cloudProjectCollapseOpen = ref(false);
         const saveProjectModalOpen = ref(false);
-        const isVueMounted = ref(false);  // 防止弹窗闪现
+        const isVueMounted = ref(false);
         const saveProjectForm = reactive({
           name: '',
           desc: '',
           saveVideo: false
         });
         const cloudProjectList = ref([]);
-        // [P0_NEW] 步骤导航相关
+        // 步骤导航相关
         const step = ref(1);
         const usePPT = ref(false);
-
-        // [P0_NEW] Toast 相关
+        // Toast 相关
         const toastList = ref([]);
-
-
-        // 🆔 生成本地用户"云端身份证"(伪装成标准格式)
+        // 生成本地用户"云端身份证"
         let localOpenId = localStorage.getItem('avatar_open_id');
         if (!localOpenId || !localOpenId.startsWith('ou_')) {
           localOpenId = 'ou_local_' + Date.now();
@@ -1022,22 +1135,11 @@
           accessToken: ''
         })
 
-        // [P0_NEW] PPT 开关切换逻辑
-        function onUsePPTToggle() {
-          if (usePPT.value) {
-            step.value = 2;
-          } else {
-            // 关闭 PPT 时清空相关数据,不影响核心播报
-            reImportPpt();
-            step.value = 3;
-          }
-        }
-
-        // [P0_NEW] 全局 Toast 方法
+        // ==================== 全局工具函数 ====================
+        // [修复] 移到顶层，模板可访问
         function showToast(message, type = 'info', duration = 3000) {
           const toastItem = { message, type };
           toastList.value.push(toastItem);
-          // 非加载类型自动关闭
           if (type !== 'loading') {
             setTimeout(() => {
               const index = toastList.value.indexOf(toastItem);
@@ -1046,47 +1148,58 @@
           }
           return toastItem;
         }
-
         function closeToast(toastItem) {
           const index = toastList.value.indexOf(toastItem);
           if (index > -1) toastList.value.splice(index, 1);
         }
-;
-
-        // ==================== 计算属性 ====================
-        const hasCachedVideo = computed(() => cachedVideos.value.length > 0);
-        const hasVideoBlob = computed(() => videoBlob.value && videoBlob.value.size > 0);
-        // 当前编辑的翻页节点
-        const currentNode = computed(() => {
-          return pageTurningNodes.value.find(node => node.page_num === currentEditPage.value) || {
-            page_num: currentEditPage.value,
-            start_sentence_index: 0,
-            end_sentence_index: 0
-          };
-        })
-
-        // [P0_FIX] 修复:模式切换逻辑 ==========
+        // [修复] PPT 预览函数移到顶层，模板可访问
+        function openPptPreview(imageUrl) {
+          currentPreviewPptImg.value = imageUrl;
+          showPptPreview.value = true;
+          addLog('打开 PPT 大图预览', 'info');
+        }
+        // [修复 3] 句子高亮函数 - 修正查找逻辑
+        function isSentenceHighlight(idx) {
+          if (!pageTurningNodes.value || pageTurningNodes.value.length === 0) {
+            return false;
+          }
+          // 【修复 3】使用 find 查找对应页码的节点，而不是数组索引
+          const node = pageTurningNodes.value.find(n => n.page_num === currentEditPage.value);
+          if (!node) return false;
+          return idx >= node.start_sentence_index && idx <= node.end_sentence_index;
+        }
+        // 模式切换逻辑
         function switchMode(enablePPT) {
-          console.log('切换模式,enablePPT:', enablePPT);
-
+          console.log('切换模式，enablePPT:', enablePPT);
           if (enablePPT) {
             usePPT.value = true;
+            // 【修复】PPT 宣讲播报模式自动切换为横屏
+            broadcastMode.value = 'horizontal';
+            canvasSize.width = 1920;
+            canvasSize.height = 1080;
+            if (compositeCanvas.value) {
+              compositeCanvas.value.width = 1920;
+              compositeCanvas.value.height = 1080;
+            }
             step.value = 2;
-            showToast('已切换到 PPT 宣讲模式', 'success', 2000);
+            showToast('已切换到 PPT 宣讲模式（横屏）', 'success', 2000);
           } else {
             usePPT.value = false;
-            // 清空 PPT 数据
+            // 【修复】纯播报模式切换回竖屏
+            broadcastMode.value = 'vertical';
+            canvasSize.width = 720;
+            canvasSize.height = 1280;
+            if (compositeCanvas.value) {
+              compositeCanvas.value.width = 720;
+              compositeCanvas.value.height = 1280;
+            }
             reImportPpt();
-            // 直接跳到文案输入
             step.value = 3;
-            showToast('已切换到纯播报模式', 'success', 2000);
+            showToast('已切换到纯播报模式（竖屏）', 'success', 2000);
           }
-
           console.log('当前步骤:', step.value);
         }
-;
-
-        // ==================== 工具函数 ====================
+        // 日志工具
         function addLog(message, type = 'info') {
           logs.value.push({
             time: new Date().toLocaleTimeString(),
@@ -1095,18 +1208,15 @@
           });
           console.log(`[${type}] ${message}`);
         }
-
         function formatDuration(seconds) {
           const mins = Math.floor(seconds / 60);
           const secs = Math.floor(seconds % 60);
           return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
         }
-
         function clearCache() {
           videoBlob.value = null;
-          addLog('配置已更改,缓存已清除', 'warn');
+          addLog('配置已更改，缓存已清除', 'warn');
         }
-
         // 缓存相关函数
         async function loadCachedVideos() {
           try {
@@ -1118,26 +1228,44 @@
             addLog('加载缓存失败:' + e.message, 'error');
           }
         }
-
         async function deleteCache(index) {
-          const cache = cachedVideos.value[index];
-          await deleteCachedVideo(cache.id);
-          cachedVideos.value.splice(index, 1);
-          addLog('已删除缓存', 'success');
+          try {
+            const cache = cachedVideos.value[index];
+            await deleteCachedVideo(cache.id);
+            cachedVideos.value.splice(index, 1);
+            addLog('已删除缓存', 'success');
+          } catch (e) {
+            addLog(`❌ 删除缓存失败:${e.message}`, 'error');
+            showToast('删除缓存失败', 'error');
+          }
         }
-
         async function playCache(index) {
           const cache = cachedVideos.value[index];
-          const videoUrl = URL.createObjectURL(cache.video);
-          previewVideo.value.src = videoUrl;
-          previewVideo.value.play();
-          addLog(`播放缓存视频:${cache.text.substring(0, 20)}...`, 'success');
+          try {
+            // 【修复 P1】释放旧 URL，避免内存泄漏
+            if (previewVideo.value.src && previewVideo.value.src.startsWith('blob:')) {
+              URL.revokeObjectURL(previewVideo.value.src);
+            }
+            // 创建新 URL
+            const videoUrl = URL.createObjectURL(cache.video);
+            // 强制重载
+            previewVideo.value.src = '';
+            await nextTick();
+            previewVideo.value.src = videoUrl;
+            previewVideo.value.load();
+            // 自动播放
+            await previewVideo.value.play().catch(e => {
+              addLog(`⚠️ 自动播放失败，请手动点击播放:${e.message}`, 'warn');
+            });
+            addLog(`播放缓存视频:${cache.text.substring(0, 20)}...`, 'success');
+          } catch (e) {
+            addLog(`❌ 缓存视频播放失败:${e.message}`, 'error');
+            showToast('缓存视频播放失败', 'error');
+          }
         }
-
         async function playCachedVideo() {
           if (cachedVideos.value.length > 0) playCache(0);
         }
-
         async function saveToCache() {
           if (!videoBlob.value) {
             addLog('没有可保存的视频', 'warn');
@@ -1151,31 +1279,28 @@
             addLog('保存缓存失败:' + e.message, 'error');
           }
         }
-
         function downloadVideo() {
           if (!videoBlob.value || videoBlob.value.size === 0) {
             addLog('❌ 没有可下载的视频', 'error');
             return;
           }
           if (previewVideo.value && previewVideo.value.readyState < 1) {
-            addLog('⏳ 视频正在加载中,请稍候...', 'warn');
+            addLog('⏳ 视频正在加载中，请稍候...', 'warn');
             setTimeout(downloadVideo, 1000);
             return;
           }
           const videoUrl = URL.createObjectURL(videoBlob.value);
           const a = document.createElement('a');
           a.href = videoUrl;
-          // ✅ 自动匹配文件后缀
           const fileExt = videoBlob.value.type.includes('mp4') ? 'mp4' : 'webm';
           a.download = `数字人播报_${new Date().toLocaleString().replace(/[/:\s]/g, '-')}.${fileExt}`;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
-          addLog('💡 提示:所有主流播放器均支持拖拽进度条', 'info');
+          addLog('💡 提示：所有主流播放器均支持拖拽进度条', 'info');
           addLog('✅ 视频下载已触发', 'success');
         }
-
-        // ==================== PPT功能工具函数 ====================
+        // ==================== PPT 功能工具函数 ====================
         function checkPptUrlFormat() {
           const url = pptConfig.pptUrl;
           if (!url) {
@@ -1183,7 +1308,6 @@
             pptImportStatus.value = { type: 'warn', text: '请输入飞书 PPT 链接' };
             return;
           }
-          // 支持多种飞书链接格式
           const validPatterns = [
             'feishu.cn/docx',
             'feishu.cn/slides',
@@ -1199,22 +1323,18 @@
             pptImportStatus.value = { type: 'error', text: '仅支持飞书在线幻灯片/文档链接' };
           }
         }
-
         function startFeishuAuth() {
           const redirectUri = encodeURIComponent(window.location.href.split('?')[0]);
           window.location.href = `https://open.feishu.cn/open-apis/authen/v1/index?app_id=${FEISHU_APP_ID}&redirect_uri=${redirectUri}&state=ppt_import`;
         }
-
         async function preloadPptImages() {
           addLog('📄 开始预加载 PPT 图片', 'info');
           await Promise.all(pptConfig.pages.map(page => new Promise(resolve => {
-            // 👈 新增:如果已经有 Image 对象且已加载完成,跳过
             if (page.page_image && page.page_image.complete) {
-              addLog(`📄 第${page.page_num}页图片已加载,跳过`, 'info');
+              addLog(`📄 第${page.page_num}页图片已加载，跳过`, 'info');
               resolve();
               return;
             }
-
             const img = new Image();
             img.crossOrigin = 'anonymous';
             img.onload = () => {
@@ -1226,19 +1346,16 @@
               addLog(`⚠️ 第${page.page_num}页图片加载失败`, 'warn');
               resolve();
             };
-            img.src = page.page_image_url;  // 使用保留的 URL
+            img.src = page.page_image_url;
           })));
           addLog('✅ PPT 图片预加载完成', 'success');
         }
-
         function isSentenceBound(index) {
           return pageTurningNodes.value.some(node => index >= node.start_sentence_index && index <= node.end_sentence_index);
         }
-
         function dragSentence(index) {
           draggedSentenceIndex.value = index;
         }
-
         function dropSentence() {
           if (draggedSentenceIndex.value === null) return;
           const node = pageTurningNodes.value.find(n => n.page_num === currentEditPage.value);
@@ -1248,75 +1365,45 @@
           }
           draggedSentenceIndex.value = null;
         }
-
         function adjustPageTurn(offset) {
           const node = pageTurningNodes.value.find(n => n.page_num === currentEditPage.value);
           if (!node) return;
           node.start_sentence_index = Math.max(0, node.start_sentence_index + offset);
-          node.end_sentence_index = Math.min(currentSentences.value.length - 1, node.end_sentence_index + offset);  // ✅ 添加 .value
+          node.end_sentence_index = Math.min(currentSentences.value.length - 1, node.end_sentence_index + offset);
           addLog(`📄 第${currentEditPage.value}页翻页时机已调整`, 'info');
         }
-
         function resetTurningNodes() {
           generateTurningNodes(true);
         }
-
         function cancelTurningEdit() {
           pageTurningNodes.value = [];
           pageTurningConfirmed.value = false;
           addLog('已取消翻页规则编辑', 'info');
         }
-
         function confirmTurningRules() {
           const nodes = [...pageTurningNodes.value].sort((a,b)=>a.page_num-b.page_num);
-
           if (nodes.length === 0) {
             addLog('❌ 没有翻页节点数据', 'error');
             return;
           }
-
-          // 🛠️ 开启"自动纠偏"模式:大模型算错的,我们用代码强行拨正!
           let expectedStart = 0;
           for (let i = 0; i < nodes.length; i++) {
-            // 1. 强制类型转换(防止 select 绑定的数字变成 string 导致校验失败)
             nodes[i].start_sentence_index = Number(nodes[i].start_sentence_index);
             nodes[i].end_sentence_index = Number(nodes[i].end_sentence_index);
-
-            // 2. 强行对齐起点(必须是上一页终点 + 1,绝不允许断层或重叠)
             nodes[i].start_sentence_index = expectedStart;
-
-            // 3. 兜底防止终点越界或"倒挂"(终点小于起点)
             if (nodes[i].end_sentence_index < nodes[i].start_sentence_index) {
               nodes[i].end_sentence_index = nodes[i].start_sentence_index;
             }
             if (nodes[i].end_sentence_index >= currentSentences.value.length) {
               nodes[i].end_sentence_index = currentSentences.value.length - 1;
             }
-
-            // 更新下一页的期望起点
             expectedStart = nodes[i].end_sentence_index + 1;
           }
-
-          // 4. 强行让最后一页的终点,绝对等于最后一句(防止大模型漏掉结尾)
           nodes[nodes.length - 1].end_sentence_index = currentSentences.value.length - 1;
-
-          // 写回响应式变量
           pageTurningNodes.value = nodes;
           pageTurningConfirmed.value = true;
           addLog('✅ 翻页规则已自动纠偏并确认生效!', 'success');
         }
-
-        async function previewTurningNodes() {
-          addLog('📺 开始模拟预览', 'info');
-          for (let node of [...pageTurningNodes.value].sort((a,b)=>a.page_num-b.page_num)) {
-            currentPptPage.value = node.page_num;
-            showPageTip.value = true;
-            await new Promise(r => setTimeout(r, 1500));
-            showPageTip.value = false;
-          }
-          addLog('✅ 模拟预览完成', 'success');
-        }
-
         function manualTurnPage(offset) {
           const p = currentPptPage.value + offset;
           if (p < 1 || p > pptConfig.totalPages) return;
@@ -1325,7 +1412,6 @@
           setTimeout(() => { showPageTip.value = false; }, 1000);
           addLog(`📄 手动切换到第${p}页`, 'info');
         }
-
         function onModeChange() {
           if (broadcastMode.value === 'horizontal') {
             canvasSize.width = 1920;
@@ -1341,22 +1427,19 @@
             compositeCanvas.value.height = canvasSize.height;
           }
         }
-
         function reImportPpt() {
           pptConfig.imported = false;
           pptConfig.pages = [];
           pageTurningNodes.value = [];
           pageTurningConfirmed.value = false;
           localPptFile.value = null;
+          if (pptFileInput.value) pptFileInput.value = '';
           addLog('已清空 PPT 数据', 'info');
         }
-
         // 处理本地 PPT 文件选择
         function handleLocalPptUpload(event) {
           const file = event.target.files[0];
           if (!file) return;
-
-          // 验证文件格式
           const validTypes = ['.ppt', '.pptx'];
           const fileExt = '.' + file.name.split('.').pop().toLowerCase();
           if (!validTypes.includes(fileExt)) {
@@ -1364,34 +1447,26 @@
             event.target.value = '';
             return;
           }
-
-          // 验证文件大小(最大 50MB)
           if (file.size > 50 * 1024 * 1024) {
             pptImportStatus.value = { type: 'error', text: '文件大小不能超过 50MB' };
             event.target.value = '';
             return;
           }
-
           localPptFile.value = file;
           pptImportStatus.value = { type: 'success', text: `已选择:${file.name}` };
           addLog(`📄 已选择本地 PPT: ${file.name} (${(file.size/1024/1024).toFixed(2)}MB)`, 'success');
         }
-
         // 上传并解析本地 PPT
         async function uploadLocalPpt() {
           if (!localPptFile.value) {
             pptImportStatus.value = { type: 'error', text: '请先选择 PPT 文件' };
             return;
           }
-
           uploadingLocalPpt.value = true;
           addLog('📤 正在上传 PPT 文件...', 'info');
           addLog(`📊 上传前:pptConfig.imported=${pptConfig.imported}`, 'info');
-
           let loadingToast = null;
           try {
-
-            // 读取文件为 base64
             const fileToBase64 = (file) => {
               return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -1400,11 +1475,8 @@
                 reader.readAsDataURL(file);
               });
             };
-
             const base64Data = await fileToBase64(localPptFile.value);
             addLog(`📊 文件已转换为 base64,长度:${base64Data.length}`, 'info');
-
-            // 发送到后端
             const res = await fetch(`${API_BASE_URL}/ppt/upload`, {
               method: 'POST',
               headers: {
@@ -1415,158 +1487,106 @@
                 filename: localPptFile.value.name
               })
             });
-
             addLog(`📊 后端响应状态:${res.status}`, 'info');
-
             const result = await res.json();
             addLog(`📊 后端返回数据:${JSON.stringify(result)}`, 'info');
-
             if (result.code !== 0) {
               throw new Error(result.msg || '上传失败');
             }
-
-            // 解析成功,保存 PPT 数据 - 使用 nextTick 强制触发响应式更新
             await nextTick();
-
-            // 🔍 调试:打印后端返回的原始数据
             addLog(`🔍 后端返回 data 对象:${JSON.stringify(result.data)}`, 'info');
             addLog(`🔍 result.data.total_pages = ${result.data.total_pages}`, 'info');
             addLog(`🔍 result.data.pages 长度 = ${result.data.pages ? result.data.pages.length : 0}`, 'info');
-
-            // ✅ 终极修复:既要转换成真正的 Image 对象让 Canvas 能画,又要保留 URL 让模板能显示!
             pptConfig.pages = result.data.pages.map(p => {
               const img = new Image();
               img.crossOrigin = "anonymous";
               img.src = p.page_image_url || p.page_image_base64;
-
               return {
                 page_num: p.page_num,
-                page_image: img,                              // 👈 Canvas 绘制用
-                page_image_url: p.page_image_url || p.page_image_base64,  // 👈 模板显示用
-                page_text: p.page_text,                       // 👈 AI 阅读用
+                page_image: img,
+                page_image_url: p.page_image_url || p.page_image_base64,
+                page_text: p.page_text,
                 page_title: p.page_title
               };
             });
-
-            // 更新其他配置
             pptConfig.pptId = result.data.ppt_id || 'local-ppt-' + Date.now();
             pptConfig.pptTitle = result.data.ppt_title || localPptFile.value.name;
             pptConfig.totalPages = result.data.total_pages || (result.data.pages ? result.data.pages.length : 0);
-            pptConfig.imported = true;  // 关键:最后设置
+            pptConfig.imported = true;
             pptConfig.isLocal = true;
             await nextTick();
-
             addLog(`🔍 赋值后检查:pptConfig.imported=${pptConfig.imported}, pptConfig.totalPages=${pptConfig.totalPages}, pptConfig.pages 长度=${pptConfig.pages.length}`, 'success');
-
             addLog(`📊 上传后:pptConfig.imported=${pptConfig.imported}, totalPages=${pptConfig.totalPages}`, 'success');
-
             currentPptPage.value = 1;
             currentEditPage.value = 1;
-
-            // 预加载图片
             if (pptConfig.pages.length > 0) {
               await preloadPptImages();
             }
-
-            pptImportStatus.value = { type: 'success', text: `PPT 解析成功,共${pptConfig.totalPages}页` };
-            addLog('✅ PPT 解析成功,可生成翻页节点', 'success');
-
-            // 清空文件选择
+            pptImportStatus.value = { type: 'success', text: `PPT 解析成功，共${pptConfig.totalPages}页` };
+            addLog('✅ PPT 解析成功，可生成翻页节点', 'success');
             localPptFile.value = null;
-            const fileInput = document.querySelector('input[type="file"]');
-            if (fileInput) {
-              fileInput.value = '';
-            }
-
-            // [P0_FIX] 成功 Toast
-            if (loadingToast) {
-              closeToast(loadingToast);
-            }
-            showToast(`PPT 解析成功,共${pptConfig.totalPages}页`, 'success');
-            // 步骤自动推进
+            if (pptFileInput.value) pptFileInput.value = '';
+            if (loadingToast) closeToast(loadingToast);
+            showToast(`PPT 解析成功，共${pptConfig.totalPages}页`, 'success');
             step.value = 3;
-
           } catch (e) {
             pptImportStatus.value = { type: 'error', text: `上传失败:${e.message}` };
             addLog(`❌ PPT 上传失败:${e.message}`, 'error');
             addLog(`📊 失败时 pptConfig.imported=${pptConfig.imported}`, 'error');
-
-            // [P0_FIX] 错误 Toast
-            if (loadingToast) {
-              closeToast(loadingToast);
-            }
+            if (loadingToast) closeToast(loadingToast);
             showToast(`PPT 解析失败:${e.message}`, 'error');
-
           } finally {
             uploadingLocalPpt.value = false;
           }
         }
-
         // 弹窗核心控制函数
         function closeSaveModal() {
           saveProjectModalOpen.value = false;
-          // 关闭时重置表单
           saveProjectForm.name = '';
           saveProjectForm.desc = '';
           saveProjectForm.saveVideo = false;
-          // DOM更新兜底
           nextTick(() => {
             saveProjectModalOpen.value = false;
           });
           addLog('已关闭项目保存弹窗', 'info');
         }
-
         function openSaveProjectModal() {
           saveProjectForm.name = '';
           saveProjectForm.desc = '';
           saveProjectForm.saveVideo = false;
           saveProjectModalOpen.value = true;
         }
-
         // ==================== 接口请求函数 ====================
         async function generateTurningNodes(isReset = false) {
           if (!config.text || !pptConfig.imported) {
             showToast('请先输入播报文本并导入 PPT', 'error');
             return;
           }
-          // [P0_NEW] 加载 Toast
-          const loadingToast = showToast('正在分析 PPT 与文案,生成智能翻页节点,请稍候', 'loading');
-
-          // 👇 1. 切分句子
-          const sentences = config.text.split(/[.!?!\n]+/).filter(s => s.trim().length > 0);
+          const loadingToast = showToast('正在分析 PPT 与文案，生成智能翻页节点，请稍候', 'loading');
+          const sentences = splitSentences(config.text);
           currentSentences.value = sentences;
           const totalSentences = sentences.length;
-
-          // 2. 提取每一页的 PPT 文本
           let pptContext = pptConfig.pages.map(p =>
             `第${p.page_num}页:${p.page_text || '无文字'}`
           ).join('\n');
-
-          // 👇 3. 构造增强版 Prompt - 明确列出所有句子
           const sentencesList = sentences.map((s, i) =>
             `  [${i}]: "${s.substring(0, 50)}${s.length > 50 ? '...' : ''}"`
           ).join('\n');
-
           const superPrompt = `
 你是一个专业的视频导播专家。
-
 【重要规则】
-1. 句子索引从 0 开始,对应下方【句子列表】中的编号
-2. 你必须使用【句子列表】中已有的句子,不能自己重新切分
-3. 每一页 PPT 对应一段连续的句子(有起始索引和结束索引)
-4. 所有句子必须被完全分配,不能遗漏也不能重复
-
+1. 句子索引从 0 开始，对应下方【句子列表】中的编号
+2. 你必须使用【句子列表】中已有的句子，不能自己重新切分
+3. 每一页 PPT 对应一段连续的句子 (有起始索引和结束索引)
+4. 所有句子必须被完全分配，不能遗漏也不能重复
 【PPT 内容】
 ${pptContext}
-
 【句子列表】(共${totalSentences}句)
 ${sentencesList}
-
 【任务】
-请根据 PPT 内容,为每一页分配对应的句子索引范围。
-
+请根据 PPT 内容，为每一页分配对应的句子索引范围。
 【输出格式】
-严格返回 JSON 格式,不要任何其他内容:
+严格返回 JSON 格式，不要任何其他内容:
 {
   "page_turning_nodes": [
     {"page_num": 1, "start_sentence_index": 0, "end_sentence_index": 2},
@@ -1574,7 +1594,6 @@ ${sentencesList}
   ]
 }
 `;
-
           addLog('🤖 正在生成智能翻页节点...', 'info');
           try {
             const res = await fetch(`${API_BASE_URL}/ai/generate-turning-nodes`, {
@@ -1588,63 +1607,48 @@ ${sentencesList}
             });
             const result = await res.json();
             if (result.code !== 0) throw new Error(result.msg);
-
-            // 👇 4. 方案三:前端二次校验
             let nodes = result.data.page_turning_nodes || [];
             addLog(`📊 收到${nodes.length}个翻页节点`, 'info');
-
-            // 校验并修正节点
             const validNodes = nodes.map(node => {
-              // 1. 索引不能越界
               if (node.start_sentence_index < 0 || node.start_sentence_index >= totalSentences) {
-                addLog(`⚠️ 节点${node.page_num}起始索引${node.start_sentence_index}越界,已修正`, 'warn');
+                addLog(`⚠️ 节点${node.page_num}起始索引${node.start_sentence_index}越界，已修正`, 'warn');
                 node.start_sentence_index = Math.max(0, Math.min(node.start_sentence_index, totalSentences - 1));
               }
               if (node.end_sentence_index < 0 || node.end_sentence_index >= totalSentences) {
-                addLog(`⚠️ 节点${node.page_num}结束索引${node.end_sentence_index}越界,已修正`, 'warn');
+                addLog(`⚠️ 节点${node.page_num}结束索引${node.end_sentence_index}越界，已修正`, 'warn');
                 node.end_sentence_index = Math.max(0, Math.min(node.end_sentence_index, totalSentences - 1));
               }
-
-              // 2. 结束索引不能小于起始索引
               if (node.end_sentence_index < node.start_sentence_index) {
-                addLog(`⚠️ 节点${node.page_num}索引倒挂,已修正`, 'warn');
+                addLog(`⚠️ 节点${node.page_num}索引倒挂，已修正`, 'warn');
                 node.end_sentence_index = node.start_sentence_index;
               }
-
               return node;
             });
-
-            // 3. 确保所有句子都被分配
             const assignedSentences = new Set();
             validNodes.forEach(node => {
               for (let i = node.start_sentence_index; i <= node.end_sentence_index; i++) {
                 assignedSentences.add(i);
               }
             });
-
             const missingCount = totalSentences - assignedSentences.size;
             if (missingCount > 0 && validNodes.length > 0) {
-              addLog(`⚠️ 有${missingCount}个句子未被分配,已自动补充到最后一页`, 'warn');
+              addLog(`⚠️ 有${missingCount}个句子未被分配，已自动补充到最后一页`, 'warn');
               validNodes[validNodes.length - 1].end_sentence_index = totalSentences - 1;
             }
-
             pageTurningNodes.value = validNodes;
-            addLog(`✅ 翻页节点生成成功,共${pageTurningNodes.value.length}个节点,覆盖${assignedSentences.size}/${totalSentences}句`, 'success');
-            // [P0_NEW] 成功 Toast
+            addLog(`✅ 翻页节点生成成功，共${pageTurningNodes.value.length}个节点，覆盖${assignedSentences.size}/${totalSentences}句`, 'success');
             closeToast(loadingToast);
-            showToast(`翻页节点生成成功,共${pageTurningNodes.value.length}个节点`, 'success');
-            // 步骤自动推进
+            showToast(`翻页节点生成成功，共${pageTurningNodes.value.length}个节点`, 'success');
+            // 【修复 2】缓存当前文本，用于下次播报时检测变化
+            localStorage.setItem('lastTextForTurningNodes', config.text);
             step.value = 5;
-
             if (!isReset) { currentEditPage.value = 1; }
           } catch (e) {
             addLog(`❌ 翻页节点生成失败:${e.message}`, 'error');
-            // [P0_NEW] 错误 Toast
             closeToast(loadingToast);
             showToast(`节点生成失败:${e.message}`, 'error');
           }
         }
-
         async function importFeishuPpt(code) {
           addLog('📄 正在拉取飞书 PPT 内容...', 'info');
           try {
@@ -1668,20 +1672,18 @@ ${sentencesList}
             currentPptPage.value = 1;
             currentEditPage.value = 1;
             await preloadPptImages();
-            pptImportStatus.value = { type: 'success', text: `PPT 导入成功,共${pptConfig.totalPages}页` };
+            pptImportStatus.value = { type: 'success', text: `PPT 导入成功，共${pptConfig.totalPages}页` };
             await loadCloudProjectList();
           } catch (e) {
             pptImportStatus.value = { type: 'error', text: `PPT 导入失败:${e.message}` };
             addLog(`❌ PPT 导入失败:${e.message}`, 'error');
           }
         }
-
         async function confirmSaveProject() {
           addLog('☁️ 正在保存项目配置到云端...', 'info');
           try {
             let videoBase64 = null;
             if (saveProjectForm.saveVideo && videoBlob.value) {
-              // ⚠️ 防爆盾:如果视频 > 15MB,拦截 Base64 上传,防止服务器崩溃
               if (videoBlob.value.size > 15 * 1024 * 1024) {
                 addLog('❌ 视频文件过大 (>15MB),受 JSON 接口限制无法连同视频上云。', 'error');
                 addLog('💡 已为您保存全部 PPT 和文案配置。视频请点击左侧【下载视频】存本地!', 'warn');
@@ -1689,8 +1691,6 @@ ${sentencesList}
                 videoBase64 = await blobToBase64(videoBlob.value);
               }
             }
-
-            // 完美打包所有资产:PPT、句子、翻页节点、配置全进去!
             const params = {
               project_name: saveProjectForm.name,
               project_desc: saveProjectForm.desc,
@@ -1701,7 +1701,6 @@ ${sentencesList}
               page_turning_rules: pageTurningNodes.value,
               video_file: videoBase64
             };
-
             const res = await fetch(`${API_BASE_URL}/project/save`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json', 'X-Feishu-OpenId': feishuUserInfo.openId },
@@ -1711,16 +1710,14 @@ ${sentencesList}
             if (result.code !== 0) throw new Error(result.msg);
             addLog('✅ 项目全套配置保存成功', 'success');
             saveProjectModalOpen.value = false;
-            await loadCloudProjectList(); // 刷新云端列表
+            await loadCloudProjectList();
           } catch (e) {
             addLog(`❌ 项目保存失败:${e.message}`, 'error');
           }
         }
-
         async function loadCloudProjectList() {
           if (!feishuUserInfo.openId) return;
           try {
-            // ✅ 修复:强制改用 POST,并把 open_id 放在 body 里双重保险
             const res = await fetch(`${API_BASE_URL}/project/list`, {
               method: 'POST',
               headers: {
@@ -1729,19 +1726,15 @@ ${sentencesList}
               },
               body: JSON.stringify({ open_id: feishuUserInfo.openId })
             });
-
             if (!res.ok) throw new Error(`HTTP ${res.status} - 网关拒绝访问`);
-
             const result = await res.json();
             if (result.code !== 0) throw new Error(result.msg);
-
             cloudProjectList.value = result.data.list || [];
             addLog(`☁️ 加载了${cloudProjectList.value.length}个云端项目`, 'success');
           } catch (e) {
-            addLog(`❌ 云端项目加载失败: ${e.message}`, 'error');
+            addLog(`❌ 云端项目加载失败：${e.message}`, 'error');
           }
         }
-
         async function reuseProject(project) {
           addLog(`☁️ 正在加载项目:${project.project_name}`, 'info');
           try {
@@ -1754,23 +1747,19 @@ ${sentencesList}
             pageTurningNodes.value = data.page_turning_rules;
             pageTurningConfirmed.value = true;
             await preloadPptImages();
-            addLog('✅ 项目加载完成,可直接开始播报', 'success');
+            addLog('✅ 项目加载完成，可直接开始播报', 'success');
           } catch (e) {
             addLog(`❌ 项目加载失败:${e.message}`, 'error');
           }
         }
-
         async function editProject(project) {
           await reuseProject(project);
         }
-
         async function downloadCloudVideo(project) {
           addLog(`☁️ 正在下载视频:${project.project_name}`, 'info');
-          // TODO: 实现云端视频下载
         }
-
         async function deleteCloudProject(project) {
-          if (!confirm(`确定删除项目"${project.project_name}"吗?`)) return;
+          if (!confirm(`确定删除项目"${project.project_name}"吗？`)) return;
           try {
             const res = await fetch(`${API_BASE_URL}/project/delete`, {
               method: 'POST',
@@ -1785,7 +1774,6 @@ ${sentencesList}
             addLog(`❌ 项目删除失败:${e.message}`, 'error');
           }
         }
-
         function blobToBase64(blob) {
           return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -1794,17 +1782,15 @@ ${sentencesList}
             reader.readAsDataURL(blob);
           });
         }
-
         // ==================== 画面合成核心函数 ====================
         function compositeFrame() {
           if (compositeInterval) {
             clearInterval(compositeInterval);
             compositeInterval = null;
           }
-          addLog('🎨 启动强制绘制模式 (25fps 固定帧率,无视后台降频)...', 'info');
+          addLog('🎨 启动强制绘制模式 (25fps 固定帧率，无视后台降频)...', 'info');
           const FRAME_INTERVAL = 40;
           compositeInterval = setInterval(() => {
-            // ✅ 修复 BUG3: 延迟 500ms 终止,确保最后一帧绘制完成
             if (!isRecording.value && !isBroadcasting.value) {
               setTimeout(() => {
                 if (compositeInterval) {
@@ -1818,8 +1804,6 @@ ${sentencesList}
             if (!compositeCanvas.value) return;
             const canvas = compositeCanvas.value;
             const ctx = canvas.getContext('2d');
-
-            // ✅ 修复 BUG2: 使用缓存的 DOM,避免高频查询
             if (!avatarSourceDom) {
               ctx.fillStyle = '#fff';
               ctx.font = '24px Microsoft Yahei';
@@ -1827,8 +1811,6 @@ ${sentencesList}
               ctx.fillText('等待数字人...', canvas.width/2, canvas.height/2);
               return;
             }
-
-            // 视频未就绪处理
             if (avatarSourceDom.tagName == "VIDEO" && avatarSourceDom.readyState < 2) {
               ctx.fillStyle = '#fff';
               ctx.font = '24px Microsoft Yahei';
@@ -1836,19 +1818,14 @@ ${sentencesList}
               ctx.fillText('等待数字人...', canvas.width/2, canvas.height/2);
               return;
             }
-
             try {
-              // 1. 铺设背景
               ctx.fillStyle = broadcastMode.value === 'horizontal' ? '#0f172a' : '#000000';
               ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-              // 2. PPT 绘制(优化阴影,避免每次重置)
               if (broadcastMode.value === 'horizontal' && pptConfig.imported && pageTurningConfirmed.value) {
                 const currentPageData = pptConfig.pages.find(item => item.page_num === currentPptPage.value);
                 if (currentPageData && currentPageData.page_image) {
                   const pptWidth = 1440;
                   const pptHeight = 810;
-                  // ✅ 优化:使用 save/restore 避免影响后续绘制
                   ctx.save();
                   ctx.shadowColor = 'rgba(0,0,0,0.5)';
                   ctx.shadowBlur = 20;
@@ -1858,8 +1835,6 @@ ${sentencesList}
                   ctx.restore();
                 }
               }
-
-              // 3. 绘制数字人(使用缓存 DOM)
               if (broadcastMode.value === 'horizontal') {
                 const avatarW = 400;
                 const avatarH = (avatarSourceDom.height / avatarSourceDom.width) * avatarW || 711;
@@ -1870,7 +1845,7 @@ ${sentencesList}
                 ctx.drawImage(avatarSourceDom, 0, 0, canvas.width, canvas.height);
               }
               if (currentSubtitle) {
-                ctx.font = 'bold 28px Microsoft Yahei';
+                ctx.font = `bold ${config.subtitleFontSize}px Microsoft Yahei`;
                 ctx.fillStyle = '#ffffff';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'bottom';
@@ -1906,7 +1881,7 @@ ${sentencesList}
                     }
                   });
                   lines.push(line);
-                  const lineHeight = 36;
+                  const lineHeight = config.subtitleFontSize + 8;
                   const subtitleBottom = canvas.height - 50;
                   const bgHeight = lines.length * lineHeight + 20;
                   const bgY = subtitleBottom - bgHeight + 10;
@@ -1923,19 +1898,142 @@ ${sentencesList}
                 ctx.shadowOffsetX = 0;
                 ctx.shadowOffsetY = 0;
               }
-            } catch (e) {
-              // 忽略单帧绘制异常
-            }
+            } catch (e) {}
           }, FRAME_INTERVAL);
         }
-
         // ==================== 录制相关函数 ====================
+        // [修复] 拆分嵌套函数，修正作用域
+        function createRecorderAndStart(audioStream, canvasStream) {
+          let options = null;
+          const mp4Type = 'video/mp4;codecs=avc1.42E01E,mp4a.40.2';
+          const webmH264Type = 'video/webm;codecs=h264,opus';
+          const webmVp8Type = 'video/webm;codecs=vp8,opus';
+          if (MediaRecorder.isTypeSupported(mp4Type)) {
+            options = {
+              mimeType: mp4Type,
+              videoBitsPerSecond: broadcastMode.value === 'horizontal' ? 4000000 : 2500000,
+              audioBitsPerSecond: 192000,
+              videoKeyFrameIntervalCount: 25
+            };
+            addLog('✅ 使用标准 MP4(H.264+AAC) 编码，关键帧间隔 1 秒', 'success');
+          } else if (MediaRecorder.isTypeSupported(webmH264Type)) {
+            options = {
+              mimeType: webmH264Type,
+              videoBitsPerSecond: broadcastMode.value === 'horizontal' ? 4000000 : 2500000,
+              audioBitsPerSecond: 192000,
+              videoKeyFrameIntervalCount: 25
+            };
+            addLog('✅ 使用 WebM(H264) 编码', 'success');
+          } else {
+            options = {
+              mimeType: webmVp8Type,
+              videoBitsPerSecond: 2000000,
+              audioBitsPerSecond: 128000
+            };
+            addLog('⚠️ 浏览器不支持高清编码，使用 VP8 编码', 'warn');
+          }
+          addLog(`📦 使用编码格式:${options.mimeType}`, 'info');
+          const combinedStream = new MediaStream([
+            ...canvasStream.getVideoTracks(),
+            ...audioStream.getAudioTracks()
+          ]);
+          const videoTracks = combinedStream.getVideoTracks();
+          const audioTracks = combinedStream.getAudioTracks();
+          addLog(`🎞️ 最终流状态：视频轨 ${videoTracks.length} 个，音频轨 ${audioTracks.length} 个`, 'success');
+          if (videoTracks.length === 0) {
+            addLog('❌ 没有视频轨道!', 'error');
+            return;
+          }
+          if (audioTracks.length === 0) {
+            addLog('⚠️ 没有音频轨道，将录制无声视频', 'warn');
+          }
+          mediaRecorder = new MediaRecorder(combinedStream, options);
+          mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) {
+              recordedChunks.push(e.data);
+              if (logs.value.length > 200) {
+                logs.value = logs.value.slice(-50);
+              }
+              const totalMemMB = recordedChunks.reduce((sum, chunk) => sum + chunk.size, 0) / 1024 / 1024;
+              addLog(`📥 录制数据块:${(e.data.size / 1024).toFixed(1)} KB (内存累计:${totalMemMB.toFixed(1)} MB)`, 'info');
+            }
+          };
+          mediaRecorder.onstop = async () => {
+            addLog(`🛑 录制停止，数据块数量:${recordedChunks.length}`, 'success');
+            if (animationFrame) cancelAnimationFrame(animationFrame);
+            videoMimeType = mediaRecorder.mimeType || 'video/webm';
+            console.log('🔍 原始视频格式:', videoMimeType);
+            const rawBlob = new Blob(recordedChunks, { type: videoMimeType });
+            console.log('🔍 原始视频大小:', (rawBlob.size / 1024 / 1024).toFixed(2), 'MB');
+            if (rawBlob.size <= 0) {
+              addLog('❌ 视频 Blob 为空!', 'error');
+              return;
+            }
+            let finalBlob = rawBlob;
+            try {
+              if (videoMimeType.includes('mp4') && typeof MP4Box !== 'undefined') {
+                addLog('⏳ 正在优化 MP4 索引，移到文件开头...', 'info');
+                const arrayBuffer = await rawBlob.arrayBuffer();
+                const mp4File = MP4Box.createFile();
+                let moovMovedBuffer = null;
+                let isReady = false;
+                mp4File.onReady = (info) => {
+                  console.log('🔍 MP4 解析成功:', info);
+                  isReady = true;
+                };
+                mp4File.onSegment = (id, user, buffer, sampleNum, isLast) => {
+                  console.log('📦 MP4 Segment:', id, sampleNum, isLast);
+                  moovMovedBuffer = buffer;
+                };
+                mp4File.appendBuffer(arrayBuffer);
+                mp4File.flush();
+                await new Promise((resolve, reject) => {
+                  const check = setInterval(() => {
+                    if (moovMovedBuffer) {
+                      clearInterval(check);
+                      resolve();
+                    }
+                  }, 50);
+                  setTimeout(() => {
+                    clearInterval(check);
+                    if (isReady) {
+                      console.log('i️ MP4 已解析，使用原始数据 (已有时序元数据)');
+                      resolve();
+                    } else {
+                      reject(new Error('MP4 优化超时'));
+                    }
+                  }, 5000);
+                });
+                if (moovMovedBuffer) {
+                  finalBlob = new Blob([moovMovedBuffer], { type: 'video/mp4' });
+                  addLog('✅ MP4 索引优化完成，moov 已移到文件开头，支持进度条拖拽', 'success');
+                } else {
+                  addLog('i️ MP4 已解析，使用原始数据 (已有时序元数据)', 'info');
+                }
+              }
+            } catch (e) {
+              addLog(`⚠️ MP4 优化失败，使用原始视频:${e.message}`, 'warn');
+              finalBlob = rawBlob;
+            }
+            videoBlob.value = finalBlob;
+            const fileSize = (videoBlob.value.size / 1024 / 1024).toFixed(2);
+            addLog(`💾 最终视频生成成功:${fileSize} MB`, 'success');
+            // 【修复 P1】释放旧 URL，避免内存泄漏
+            if (previewVideo.value.src && previewVideo.value.src.startsWith('blob:')) {
+              URL.revokeObjectURL(previewVideo.value.src);
+            }
+            const videoUrl = URL.createObjectURL(videoBlob.value);
+            previewVideo.value.src = videoUrl;
+          };
+          recordingStartTime = Date.now();
+          mediaRecorder.start(100);
+          addLog('🔴 MediaRecorder 已启动 (25fps 视频 + 音频)', 'success');
+        }
         function startRecording() {
           if (isRecording.value) {
             addLog('已经在录制中', 'warn');
             return;
           }
-          // 长视频内存监控
           if (performance && performance.memory) {
             const memoryCheckTimer = setInterval(() => {
               if (!isRecording.value) {
@@ -1945,13 +2043,12 @@ ${sentencesList}
               const usedMB = (performance.memory.usedJSHeapSize / 1024 / 1024).toFixed(0);
               const limitMB = (performance.memory.jsHeapSizeLimit / 1024 / 1024).toFixed(0);
               if (usedMB > 2000) {
-                addLog(`🔴 内存严重不足:${usedMB}MB / ${limitMB}MB,建议立即停止录制并分段`, 'error');
+                addLog(`🔴 内存严重不足:${usedMB}MB / ${limitMB}MB，建议立即停止录制并分段`, 'error');
               } else if (usedMB > 1500) {
                 addLog(`🟠 内存使用过高:${usedMB}MB / ${limitMB}MB`, 'warn');
               }
             }, 5000);
           }
-
           addLog('🎬 开始初始化录制...', 'info');
           recordedChunks = [];
           isRecording.value = true;
@@ -1960,19 +2057,15 @@ ${sentencesList}
           recordTimer = setInterval(() => {
             recordDuration.value = Math.floor((Date.now() - recordStartTime) / 1000);
           }, 1000);
-
-          // 启动画面合成
           addLog('🎨 启动 Canvas 合成循环', 'info');
           compositeFrame();
-
-          // 延迟启动录制
           setTimeout(() => {
             setupMediaRecorderNow(() => {
-              addLog('✅ 录制器就绪,可以开始播报', 'success');
+              addLog('✅ 录制器就绪，可以开始播报', 'success');
             });
           }, 200);
         }
-
+        // [修复] 修正函数闭合，拆分嵌套逻辑
         function setupMediaRecorderNow(onRecorderReady) {
           addLog('📹 启动 MediaRecorder(字幕 + 视频 + 音频三合一版)...', 'info');
           const canvas = compositeCanvas.value;
@@ -1980,18 +2073,13 @@ ${sentencesList}
             addLog('❌ Canvas 不存在', 'error');
             return;
           }
-
-          // 获取Canvas视频流
           const canvasStream = canvas.captureStream(25);
           addLog(`🎬 Canvas 视频流已捕获:${canvasStream.getVideoTracks().length} 个视频轨`, 'success');
-
-          // 启动录制核心函数
+          
           const startRecordingWhenReady = () => {
             let audioStream = null;
             const videoEl = document.querySelector('#digital-human-container video');
             const allAudios = document.querySelectorAll('audio');
-
-            // 优先从video元素获取音频
             if (videoEl && videoEl.readyState >= 3 && !videoEl.muted) {
               try {
                 const tempStream = videoEl.captureStream ? videoEl.captureStream() : (videoEl.mozCaptureStream ? videoEl.mozCaptureStream() : null);
@@ -2003,8 +2091,6 @@ ${sentencesList}
                 addLog(`⚠️ 从 video 获取音频失败:${e.message}`, 'warn');
               }
             }
-
-            // 兜底从audio元素获取音频
             if (!audioStream || audioStream.getAudioTracks().length === 0) {
               for (let i = 0; i < allAudios.length; i++) {
                 const a = allAudios[i];
@@ -2020,206 +2106,28 @@ ${sentencesList}
                 }
               }
             }
-
-            // 音频就绪则开始录制,否则重试
             if (audioStream && audioStream.getAudioTracks().length > 0) {
-              createRecorderAndStart(audioStream);
+              createRecorderAndStart(audioStream, canvasStream);
+              if (onRecorderReady) onRecorderReady();
             } else {
               addLog('⏳ 等待音频轨道就绪...', 'info');
               setTimeout(startRecordingWhenReady, 200);
             }
           };
-
-        // PPT 大图预览
-        function openPptPreview(imageUrl) {
-          currentPreviewPptImg.value = imageUrl;
-          showPptPreview.value = true;
-          addLog('打开 PPT 大图预览', 'info');
-        }
-
-        // 判断句子是否高亮（当前 PPT 页面对应的句子）
-        function isSentenceHighlight(sentenceIndex) {
-          if (!currentNode.value || !pageTurningNodes.value || pageTurningNodes.value.length === 0) {
-            return false;
-          }
-          const node = pageTurningNodes.value[currentEditPage.value - 1];
-          if (!node) return false;
-          return sentenceIndex >= node.start_sentence_index && sentenceIndex <= node.end_sentence_index;
-        }
-
-
-          // 创建录制器并启动
-          const createRecorderAndStart = (audioStream) => {
-            // 合并视频轨+音频轨
-            const combinedStream = new MediaStream([
-              ...canvasStream.getVideoTracks(),
-              ...audioStream.getAudioTracks()
-            ]);
-            const videoTracks = combinedStream.getVideoTracks();
-            const audioTracks = combinedStream.getAudioTracks();
-            addLog(`🎞️ 最终流状态:视频轨 ${videoTracks.length} 个,音频轨 ${audioTracks.length} 个`, 'success');
-
-            if (videoTracks.length === 0) {
-              addLog('❌ 没有视频轨道!', 'error');
-              return;
-            }
-            if (audioTracks.length === 0) {
-              addLog('⚠️ 没有音频轨道,将录制无声视频', 'warn');
-            }
-
-            // ✅ 修复:优先用 MP4,Chrome 完美支持
-            let options = null;
-            // Chrome 支持的 MP4 格式:avc1.42E01E = H.264 Baseline, mp4a.40.2 = AAC
-            const mp4Type = 'video/mp4;codecs=avc1.42E01E,mp4a.40.2';
-            const webmH264Type = 'video/webm;codecs=h264,opus';
-            const webmVp8Type = 'video/webm;codecs=vp8,opus';
-
-            if (MediaRecorder.isTypeSupported(mp4Type)) {
-              options = {
-                mimeType: mp4Type,
-                videoBitsPerSecond: broadcastMode.value === 'horizontal' ? 4000000 : 2500000,
-                audioBitsPerSecond: 192000,
-                // ✅ 关键修复:每 25 帧(1 秒)一个关键帧
-                videoKeyFrameIntervalCount: 25
-              };
-              addLog('✅ 使用标准 MP4(H.264+AAC) 编码,关键帧间隔 1 秒', 'success');
-            } else if (MediaRecorder.isTypeSupported(webmH264Type)) {
-              options = {
-                mimeType: webmH264Type,
-                videoBitsPerSecond: broadcastMode.value === 'horizontal' ? 4000000 : 2500000,
-                audioBitsPerSecond: 192000,
-                videoKeyFrameIntervalCount: 25
-              };
-              addLog('✅ 使用 WebM(H264) 编码', 'success');
-            } else {
-              options = {
-                mimeType: webmVp8Type,
-                videoBitsPerSecond: 2000000,
-                audioBitsPerSecond: 128000
-              };
-              addLog('⚠️ 浏览器不支持高清编码,使用 VP8 编码', 'warn');
-            }
-            addLog(`📦 使用编码格式:${options.mimeType}`, 'info');
-
-            mediaRecorder = new MediaRecorder(combinedStream, options);
-            mediaRecorder.ondataavailable = (e) => {
-              if (e.data.size > 0) {
-                recordedChunks.push(e.data);
-                if (logs.value.length > 200) {
-                  logs.value = logs.value.slice(-50);
-                }
-                const totalMemMB = recordedChunks.reduce((sum, chunk) => sum + chunk.size, 0) / 1024 / 1024;
-                addLog(`📥 录制数据块:${(e.data.size / 1024).toFixed(1)} KB (内存累计:${totalMemMB.toFixed(1)} MB)`, 'info');
-              }
-            };
-
-            mediaRecorder.onstop = async () => {
-              addLog(`🛑 录制停止,数据块数量:${recordedChunks.length}`, 'success');
-              if (animationFrame) cancelAnimationFrame(animationFrame);
-
-              // 1. 保存视频格式
-              videoMimeType = mediaRecorder.mimeType || 'video/webm';
-              console.log('🔍 原始视频格式:', videoMimeType);
-
-              const rawBlob = new Blob(recordedChunks, { type: videoMimeType });
-              console.log('🔍 原始视频大小:', (rawBlob.size / 1024 / 1024).toFixed(2), 'MB');
-
-              if (rawBlob.size <= 0) {
-                addLog('❌ 视频 Blob 为空!', 'error');
-                return;
-              }
-
-              // 2. ✅ 核心修复:用 mp4box.js 把 moov box 移到文件开头
-              let finalBlob = rawBlob;
-              try {
-                if (videoMimeType.includes('mp4') && typeof MP4Box !== 'undefined') {
-                  addLog('⏳ 正在优化 MP4 索引,移到文件开头...', 'info');
-
-                  const arrayBuffer = await rawBlob.arrayBuffer();
-                  const mp4File = MP4Box.createFile();
-                  let moovMovedBuffer = null;
-                  let isReady = false;
-
-                  mp4File.onReady = (info) => {
-                    console.log('🔍 MP4 解析成功:', info);
-                    isReady = true;
-                  };
-
-                  mp4File.onSegment = (id, user, buffer, sampleNum, isLast) => {
-                    console.log('📦 MP4 Segment:', id, sampleNum, isLast);
-                    moovMovedBuffer = buffer;
-                  };
-
-                  mp4File.appendBuffer(arrayBuffer);
-                  mp4File.flush();
-
-                  // 等待 onSegment 回调
-                  await new Promise((resolve, reject) => {
-                    const check = setInterval(() => {
-                      if (moovMovedBuffer) {
-                        clearInterval(check);
-                        resolve();
-                      }
-                    }, 50);
-                    setTimeout(() => {
-                      clearInterval(check);
-                      if (isReady) {
-                        console.log('i️ MP4 已解析,使用原始数据(已有时序元数据)');
-                        resolve();
-                      } else {
-                        reject(new Error('MP4 优化超时'));
-                      }
-                    }, 5000);
-                  });
-
-                  if (moovMovedBuffer) {
-                    finalBlob = new Blob([moovMovedBuffer], { type: 'video/mp4' });
-                    addLog('✅ MP4 索引优化完成,moov 已移到文件开头,支持进度条拖拽', 'success');
-                  } else {
-                    addLog('i️ MP4 已解析,使用原始数据(已有时序元数据)', 'info');
-                  }
-                }
-              } catch (e) {
-                addLog(`⚠️ MP4 优化失败,使用原始视频:${e.message}`, 'warn');
-                finalBlob = rawBlob;
-              }
-
-              // 3. 赋值最终视频 Blob
-              videoBlob.value = finalBlob;
-              const fileSize = (videoBlob.value.size / 1024 / 1024).toFixed(2);
-              addLog(`💾 最终视频生成成功:${fileSize} MB`, 'success');
-
-              // 4. 更新预览视频
-              const videoUrl = URL.createObjectURL(videoBlob.value);
-              previewVideo.value.src = videoUrl;
-            };
-
-            recordingStartTime = Date.now();
-            mediaRecorder.start(100);
-            addLog('🔴 MediaRecorder 已启动(25fps 视频 + 音频)', 'success');
-            if (onRecorderReady) onRecorderReady();
-          };
-
           startRecordingWhenReady();
         }
-
         async function stopRecording() {
           if (!isRecording.value) {
             addLog('没有在录制', 'warn');
             return;
           }
           addLog('准备停止录制...', 'info');
-
           if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-            // ✅ 优化:强制收集最后一帧数据,确保视频完整
             mediaRecorder.requestData();
             mediaRecorder.stop();
             addLog('🛑 MediaRecorder 已停止', 'success');
-
-            // ✅ 修复:等待 onstop 回调执行完成
             await new Promise(resolve => {
               const check = setInterval(() => {
-                // 检查 mediaRecorder 是否真的停止了
                 if (mediaRecorder && mediaRecorder.state === 'inactive') {
                   clearInterval(check);
                   resolve();
@@ -2227,14 +2135,12 @@ ${sentencesList}
               }, 50);
               setTimeout(() => {
                 clearInterval(check);
-                resolve(); // 超时兜底
+                resolve();
               }, 3000);
             });
           } else if (!mediaRecorder) {
-            addLog('⚠️ mediaRecorder 不存在,直接清理状态', 'warn');
+            addLog('⚠️ mediaRecorder 不存在，直接清理状态', 'warn');
           }
-
-          // 清理状态
           if (recordTimer) {
             clearInterval(recordTimer);
             recordTimer = null;
@@ -2249,35 +2155,18 @@ ${sentencesList}
             addLog('⏹️ 强制绘制定时器已清理', 'info');
           }
           addLog('⏹️ Canvas 合成已停止', 'info');
-
-          // ✅ 最后设置 isRecording.value = false
           isRecording.value = false;
         }
-
         // ==================== 播报生命周期函数 ====================
-                async function onBroadcastEnded() {
+        async function onBroadcastEnded() {
           if (isStopping) return;
           if (!isBroadcasting.value && !isRecording.value) return;
-
-          addLog('🏁 检测到播报完全结束,正在停止录制...', 'success');
-
-          // 先停止录制,写入元数据
+          addLog('🏁 检测到播报完全结束，正在停止录制...', 'success');
           if (isRecording.value) {
             await stopRecording();
           }
-
-          // 等待录制停止后,再清理状态
           setTimeout(() => {
-            isBroadcasting.value = false;
-            isBroadcastingSentence = false;
-            currentSentence.value = 0;
-            totalSentences.value = 0;
-            progressPercent.value = 0;
-            waitingForBroadcastEnd = false;
-            sentenceIndex = 0;
-            currentSentences.value = [];
-            currentSubtitle = '';
-            // 最后停止 SDK
+            // 【修复 P3】先销毁 SDK，避免后续事件触发
             if (sdkInstance) {
               try {
                 sdkInstance.stop();
@@ -2285,18 +2174,26 @@ ${sentencesList}
                 sdkInstance = null;
               } catch (e) {}
             }
-
+            // 再重置状态变量
+            isBroadcasting.value = false;
+            isBroadcastingSentence = false;
+            currentSentence.value = 0;
+            totalSentences.value = 0;
+            progressPercent.value = 0;
+            waitingForBroadcastEnd = false;
+            sentenceIndex = 0;
+            currentSubtitle = '';
+            currentSentences.value = [];
             setTimeout(() => {
               if (videoBlob.value && videoBlob.value.size > 0) {
-                addLog(`🎉 播报流程全部完成!视频已准备好下载`, 'success');
+                addLog(`🎉 播报流程全部完成！视频已准备好下载`, 'success');
               } else {
-                addLog('⚠️ 播报完成,但视频可能未生成', 'warn');
+                addLog('⚠️ 播报完成，但视频可能未生成', 'warn');
               }
             }, 500);
           }, 1000);
         }
-
-function onBroadcastFailed(reason) {
+        function onBroadcastFailed(reason) {
           if (isStopping) return;
           addLog(`❌ 播报失败:${reason}`, 'error');
           if (isRecording.value) {
@@ -2308,35 +2205,28 @@ function onBroadcastFailed(reason) {
           currentSentence.value = 0;
           totalSentences.value = 0;
           progressPercent.value = 0;
-
           setTimeout(() => {
             if (videoBlob.value && videoBlob.value.size > 0) {
-              addLog(`✅ 已录制的视频已保存,可以下载`, 'success');
+              addLog(`✅ 已录制的视频已保存，可以下载`, 'success');
             } else {
               addLog('⚠️ 视频可能未生成', 'warn');
             }
           }, 500);
         }
-
         async function speakSingleSentence(text) {
           if (!sdkInstance) {
             throw new Error('SDK 未初始化');
           }
-
-          // ✅ 修复:检查是否正在停止
           if (isStopping) {
-            addLog('⚠️ 正在停止中,跳过句子播报', 'warn');
+            addLog('⚠️ 正在停止中，跳过句子播报', 'warn');
             return;
           }
-
           while (isBroadcastingSentence) {
             await new Promise(resolve => setTimeout(resolve, 200));
           }
-
           isBroadcastingSentence = true;
           currentSubtitle = text.trim();
           addLog(`🎤 正在播报句子:${text}`, 'info');
-
           try {
             const requestId = await sdkInstance.writeText(text, {
               nlp: false,
@@ -2348,8 +2238,7 @@ function onBroadcastFailed(reason) {
                 pitch: 50
               }
             });
-            addLog(`✅ writeText 成功,requestId: ${requestId}`, 'success');
-
+            addLog(`✅ writeText 成功，requestId: ${requestId}`, 'success');
             while (isBroadcastingSentence) {
               await new Promise(resolve => setTimeout(resolve, 100));
             }
@@ -2358,12 +2247,11 @@ function onBroadcastFailed(reason) {
             isBroadcastingSentence = false;
             addLog(`❌ writeText 失败:${JSON.stringify(err)}`, 'error');
             if (err.code === 'InvalidConnect' || err.code === '600003') {
-              onBroadcastFailed('连接异常,已保存已录制的视频');
+              onBroadcastFailed('连接异常，已保存已录制的视频');
             }
             throw err;
           }
         }
-
         async function waitForVideoElement() {
           return new Promise((resolve) => {
             const maxWaitTime = 15000;
@@ -2385,89 +2273,73 @@ function onBroadcastFailed(reason) {
             check();
           });
         }
-
         async function initSDK(authData) {
           if (sdkInstance) {
             sdkInstance.stop();
             sdkInstance.destroy();
             sdkInstance = null;
           }
-
           sdkInstance = new window.AVATAR_SDK.AvatarSDK({
             logLevel: 1,
             useInlinePlayer: true
           });
-
-          // SDK事件监听
           sdkInstance.on('connected', () => {
             addLog('数字人连接成功', 'success');
             isConnected.value = true;
           });
-
           sdkInstance.on('error', (err) => {
             if (err.code === 20017 || (err.message && err.message.includes('illegal text'))) {
-              addLog('❌ 文本包含敏感词汇,请修改后重试', 'error');
-              addLog('提示:避免政治、色情、暴力等敏感内容', 'warn');
+              addLog('❌ 文本包含敏感词汇，请修改后重试', 'error');
+              addLog('提示：避免政治、色情、暴力等敏感内容', 'warn');
             } else if (err.code === 10110 && err.message && err.message.includes('word contain sensitive')) {
-              addLog('❌ 文本包含敏感词汇,请修改后重试', 'error');
+              addLog('❌ 文本包含敏感词汇，请修改后重试', 'error');
             } else {
               addLog('数字人连接失败:' + JSON.stringify(err), 'error');
             }
             stopBroadcast();
           });
-
           sdkInstance.on('disconnected', () => {
             addLog('数字人连接断开', 'warn');
             isConnected.value = false;
           });
-
           sdkInstance.on('render-start', () => {
             addLog('渲染开始', 'success');
           });
-
           sdkInstance.on('frame_start', (data) => {
             lastFrameStartTime = Date.now();
-            if (sentenceIndex < currentSentences.value.length) {  // ✅ 添加 .value
-              currentSubtitle = currentSentences.value[sentenceIndex];  // ✅ 添加 .value
-              addLog(`📝 字幕更新 [句${sentenceIndex + 1}/${currentSentences.value.length}]: ${currentSubtitle.substring(0, 30)}...`, 'info');  // ✅ 添加 .value
-              sentenceIndex++;
-            }
+            // 【修复】移除自动递增，字幕由 speakSingleSentence 统一控制，避免重复
             if (waitingForBroadcastEnd && broadcastEndTimer) {
               clearTimeout(broadcastEndTimer);
               broadcastEndTimer = null;
               waitingForBroadcastEnd = false;
             }
           });
-
           sdkInstance.on('frame_stop', (data) => {
             if (data?.vmr_status === 2) {
               addLog('🏁 单句播报完成', 'success');
               isBroadcastingSentence = false;
-
-              // 所有句子播报完成则结束录制
-              if (sentenceIndex >= currentSentences.value.length && isBroadcasting.value) {  // ✅ 添加 .value
-                addLog(`✅ 所有句子已播报完成 (${sentenceIndex}/${currentSentences.value.length}),准备结束录制`, 'success');  // ✅ 添加 .value
+              // 【修复 P0】递增 sentenceIndex
+              sentenceIndex++;
+              if (sentenceIndex >= currentSentences.value.length && isBroadcasting.value) {
+                addLog(`✅ 所有句子已播报完成 (${sentenceIndex}/${currentSentences.value.length}),准备结束录制`, 'success');
                 setTimeout(() => {
                   onBroadcastEnded();
                 }, 500);
               }
             }
           });
-
-          // SDK配置
           sdkInstance.setApiInfo({
             appId: authData.appId,
             sceneId: authData.sceneId,
             signedUrl: authData.signedUrl
           });
-
           const isSuperRealistic = config.roleId.startsWith('cnr');
           sdkInstance.setGlobalParams({
             stream: {
               protocol: 'xrtc',
               fps: 25,
               bitrate: 1000000,
-              alpha: 1  // ✅ 修复:开启透明通道,让数字人背景透明,露出底层 PPT
+              alpha: 1
             },
             avatar: {
               avatar_id: authData.avatarId || config.roleId,
@@ -2489,19 +2361,13 @@ function onBroadcastFailed(reason) {
               add_nonsemantic: 1
             }
           });
-
-          // 启动SDK
           await sdkInstance.start({
             wrapper: document.getElementById('digital-human-container')
           });
           await waitForVideoElement();
-
-          // ✅ 修复 BUG2: 缓存数字人渲染 DOM,只执行一次
           avatarSourceDom = document.querySelector('#digital-human-container canvas') ||
                             document.querySelector('#digital-human-container video');
           addLog(`✅ 数字人 DOM 已缓存:${avatarSourceDom?.tagName || '未找到'}`, 'success');
-
-          // 配置视频元素音频
           const videoEl = document.querySelector('#digital-human-container video');
           if (videoEl) {
             videoEl.muted = false;
@@ -2510,7 +2376,6 @@ function onBroadcastFailed(reason) {
             videoEl.playsInline = true;
             videoEl.removeAttribute('muted');
             addLog('🔊 Video 元素已配置:muted=false, volume=1.0, autoplay=true', 'success');
-
             videoEl.onplay = () => addLog('▶️ Video 开始播放', 'success');
             videoEl.onpause = () => addLog('⏸️ Video 暂停', 'warn');
             videoEl.onvolumechange = () => addLog(`🔊 Volume 变化:${videoEl.volume}, muted=${videoEl.muted}`, 'info');
@@ -2519,22 +2384,18 @@ function onBroadcastFailed(reason) {
           }
           addLog('SDK 启动成功', 'success');
         }
-
         // ==================== 核心播报控制函数 ====================
         async function startBroadcast() {
           if (!config.text) {
             addLog('请输入播报文本', 'warn');
             return;
           }
-
-          // 敏感词检测提醒
           const sensitiveKeywords = ['政治', '色情', '暴力', '赌博', '毒品'];
           const foundKeywords = sensitiveKeywords.filter(keyword => config.text.includes(keyword));
           if (foundKeywords.length > 0) {
             addLog(`⚠️ 文本可能包含敏感内容:${foundKeywords.join(', ')}`, 'warn');
-            addLog('如播报失败,请修改文本后重试', 'info');
+            addLog('如播报失败，请修改文本后重试', 'info');
           }
-
           if (isBroadcasting.value) return;
           isBroadcasting.value = true;
           currentSentence.value = 0;
@@ -2544,10 +2405,9 @@ function onBroadcastFailed(reason) {
           currentSubtitle = '';
           waitingForBroadcastEnd = false;
           broadcastEndTimer = null;
+          isStopping = false;
           addLog('🎬 开始播报流程', 'success');
-
           try {
-            // 获取鉴权信息
             addLog('正在获取鉴权信息...', 'info');
             const authResponse = await fetch('https://avatar-roadcast-shakmjgzdi.cn-hangzhou.fcapp.run', {
               method: 'POST',
@@ -2566,83 +2426,64 @@ function onBroadcastFailed(reason) {
               throw new Error(authData.msg || '鉴权失败');
             }
             addLog('鉴权信息获取成功', 'success');
-
-            // 初始化SDK
             await initSDK(authData.data);
-
-            // 拆分播报句子
-            const fullText = config.text;
-            const sentences = fullText
-              .replace(/([\u3002\uFF01\uFF1F\u002E\u0021\u003F]+)/g, '$1|SPLIT|')
-              .split('|SPLIT|')
-              .map(s => s.trim())
-              .filter(s => s.length > 0);
+            const sentences = splitSentences(config.text);
             totalSentences.value = sentences.length;
-            addLog(`📝 逐句拆分完成,共 ${sentences.length} 句`, 'success');
+            addLog(`📝 逐句拆分完成，共 ${sentences.length} 句`, 'success');
             sentences.forEach((s, i) => {
               addLog(`  句${i + 1}: ${s.substring(0, 50)}${s.length > 50 ? '...' : ''}`, 'info');
             });
-
-            // 启动录制
+            // 【修复 2】播报前检查文本是否变化，自动重新生成翻页节点
+            if (pptConfig.imported && pageTurningConfirmed.value) {
+              const lastText = localStorage.getItem('lastTextForTurningNodes') || '';
+              if (config.text !== lastText && lastText !== '') {
+                addLog('⚠️ 文本已变化，重新生成翻页节点', 'warn');
+                await generateTurningNodes(true);
+              }
+            }
+            
             startRecording();
-
-            // 设置当前句子列表
-            currentSentences.value = sentences;  // ✅ 添加 .value
+            currentSentences.value = sentences;
             sentenceIndex = 0;
             currentSubtitle = '';
-
-            // 逐句播报
             for (let i = 0; i < sentences.length; i++) {
               if (isStopping) {
-                addLog('⚠️ 用户停止播报,中断循环', 'warn');
+                addLog('⚠️ 用户停止播报，中断循环', 'warn');
                 break;
               }
               currentSentence.value = i + 1;
               progressPercent.value = Math.round(((i + 1) / sentences.length) * 100);
-
-              // 👇 ======== 修复 1:自动导播翻页核心逻辑 ======== 👇
               if (pptConfig.imported && pageTurningConfirmed.value) {
-                // 去翻页规则里,找出当前句子索引 (i) 落在哪一页
                 const targetNode = pageTurningNodes.value.find(
                   node => i >= node.start_sentence_index && i <= node.end_sentence_index
                 );
-                // 如果发现该翻页了,立刻更新底层 PPT 页码
                 if (targetNode && currentPptPage.value !== targetNode.page_num) {
                   currentPptPage.value = targetNode.page_num;
-
                   showPageTip.value = true;
                   setTimeout(() => { showPageTip.value = false; }, 2000);
-                  addLog(`📄 自动导播:精准翻页至第 ${targetNode.page_num} 页`, 'success');
+                  addLog(`📄 自动导播：精准翻页至第 ${targetNode.page_num} 页`, 'success');
                 }
               }
-              // 👆 ============================================== 👆
-
               await speakSingleSentence(sentences[i]);
             }
-            addLog('📡 所有句子已发送,等待播报结束', 'info');
+            addLog('📡 所有句子已发送，等待播报结束', 'info');
           } catch (e) {
             addLog('播报失败:' + e.message, 'error');
             onBroadcastFailed(e.message);
           }
         }
-
-                async function stopBroadcast() {
+        async function stopBroadcast() {
           if (isStopping) {
-            addLog('⚠️ 正在停止中,请勿重复操作', 'warn');
+            addLog('⚠️ 正在停止中，请勿重复操作', 'warn');
             return;
           }
           isStopping = true;
           addLog('用户手动停止播报', 'warn');
-
-          // ✅ 核心修复:先停止录制,等文件写入完成,再停止 SDK 断流
-          // 1. 先停止录制,确保元数据完整写入
           if (isRecording.value) {
-            addLog('⏳ 正在停止录制,写入视频元数据...', 'info');
+            addLog('⏳ 正在停止录制，写入视频元数据...', 'info');
             await stopRecording();
-            addLog('✅ 录制已停止,元数据写入完成', 'success');
+            addLog('✅ 录制已停止，元数据写入完成', 'success');
           }
-
-          // 2. 再停止 SDK 和音视频流
           if (broadcastEndTimer) {
             clearTimeout(broadcastEndTimer);
             broadcastEndTimer = null;
@@ -2657,8 +2498,6 @@ function onBroadcastFailed(reason) {
               addLog('SDK 停止异常:' + e.message, 'warn');
             }
           }
-
-          // 3. 清理状态
           isBroadcasting.value = false;
           isConnected.value = false;
           isBroadcastingSentence = false;
@@ -2667,13 +2506,11 @@ function onBroadcastFailed(reason) {
           progressPercent.value = 0;
           currentSubtitle = '';
           avatarSourceDom = null;
-
           setTimeout(() => {
             isStopping = false;
           }, 1000);
         }
-
-// ==================== 全屏切换函数 ====================
+        // ==================== 全屏切换函数 ====================
         function toggleFullscreen() {
           if (!videoContainer.value) return;
           isFullscreen.value = !isFullscreen.value;
@@ -2685,30 +2522,31 @@ function onBroadcastFailed(reason) {
             addLog('📺 退出全屏模式', 'success');
           }
         }
-
-        // ==================== Vue生命周期 ====================
-        // 实例挂载前强制关闭弹窗,杜绝页面加载弹出
+        // ==================== 计算属性 ====================
+        const hasCachedVideo = computed(() => cachedVideos.value.length > 0);
+        const hasVideoBlob = computed(() => videoBlob.value && videoBlob.value.size > 0);
+        const currentNode = computed(() => {
+          return pageTurningNodes.value.find(node => node.page_num === currentEditPage.value) || {
+            page_num: currentEditPage.value,
+            start_sentence_index: 0,
+            end_sentence_index: 0
+          };
+        })
+        // ==================== Vue 生命周期 ====================
         onBeforeMount(() => {
           saveProjectModalOpen.value = false;
         });
-
         onMounted(async () => {
-          // 三重兜底关闭弹窗,杜绝任何闪现
           saveProjectModalOpen.value = false;
           await nextTick(() => {
             saveProjectModalOpen.value = false;
-            // 再次确认关闭
             setTimeout(() => {
               saveProjectModalOpen.value = false;
-              // Vue 完全挂载后才允许弹窗显示
               isVueMounted.value = true;
             }, 0);
           });
-
           await loadCachedVideos();
           addLog('页面加载完成', 'success');
-
-          // 飞书授权回调处理
           const urlParams = new URLSearchParams(window.location.search);
           const code = urlParams.get('code');
           const state = urlParams.get('state');
@@ -2716,23 +2554,17 @@ function onBroadcastFailed(reason) {
             window.history.replaceState({}, document.title, window.location.pathname);
             await importFeishuPpt(code);
           }
-
-          // 🌐 页面一打开就拉取云端项目列表
           await loadCloudProjectList();
-
-
         });
-
         onUnmounted(() => {
           stopBroadcast();
         });
-
         // ==================== 导出响应式数据和方法 ====================
         return {
           config,
           roles,
           voices,
-          currentSentences,  // ✅ 新增:暴露给模板
+          currentSentences,
           isBroadcasting,
           isConnected,
           isRecording,
@@ -2745,6 +2577,7 @@ function onBroadcastFailed(reason) {
           compositeCanvas,
           previewVideo,
           videoContainer,
+          pptFileInput,
           isFullscreen,
           hasCachedVideo,
           hasVideoBlob,
@@ -2758,7 +2591,7 @@ function onBroadcastFailed(reason) {
           clearCache,
           formatDuration,
           toggleFullscreen,
-          // PPT宣讲功能
+          // PPT 宣讲功能
           pptCollapseOpen,
           pptConfig,
           pptImportStatus,
@@ -2770,26 +2603,28 @@ function onBroadcastFailed(reason) {
           currentPptPage,
           currentEditPage,
           currentNode,
-          // 💡 修复:必须导出这两个变量,上传按钮才能显示!
           localPptFile,
           uploadingLocalPpt,
-            // [P0_FIX] 新增导出
           step,
           usePPT,
           toastList,
           switchMode,
           showToast,
           closeToast,
-cloudProjectCollapseOpen,
+          cloudProjectCollapseOpen,
           cloudProjectList,
           saveProjectModalOpen,
           saveProjectForm,
           isVueMounted,
-          // PPT功能函数
+          // [修复] 补充模板依赖的响应式变量
+          showPptPreview,
+          currentPreviewPptImg,
+          // PPT 功能函数
           checkPptUrlFormat,
           startFeishuAuth,
           generateTurningNodes,
           isSentenceBound,
+          // [修复] 补充模板依赖的函数
           openPptPreview,
           isSentenceHighlight,
           dragSentence,
@@ -2816,4 +2651,4 @@ cloudProjectCollapseOpen,
   </script>
 </body>
 </html>
-<!-- v2-restructure-1776055462 -->
+<!-- v2-restructure-1776055462-fixed -->
