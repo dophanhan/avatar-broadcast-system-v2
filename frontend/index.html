@@ -50,13 +50,14 @@
       gap: 25px;
       align-items: flex-start;
     }
-    /* 视频容器比例调整，与右侧按钮列高度对齐 */
+    /* 视频容器：4:3 比例，与右侧按钮栏等高 */
     .video-container {
       position: relative;
       width: 100%;
       max-width: 720px;
       margin: 0;
-      padding-bottom: 68.5%; /* v2 */ /* 调整：从 50% 增加到 68%，让视频底部与按钮底部对齐 */
+      /* 4:3 计算公式：height/width = 3/4 = 75% */
+      padding-bottom: 75%;
       background: #000;
       border-radius: 15px;
       overflow: hidden;
@@ -479,9 +480,12 @@
       width: 100vw; height: 100vh;
       background: rgba(0,0,0,0.85);
       z-index: 99999;
-      display: flex;
+      display: none !important;
       align-items: center;
       justify-content: center;
+    }
+    .ppt-preview-modal[v-show="true"] {
+      display: flex !important;
     }
     .preview-img { max-width: 90vw; max-height: 90vh; border-radius: 8px; }
     .preview-close {
@@ -518,7 +522,10 @@
     }
     .modal-title { font-size: 1.5em; color: #333; margin-bottom: 20px; font-weight: 600; }
     .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
-    [v-cloak] { display: none !important; }
+    /* 全局加强 v-cloak，彻底隐藏未挂载元素 */
+    [v-cloak] {
+      display: none !important;
+    }
     
     /* ========== 响应式（修改） ========== */
     @media (max-width: 1200px) { 
@@ -609,8 +616,6 @@
             </div>
           </div>
         </div>
-        <!-- 预览视频 -->
-        <video ref="previewVideo" style="width:100%;margin-top:20px;border-radius:10px;" controls></video>
         </div>
       </div>
       <!-- 3. 步骤导航条 -->
@@ -810,6 +815,10 @@
             </div>
           </div>
         </div>
+      </div>
+      <!-- 缓存播放视频（移到最下方） -->
+      <div class="container" style="max-width: 800px; margin: 20px auto;">
+        <video ref="previewVideo" style="width:100%;border-radius:10px;" controls></video>
       </div>
       <!-- Toast 容器 -->
       <div class="toast-container">
