@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Deploy: 2026-04-14 18:42 - Fix config.text & updateAIGenerateButtonState -->
+  <!-- Deploy: 2026-04-14 21:30 - v24 完整前端优化：呼吸灯 + 动态小手 + 文档解析 + 防误触 -->
   <title>数字人播报系统 V2.0 - 上下布局重构版</title>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
@@ -692,29 +692,57 @@
       margin-top: 4px;
     }
     
-    /* 状态驱动呼吸灯引导 */
+    /* ========================================= */
+    /* 核心操作指引：呼吸灯 + 动态小手 */
+    /* ========================================= */
     .btn-pulse {
       animation: corePulse 2s infinite;
       position: relative;
+      /* 为右侧小手留出空间，避免遮挡文字 */
+      padding-right: 50px !important; 
     }
+    
+    /* 弹跳指引小手 */
+    .btn-pulse::before {
+      content: '👈';
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      font-size: 22px;
+      line-height: 1;
+      animation: bounceHand 0.5s infinite alternate ease-in-out;
+      pointer-events: none;
+      z-index: 10;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+    }
+
+    /* 按钮外发光涟漪 */
     .btn-pulse::after {
       content: '';
       position: absolute;
       top: -4px; left: -4px; right: -4px; bottom: -4px;
-      border-radius: 12px;
+      border-radius: inherit; 
       border: 2px solid #667eea;
       animation: ripple 2s infinite;
       pointer-events: none;
     }
+
+    @keyframes bounceHand {
+      from { transform: translateY(-50%) translateX(0); }
+      to { transform: translateY(-50%) translateX(-12px); }
+    }
+
     @keyframes corePulse {
-      0% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4); }
-      70% { box-shadow: 0 0 0 10px rgba(102, 126, 234, 0); }
+      0% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.5); }
+      70% { box-shadow: 0 0 0 12px rgba(102, 126, 234, 0); }
       100% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0); }
     }
+
     @keyframes ripple {
-      0% { transform: scale(0.95); opacity: 1; }
-      100% { transform: scale(1.05); opacity: 0; }
+      0% { transform: scale(0.98); opacity: 1; }
+      100% { transform: scale(1.04); opacity: 0; }
     }
+
     .format-tip-small {
       font-size: 11px;
       color: #888;
@@ -775,7 +803,7 @@
 
             <!-- 核心按钮组 -->
             <div class="core-btn-group">
-              <button class="btn btn-primary" @click="startBroadcast" :disabled="isBroadcasting || step < 5 || !config.text || (usePPT && !pageTurningConfirmed)">
+              <button class="btn btn-primary" :class="{'btn-pulse': !isBroadcasting && pageTurningConfirmed}" @click="startBroadcast" :disabled="isBroadcasting || step < 5 || !config.text || (usePPT && !pageTurningConfirmed)">
                 🎙️ {{ isBroadcasting ? '播报中...' : '开始播报' }}
               </button>
               <button class="btn btn-danger" @click="stopBroadcast" :disabled="!isBroadcasting">⏹️ 停止播报</button>
