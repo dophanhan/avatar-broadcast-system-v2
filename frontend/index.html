@@ -646,6 +646,50 @@
         font-size: 20px;
       }
     }
+    
+    /* AI 生成按钮样式 */
+    .text-input-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .text-input-header label {
+      margin: 0;
+      font-weight: 500;
+    }
+
+    .btn-ai-generate {
+      padding: 6px 12px;
+      font-size: 13px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-ai-generate:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-ai-generate:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .error-tip {
+      color: #f56c6c;
+      font-size: 12px;
+      margin-top: 4px;
+    }
   </style>
 </head>
 <body>
@@ -882,7 +926,26 @@
         <div class="panel config-panel">
           <h2>📝 播报文本</h2>
           <div class="form-group">
-            <textarea v-model="config.text" placeholder="请输入要播报的文本内容..." @input="clearCache" style="height:200px;"></textarea>
+            <div class="text-input-header">
+              <label>播报文案</label>
+              <button 
+                class="btn-ai-generate"
+                :disabled="!canAIGenerate"
+                @click="handleAIGenerate"
+                :title="canAIGenerate ? '根据 PPT 内容自动生成播报文本' : '请先导入 PPT 文件'"
+              >
+                <span v-if="!aiGenerating">✨ AI 生成</span>
+                <span v-else>🔄 生成中...</span>
+              </button>
+            </div>
+            <textarea 
+              v-model="config.text" 
+              placeholder="请输入要播报的文本内容，或点击 AI 生成按钮自动创建..." 
+              @input="clearCache"
+              :disabled="aiGenerating"
+              style="height:200px;"
+            ></textarea>
+            <div v-if="aiGenerateError" class="error-tip">{{ aiGenerateError }}</div>
             <div style="text-align:right;margin-top:5px;color:#666;font-size:12px;">共 {{ currentSentences.length }} 句</div>
           </div>
         </div>
@@ -1114,6 +1177,10 @@
         const isFullscreen = ref(false);
         // 悬浮返回按钮
         const showBackToTop = ref(false);
+        // AI 生成相关状态
+        const canAIGenerate = ref(false);
+        const aiGenerating = ref(false);
+        const aiGenerateError = ref('');
         // 全局实例变量
         let sdkInstance = null;
         let compositeInterval = null;
@@ -2569,6 +2636,56 @@ ${sentencesList}
             isStopping = false;
           }, 1000);
         }
+        // ==================== AI 生成播报文本 ====================
+        async function handleAIGenerate() {
+          if (!canAIGenerate.value) {
+            showToast('请先导入 PPT 文件', 'warn');
+            return;
+          }
+          
+          aiGenerating.value = true;
+          aiGenerateError.value = '';
+          addLog('🤖 正在调用豆包大模型生成播报文本...', 'info');
+          
+          try {
+            const pptContext = pptConfig.pages.map(page => ({
+              page_num: page.page_num,
+              page_title: page.page_title,
+              page_text: page.page_text
+            }));
+            
+            const response = await fetch(`${API_BASE_URL}/ai/generate-broadcast-text`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                ppt_pages: pptContext,
+                ppt_title: pptConfig.pptTitle,
+                total_pages: pptConfig.totalPages
+              })
+            });
+            
+            const result = await response.json();
+            
+            if (result.code !== 0) {
+              throw new Error(result.msg || 'AI 生成失败');
+            }
+            
+            config.value.text = result.data.broadcast_text;
+            
+            addLog('✅ AI 播报文本生成成功', 'success');
+            showToast('播报文本已生成', 'success');
+            
+          } catch (error) {
+            console.error('AI 生成失败:', error);
+            aiGenerateError.value = `生成失败：${error.message}`;
+            addLog(`❌ AI 生成失败：${error.message}`, 'error');
+            showToast(error.message, 'error');
+          } finally {
+            aiGenerating.value = false;
+          }
+        }
         // ==================== 全屏切换函数 ====================
         function toggleFullscreen() {
           if (!videoContainer.value) return;
@@ -2612,6 +2729,20 @@ ${sentencesList}
             showBackToTop.value = window.scrollY > 300;
           });
           
+          // 监听 PPT 导入状态，自动控制 AI 生成按钮可用性
+          watch(() => pptConfig.imported, (newVal) => {
+            canAIGenerate.value = usePPT.value && newVal && pptConfig.totalPages > 0;
+          }, { immediate: true });
+          
+          // 监听播报模式切换
+          watch(() => usePPT.value, (newVal) => {
+            if (!newVal) {
+              canAIGenerate.value = false;
+            } else {
+              canAIGenerate.value = pptConfig.imported && pptConfig.totalPages > 0;
+            }
+          }, { immediate: true });
+          
           const urlParams = new URLSearchParams(window.location.search);
           const code = urlParams.get('code');
           const state = urlParams.get('state');
@@ -2654,6 +2785,10 @@ ${sentencesList}
           isFullscreen,
           hasCachedVideo,
           hasVideoBlob,
+          canAIGenerate,
+          aiGenerating,
+          aiGenerateError,
+          handleAIGenerate,
           startBroadcast,
           stopBroadcast,
           downloadVideo,
