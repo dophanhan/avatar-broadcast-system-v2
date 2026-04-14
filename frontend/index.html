@@ -955,6 +955,16 @@
         </div>
       </div>
     </div>
+    
+    <!-- 悬浮返回按钮 -->
+    <button 
+      v-show="showBackToTop" 
+      class="back-to-top-btn" 
+      @click="scrollToTop" 
+      title="返回实时预览"
+    >
+      ⬆️
+    </button>
   </div>
 <script>
     // IndexedDB 配置
@@ -1101,6 +1111,8 @@
         const pptFileInput = ref(null);
         // 全屏状态
         const isFullscreen = ref(false);
+        // 悬浮返回按钮
+        const showBackToTop = ref(false);
         // 全局实例变量
         let sdkInstance = null;
         let compositeInterval = null;
@@ -2593,6 +2605,12 @@ ${sentencesList}
           });
           await loadCachedVideos();
           addLog('页面加载完成', 'success');
+          
+          // 监听滚动，显示/隐藏返回按钮
+          window.addEventListener('scroll', () => {
+            showBackToTop.value = window.scrollY > 300;
+          });
+          
           const urlParams = new URLSearchParams(window.location.search);
           const code = urlParams.get('code');
           const state = urlParams.get('state');
@@ -2605,6 +2623,14 @@ ${sentencesList}
         onUnmounted(() => {
           stopBroadcast();
         });
+        // ==================== 返回顶部函数 ====================
+        function scrollToTop() {
+          window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+          });
+          addLog?.('⬆️ 已返回实时预览', 'info');
+        }
         // ==================== 导出响应式数据和方法 ====================
         return {
           config,
@@ -2690,38 +2716,13 @@ ${sentencesList}
           reuseProject,
           editProject,
           downloadCloudVideo,
-          deleteCloudProject
+          deleteCloudProject,
+          showBackToTop,
+          scrollToTop
         };
       }
     }).mount('#app');
-    
-    // ========== 悬浮返回按钮功能 ==========
-    const backToTopBtn = document.getElementById('backToTopBtn');
-    if (backToTopBtn) {
-      // 监听滚动，显示/隐藏按钮
-      window.addEventListener('scroll', () => {
-        if (window.scrollY > 300) {
-          backToTopBtn.classList.add('show');
-        } else {
-          backToTopBtn.classList.remove('show');
-        }
-      });
-      
-      // 点击返回顶部
-      backToTopBtn.addEventListener('click', () => {
-        window.scrollTo({
-          top: 0,
-          behavior: 'smooth'
-        });
-        addLog?.('⬆️ 已返回实时预览', 'info');
-      });
-    }
   </script>
-  
-  <!-- 悬浮返回按钮 -->
-  <button id="backToTopBtn" class="back-to-top-btn" title="返回实时预览">
-    ⬆️
-  </button>
 </body>
 </html>
 <!-- v2-restructure-1776055462-fixed -->
