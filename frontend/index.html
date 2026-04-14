@@ -691,6 +691,36 @@
       font-size: 12px;
       margin-top: 4px;
     }
+    
+    /* 状态驱动呼吸灯引导 */
+    .btn-pulse {
+      animation: corePulse 2s infinite;
+      position: relative;
+    }
+    .btn-pulse::after {
+      content: '';
+      position: absolute;
+      top: -4px; left: -4px; right: -4px; bottom: -4px;
+      border-radius: 12px;
+      border: 2px solid #667eea;
+      animation: ripple 2s infinite;
+      pointer-events: none;
+    }
+    @keyframes corePulse {
+      0% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4); }
+      70% { box-shadow: 0 0 0 10px rgba(102, 126, 234, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0); }
+    }
+    @keyframes ripple {
+      0% { transform: scale(0.95); opacity: 1; }
+      100% { transform: scale(1.05); opacity: 0; }
+    }
+    .format-tip-small {
+      font-size: 11px;
+      color: #888;
+      margin-left: 8px;
+      font-weight: normal;
+    }
   </style>
 </head>
 <body>
@@ -832,7 +862,7 @@
             <label>📤 本地 PPT 文件上传</label>
             <div style="flex-direction:column;align-items:stretch;">
               <input type="file" ref="pptFileInput" accept=".ppt,.pptx" @change="handleLocalPptUpload" style="padding:10px;border:2px dashed #e0e0e0;border-radius:8px;margin-bottom:10px;">
-              <button class="btn btn-primary" @click="uploadLocalPpt" :disabled="!localPptFile || uploadingLocalPpt" style="margin-top:10px;width:100%;">
+              <button class="btn btn-primary" :class="{'btn-pulse': localPptFile && !uploadingLocalPpt && !pptConfig.imported}" @click="uploadLocalPpt" :disabled="!localPptFile || uploadingLocalPpt" style="margin-top:10px;width:100%;">
                 <span v-if="!localPptFile">📤 请先选择 PPT 文件</span>
                 <span v-else-if="uploadingLocalPpt">⏳ 上传中...</span>
                 <span v-else>🚀 上传并解析</span>
@@ -849,7 +879,7 @@
             </div>
           </div>
           <div class="form-group">
-            <button class="btn btn-primary" style="width:100%;" @click="generateTurningNodes" :disabled="!config.text || !pptConfig.imported">
+            <button class="btn btn-primary" :class="{'btn-pulse': config.text && pptConfig.imported && pageTurningNodes.length === 0}" style="width:100%;" @click="generateTurningNodes" :disabled="!config.text || !pptConfig.imported">
               🤖 生成智能翻页节点
             </button>
             <div v-if="!config.text && !pptConfig.imported" class="status-tip warn" style="margin-top:8px;">
@@ -912,7 +942,7 @@
             </div>
             <div class="adjust-row" style="justify-content:flex-end;margin-top:20px;">
               <button class="btn btn-default" @click="cancelTurningEdit">取消</button>
-              <button class="btn btn-success" @click="confirmTurningRules">✅ 确认翻页规则</button>
+              <button class="btn btn-success" :class="{'btn-pulse': pageTurningNodes.length > 0 && !pageTurningConfirmed}" @click="confirmTurningRules">✅ 确认翻页规则</button>
             </div>
           </div>
           <div class="form-group" style="margin-top:20px;">
@@ -928,16 +958,23 @@
           <h2>📝 播报文本</h2>
           <div class="form-group">
             <div class="text-input-header">
-              <label>播报文案</label>
-              <button 
-                class="btn-ai-generate"
-                :disabled="!canAIGenerate"
-                @click="handleAIGenerate"
-                :title="canAIGenerate ? '根据 PPT 内容自动生成播报文本' : '请先导入 PPT 文件'"
-              >
-                <span v-if="!aiGenerating">✨ AI 生成</span>
-                <span v-else>🔄 生成中...</span>
-              </button>
+              <label style="display:flex; align-items:center;">
+                播报文案
+                <span class="format-tip-small">支持导入文档 (推荐 .docx / .pdf / .txt，不支持 .doc)</span>
+              </label>
+              <div style="display:flex; gap: 8px;">
+                <input type="file" ref="docFileInput" accept=".txt,.pdf,.docx" style="display:none" @change="handleDocUpload">
+                
+                <button class="btn-ai-generate" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: #333;" @click="$refs.docFileInput.click()" :disabled="isParsingDoc">
+                  <span v-if="!isParsingDoc">📄 导入文档</span>
+                  <span v-else>⏳ 解析中...</span>
+                </button>
+
+                <button class="btn-ai-generate" :disabled="!canAIGenerate" @click="handleAIGenerate" :title="canAIGenerate ? '根据 PPT 内容自动生成播报文本' : '请先导入 PPT 文件'">
+                  <span v-if="!aiGenerating">✨ AI 生成</span>
+                  <span v-else>🔄 生成中...</span>
+                </button>
+              </div>
             </div>
             <textarea 
               v-model="config.text" 
@@ -1183,6 +1220,9 @@
         const canAIGenerate = ref(false);
         const aiGenerating = ref(false);
         const aiGenerateError = ref('');
+        // 文档导入相关状态
+        const docFileInput = ref(null);
+        const isParsingDoc = ref(false);
         // 全局实例变量
         let sdkInstance = null;
         let compositeInterval = null;
@@ -1538,6 +1578,12 @@
           pageTurningNodes.value = nodes;
           pageTurningConfirmed.value = true;
           addLog('✅ 翻页规则已自动纠偏并确认生效!', 'success');
+          
+          // 👇 在函数最后新增这两行
+          showToast('配置完毕！请前往上方点击【开始播报】', 'success', 4000);
+          setTimeout(() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }, 500);
         }
         function manualTurnPage(offset) {
           const p = currentPptPage.value + offset;
@@ -2647,6 +2693,75 @@ ${sentencesList}
             isStopping = false;
           }, 1000);
         }
+        // ==================== 文档导入功能 ====================
+        // 防误触保护逻辑
+        function safeApplyText(newText) {
+          if (config.text && config.text.trim() !== '') {
+            const isConfirm = window.confirm('⚠️ 文本框中已有内容，继续操作将清空现有文字，是否确认覆盖？');
+            if (!isConfirm) return false;
+          }
+          config.text = newText;
+          return true;
+        }
+        
+        // 文档上传与解析主函数
+        async function handleDocUpload(event) {
+          const file = event.target.files[0];
+          if (!file) return;
+          
+          if (file.name.toLowerCase().endsWith('.doc')) {
+             showToast('不支持老版本的 .doc 格式，请另存为 .docx 后再上传', 'warn');
+             event.target.value = '';
+             return;
+          }
+
+          if (file.size > 10 * 1024 * 1024) {
+            showToast('文档大小不能超过 10MB', 'error');
+            event.target.value = '';
+            return;
+          }
+
+          isParsingDoc.value = true;
+          addLog(`📄 正在读取文档：${file.name}...`, 'info');
+          const loadingToast = showToast('正在解析文档内容，请稍候...', 'loading');
+
+          try {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = async () => {
+              const base64Data = reader.result;
+              const res = await fetch(`${API_BASE_URL}/doc/parse`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  file: base64Data,
+                  filename: file.name
+                })
+              });
+              
+              const result = await res.json();
+              closeToast(loadingToast);
+              
+              if (result.code === 0 && result.data && result.data.parsed_text) {
+                if (safeApplyText(result.data.parsed_text)) {
+                  addLog('✅ 文档解析成功，已导入文本框', 'success');
+                  showToast('文档导入成功', 'success');
+                  clearCache(); 
+                }
+              } else {
+                throw new Error(result.msg || '解析返回为空');
+              }
+            };
+            reader.onerror = () => { throw new Error('本地读取文件失败'); };
+          } catch (error) {
+            closeToast(loadingToast);
+            addLog(`❌ 文档解析失败：${error.message}`, 'error');
+            showToast(error.message, 'error');
+          } finally {
+            isParsingDoc.value = false;
+            event.target.value = ''; // 重置 input
+          }
+        }
         // ==================== AI 生成播报文本 ====================
         async function handleAIGenerate() {
           if (!canAIGenerate.value) {
@@ -2683,10 +2798,13 @@ ${sentencesList}
               throw new Error(result.msg || 'AI 生成失败');
             }
             
-            config.text = result.data.broadcast_text;
-            
-            addLog('✅ AI 播报文本生成成功', 'success');
-            showToast('播报文本已生成', 'success');
+            if (safeApplyText(result.data.broadcast_text)) {
+              addLog('✅ AI 播报文本生成成功', 'success');
+              showToast('播报文本已生成', 'success');
+              clearCache();
+            } else {
+              addLog('ℹ️ 用户取消了 AI 文本覆盖', 'info');
+            }
             
           } catch (error) {
             console.error('AI 生成失败:', error);
@@ -2850,6 +2968,10 @@ ${sentencesList}
           reImportPpt,
           handleLocalPptUpload,
           uploadLocalPpt,
+          // 文档导入功能
+          docFileInput,
+          isParsingDoc,
+          handleDocUpload,
           openSaveProjectModal,
           closeSaveModal,
           confirmSaveProject,
