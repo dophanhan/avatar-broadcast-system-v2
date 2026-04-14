@@ -959,6 +959,7 @@
     <!-- 悬浮返回按钮 -->
     <button 
       v-show="showBackToTop" 
+      :class="{ show: showBackToTop }"
       class="back-to-top-btn" 
       @click="scrollToTop" 
       title="返回实时预览"
