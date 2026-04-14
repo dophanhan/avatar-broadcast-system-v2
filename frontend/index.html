@@ -1104,14 +1104,6 @@
         // Vue 核心 API 解构
         const { onMounted, onBeforeMount, ref, reactive, computed, onUnmounted, nextTick, watch } = Vue;
         
-        // AI 生成按钮状态更新函数（提前定义，避免调用时未定义）
-        function updateAIGenerateButtonState() {
-          const hasPPT = pptConfig.imported && pptConfig.totalPages > 0;
-          const inPPTMode = usePPT.value;
-          canAIGenerate.value = inPPTMode && hasPPT;
-          addLog(`🔘 AI 生成按钮状态：canAIGenerate=${canAIGenerate.value}, usePPT=${usePPT.value}, imported=${pptConfig.imported}, totalPages=${pptConfig.totalPages}`, 'info');
-        }
-        
         // 核心配置响应式数据
         const config = reactive({
           roleId: '111204004',  // 默认知夏形象
@@ -1342,6 +1334,13 @@
             type
           });
           console.log(`[${type}] ${message}`);
+        }
+        // AI 生成按钮状态更新函数（在所有依赖变量定义之后）
+        function updateAIGenerateButtonState() {
+          const hasPPT = pptConfig.imported && pptConfig.totalPages > 0;
+          const inPPTMode = usePPT.value;
+          canAIGenerate.value = inPPTMode && hasPPT;
+          addLog(`🔘 AI 生成按钮状态：canAIGenerate=${canAIGenerate.value}, usePPT=${usePPT.value}, imported=${pptConfig.imported}, totalPages=${pptConfig.totalPages}`, 'info');
         }
         function formatDuration(seconds) {
           const mins = Math.floor(seconds / 60);
@@ -2683,7 +2682,7 @@ ${sentencesList}
               throw new Error(result.msg || 'AI 生成失败');
             }
             
-            config.value.text = result.data.broadcast_text;
+            config.text = result.data.broadcast_text;
             
             addLog('✅ AI 播报文本生成成功', 'success');
             showToast('播报文本已生成', 'success');
