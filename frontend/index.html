@@ -601,6 +601,51 @@
       .ppt-thumb-grid { grid-template-columns: repeat(2, 1fr); }
       .core-btn-group { justify-content: flex-start; }
     }
+    
+    /* ========== 悬浮返回按钮 ========== */
+    .back-to-top-btn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      transition: all 0.3s ease;
+      z-index: 10000;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(20px);
+    }
+    .back-to-top-btn.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    .back-to-top-btn:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+    .back-to-top-btn:active {
+      transform: scale(0.95);
+    }
+    @media (max-width: 768px) {
+      .back-to-top-btn {
+        bottom: 20px;
+        right: 20px;
+        width: 45px;
+        height: 45px;
+        font-size: 20px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -2649,7 +2694,34 @@ ${sentencesList}
         };
       }
     }).mount('#app');
+    
+    // ========== 悬浮返回按钮功能 ==========
+    const backToTopBtn = document.getElementById('backToTopBtn');
+    if (backToTopBtn) {
+      // 监听滚动，显示/隐藏按钮
+      window.addEventListener('scroll', () => {
+        if (window.scrollY > 300) {
+          backToTopBtn.classList.add('show');
+        } else {
+          backToTopBtn.classList.remove('show');
+        }
+      });
+      
+      // 点击返回顶部
+      backToTopBtn.addEventListener('click', () => {
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+        addLog?.('⬆️ 已返回实时预览', 'info');
+      });
+    }
   </script>
+  
+  <!-- 悬浮返回按钮 -->
+  <button id="backToTopBtn" class="back-to-top-btn" title="返回实时预览">
+    ⬆️
+  </button>
 </body>
 </html>
 <!-- v2-restructure-1776055462-fixed -->
