@@ -1641,6 +1641,7 @@
             pptConfig.imported = true;
             pptConfig.isLocal = true;
             await nextTick();
+            updateAIGenerateButtonState();
             addLog(`🔍 赋值后检查:pptConfig.imported=${pptConfig.imported}, pptConfig.totalPages=${pptConfig.totalPages}, pptConfig.pages 长度=${pptConfig.pages.length}`, 'success');
             addLog(`📊 上传后:pptConfig.imported=${pptConfig.imported}, totalPages=${pptConfig.totalPages}`, 'success');
             currentPptPage.value = 1;
@@ -1797,6 +1798,7 @@ ${sentencesList}
             pptConfig.pages = pptResult.data.pages;
             currentPptPage.value = 1;
             currentEditPage.value = 1;
+            updateAIGenerateButtonState();
             await preloadPptImages();
             pptImportStatus.value = { type: 'success', text: `PPT 导入成功，共${pptConfig.totalPages}页` };
             await loadCloudProjectList();
@@ -2729,19 +2731,20 @@ ${sentencesList}
             showBackToTop.value = window.scrollY > 300;
           });
           
+          // AI 生成按钮状态更新函数
+          function updateAIGenerateButtonState() {
+            const hasPPT = pptConfig.imported && pptConfig.totalPages > 0;
+            const inPPTMode = usePPT.value;
+            canAIGenerate.value = inPPTMode && hasPPT;
+            addLog(`🔘 AI 生成按钮状态：canAIGenerate=${canAIGenerate.value}, usePPT=${usePPT.value}, imported=${pptConfig.imported}, totalPages=${pptConfig.totalPages}`, 'info');
+          }
+          
           // 监听 PPT 导入状态，自动控制 AI 生成按钮可用性
-          watch(() => pptConfig.imported, (newVal) => {
-            canAIGenerate.value = usePPT.value && newVal && pptConfig.totalPages > 0;
-          }, { immediate: true });
+          watch(() => pptConfig.imported, updateAIGenerateButtonState, { immediate: true });
+          watch(() => pptConfig.totalPages, updateAIGenerateButtonState, { immediate: true });
           
           // 监听播报模式切换
-          watch(() => usePPT.value, (newVal) => {
-            if (!newVal) {
-              canAIGenerate.value = false;
-            } else {
-              canAIGenerate.value = pptConfig.imported && pptConfig.totalPages > 0;
-            }
-          }, { immediate: true });
+          watch(() => usePPT.value, updateAIGenerateButtonState, { immediate: true });
           
           const urlParams = new URLSearchParams(window.location.search);
           const code = urlParams.get('code');
