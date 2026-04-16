@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- Deploy: 2026-04-14 21:30 - v24 完整前端优化：呼吸灯 + 动态小手 + 文档解析 + 防误触 -->
   <title>数字人播报系统 V2.0 - 上下布局重构版</title>
-  <meta http-equiv=202604161821"Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv=202604161821"Pragma" content="no-cache">
-  <meta http-equiv=202604161821"Expires" content="0">
+  <meta http-equiv=202604161854"Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv=202604161854"Pragma" content="no-cache">
+  <meta http-equiv=202604161854"Expires" content="0">
   <script src="https://unpkg.com/vue@3.4.21/dist/vue.global.prod.js"></script>
   <script src="https://unpkg.com/mp4box@0.5.2/dist/mp4box.all.min.js"></script>
   <script type="module">
@@ -998,7 +998,8 @@
                   @click="generateTurningNodes"
                   :disabled="!config.text || !pptConfig.imported"
                   title="需先导入 PPT 并输入播报文本">
-                  🤖 生成翻页节点
+                  <span v-if="!pptConfig.imported">🚫 需 PPT</span>
+                  <span v-else>🤖 生成翻页节点</span>
                 </button>
 
                 <input type="file" ref="docFileInput" accept=".txt,.pdf,.docx" style="display:none" @change="handleDocUpload">
