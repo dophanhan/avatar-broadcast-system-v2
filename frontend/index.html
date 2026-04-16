@@ -527,21 +527,24 @@
       to { transform: translateX(0); opacity: 1; }
     }
     
-    /* ========== PPT 预览弹窗 ========== */
+    /* ========== PPT 预览弹窗（修复 display:none 与 v-if 冲突） ========== */
     .ppt-preview-modal {
       position: fixed;
       top: 0; left: 0;
       width: 100vw; height: 100vh;
       background: rgba(0,0,0,0.85);
       z-index: 99999;
-      display: none !important;
+      display: flex; /* 由 v-if 控制挂载，移除 display:none !important */
       align-items: center;
       justify-content: center;
+      transition: opacity 0.3s ease;
     }
-    .ppt-preview-modal[v-show="true"] {
-      display: flex !important;
+    /* 删除原有的 .ppt-preview-modal[v-show="true"] 冗余规则 */
+    .preview-img {
+      max-width: 90vw; max-height: 90vh;
+      border-radius: 8px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.5);
     }
-    .preview-img { max-width: 90vw; max-height: 90vh; border-radius: 8px; }
     .preview-close {
       position: absolute;
       top: 20px; right: 20px;
@@ -552,8 +555,12 @@
       border: none;
       font-size: 24px;
       cursor: pointer;
+      transition: all 0.3s;
     }
-    .preview-close:hover { background: rgba(255,255,255,0.4); }
+    .preview-close:hover {
+      background: rgba(255,255,255,0.5);
+      transform: rotate(90deg);
+    }
     
     /* ========== 弹窗样式 ========== */
     .modal-mask {
@@ -933,17 +940,24 @@
           <div v-if="pageTurningNodes.length > 0" class="form-group">
             <div class="dual-column-panel">
               <div class="column-box">
-                <div class="column-title">📑 PPT 页面列表</div>
-                <div class="ppt-thumb-item" :class="{ active: currentEditPage === item.page_num }" v-for="item in pptConfig.pages" :key="item.page_num" @click="currentEditPage = item.page_num">
+                <div class="column-title">📑 PPT 页面列表 (点击定位文案)</div>
+                <div class="ppt-thumb-item"
+                     :class="{ active: currentEditPage === item.page_num }"
+                     v-for="item in pptConfig.pages"
+                     :key="item.page_num"
+                     @click="selectPageAndScroll(item.page_num)">
+                  <img :src="item.page_image_url" :alt="item.page_title" style="cursor:zoom-in;" @click.stop="openPptPreview(item.page_image_url)">
                   <div class="ppt-thumb-title">第{{ item.page_num }}页 | {{ item.page_title }}</div>
                 </div>
               </div>
-              <div class="column-box">
+
+              <div class="column-box" id="sentence-container">
                 <div class="column-title">📝 绑定的播报句子</div>
                 <div class="sentence-item" 
                      :class="{ bound: isSentenceBound(index), highlight: isSentenceHighlight(index) }" 
                      v-for="(sentence, index) in currentSentences" 
-                     :key="index" 
+                     :key="index"
+                     :id="'sentence-' + index" 
                      :data-index="'句' + (index+1)"
                      draggable="true" 
                      @dragstart="dragSentence(index)" 
@@ -1578,6 +1592,31 @@
         function resetTurningNodes() {
           generateTurningNodes(true);
         }
+        // 选中页面并滚动右侧文案至可视区域居中
+        function selectPageAndScroll(pageNum) {
+          currentEditPage.value = pageNum;
+          
+          // 查找当前页绑定的节点信息
+          const node = pageTurningNodes.value.find(n => n.page_num === pageNum);
+          
+          if (node) {
+            const targetIdx = node.start_sentence_index;
+            // 等待 Vue DOM 更新后执行滚动
+            nextTick(() => {
+              const element = document.getElementById(`sentence-${targetIdx}`);
+              if (element) {
+                element.scrollIntoView({
+                  behavior: 'smooth',
+                  block: 'center'
+                });
+                addLog(`📍 已自动定位到第 ${targetIdx + 1} 句`, 'info');
+              }
+            });
+          } else {
+            addLog(`ℹ️ 第 ${pageNum} 页尚未绑定文案节点`, 'warn');
+          }
+        }
+        
         function cancelTurningEdit() {
           pageTurningNodes.value = [];
           pageTurningConfirmed.value = false;
@@ -2996,6 +3035,7 @@ ${sentencesList}
           reImportPpt,
           handleLocalPptUpload,
           uploadLocalPpt,
+          selectPageAndScroll, // 新增：页面选中与滚动定位
           // 文档导入功能
           docFileInput,
           isParsingDoc,
