@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- Deploy: 2026-04-14 21:30 - v24 完整前端优化：呼吸灯 + 动态小手 + 文档解析 + 防误触 -->
   <title>数字人播报系统 V2.0 - 上下布局重构版</title>
-  <meta http-equiv=202604161854"Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv=202604161854"Pragma" content="no-cache">
-  <meta http-equiv=202604161854"Expires" content="0">
+  <meta http-equiv=202604162056"Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv=202604162056"Pragma" content="no-cache">
+  <meta http-equiv=202604162056"Expires" content="0">
   <script src="https://unpkg.com/vue@3.4.21/dist/vue.global.prod.js"></script>
   <script src="https://unpkg.com/mp4box@0.5.2/dist/mp4box.all.min.js"></script>
   <script type="module">
@@ -2667,7 +2667,7 @@ ${sentencesList}
           addLog('🎬 开始播报流程', 'success');
           try {
             addLog('正在获取鉴权信息...', 'info');
-            const authResponse = await fetch('https://avatar-roadcast-shakmjgzdi.cn-hangzhou.fcapp.run', {
+            const authResponse = await fetch(`${API_BASE_URL}`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
